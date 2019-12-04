@@ -82,15 +82,15 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(c.Layout[i], act)
 	}
 
-	for i := 0; i < len(layers)-1; i++ {
-		layers[i].Connect(layers[i+1], c.Weight)
-	}
-
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		for i := range neuron.In {
 			neuron.In[i] = NewSynapse(c.Weight())
 		}
+	}
+
+	for i := 0; i < len(layers)-1; i++ {
+		layers[i].Connect(layers[i+1], c.Weight)
 	}
 
 	return layers
@@ -115,6 +115,7 @@ func (n *Neural) Forward(input []float64) error {
 	for _, n := range n.Layers[0].Neurons {
 		for i := 0; i < len(input); i++ {
 			n.In[i].fire(input[i])
+			//fmt.Println("i:", i, "In=", n.In[i].In, "Out=", n.In[i].Out, "Weight=", n.In[i].Weight)
 		}
 	}
 	n.fire()

@@ -1,5 +1,9 @@
 package deep
 
+import (
+	"math"
+)
+
 // Neuron is a neural network node
 type Neuron struct {
 	A     ActivationType `json:"-"`
@@ -12,13 +16,16 @@ type Neuron struct {
 func NewNeuron(activation ActivationType) *Neuron {
 	return &Neuron{
 		A: activation,
+//		Value: 0.05,
 	}
 }
 
 func (n *Neuron) fire() {
 	var sum float64
 	for _, s := range n.In {
-		sum += s.Out
+		if !math.IsNaN(sum + s.Out) {
+			sum += s.Out
+		}
 	}
 	n.Value = n.Activate(sum)
 
