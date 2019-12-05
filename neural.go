@@ -2,6 +2,10 @@ package deep
 
 import (
 	"fmt"
+	"os"
+	"io"
+	"encoding/json"
+	"bytes"
 )
 
 // Neural is a neural network
@@ -25,7 +29,7 @@ type Config struct {
 	// Solver modes: {ModeRegression, ModeBinary, ModeMultiClass, ModeMultiLabel}
 	Mode Mode
 	// Initializer for weights: {NewNormal(σ, μ), NewUniform(σ, μ)}
-	Weight WeightInitializer `json:"-"`
+	Weight WeightInitializer
 	// Loss functions: {LossCrossEntropy, LossBinaryCrossEntropy, LossMeanSquared}
 	Loss LossType
 	// Apply bias nodes
@@ -155,3 +159,27 @@ func (n *Neural) String() string {
 	}
 	return s
 }
+
+func (n *Neural) Save(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err := json.MarshalIndent(n, "", "\t")
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	return err
+}
+
+func (n *Neural) Load(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return json.NewDecoder(f).Decode(n)
+}
+

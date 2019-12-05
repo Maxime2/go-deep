@@ -7,10 +7,10 @@ import (
 
 // Neuron is a neural network node
 type Neuron struct {
-	A     ActivationType `json:"-"`
+	A     ActivationType
 	In    []*Synapse
 	Out   []*Synapse
-	Value float64 `json:"-"`
+	Value float64
 }
 
 // NewNeuron returns a neuron with the given activation
@@ -47,7 +47,7 @@ func (n *Neuron) DActivate(x float64) float64 {
 // Synapse is an edge between neurons
 type Synapse struct {
 	Weight  float64
-	In, Out float64 `json:"-"`
+	In, Out float64
 	IsBias  bool
 }
 

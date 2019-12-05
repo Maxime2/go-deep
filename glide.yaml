@@ -3,3 +3,6 @@ import:
 - package: github.com/golang/glog
 - package: github.com/stretchr/testify
   version: v1.1.4
+- package: github.com/kylelemons/godebug
+  subpackages:
+  - pretty
