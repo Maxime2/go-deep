@@ -35,7 +35,7 @@ type internal struct {
 func newTraining(layers []*deep.Layer) *internal {
 	deltas := make([][]float64, len(layers))
 	for i, l := range layers {
-		deltas[i] = make([]float64, len(l.Neurons))
+		deltas[i] = make([]float64, len(l.Neurons) + 1)
 	}
 	return &internal{
 		deltas: deltas,

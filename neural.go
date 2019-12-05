@@ -82,15 +82,15 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(c.Layout[i], act)
 	}
 
-	for i := 0; i < len(layers)-1; i++ {
-		layers[i].Connect(layers[i+1], c.Weight)
-	}
-
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		for i := range neuron.In {
 			neuron.In[i] = NewSynapse(c.Weight())
 		}
+	}
+
+	for i := 0; i < len(layers)-1; i++ {
+		layers[i].Connect(layers[i+1], c.Weight)
 	}
 
 	return layers
