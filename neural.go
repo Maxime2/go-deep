@@ -29,7 +29,7 @@ type Config struct {
 	// Solver modes: {ModeRegression, ModeBinary, ModeMultiClass, ModeMultiLabel}
 	Mode Mode
 	// Initializer for weights: {NewNormal(σ, μ), NewUniform(σ, μ)}
-	Weight WeightInitializer
+	Weight WeightInitializer `json:"-"`
 	// Loss functions: {LossCrossEntropy, LossBinaryCrossEntropy, LossMeanSquared}
 	Loss LossType
 	// Apply bias nodes
