@@ -30,6 +30,8 @@ type Config struct {
 	Loss LossType
 	// Apply bias nodes
 	Bias bool
+	// Error/Loss precision
+	LossPrecision int
 }
 
 // NewNeural returns a new neural network
@@ -50,6 +52,9 @@ func NewNeural(c *Config) *Neural {
 		default:
 			c.Loss = LossMeanSquared
 		}
+	}
+	if c.LossPrecision == 0 {
+		c.LossPrecision = 4
 	}
 
 	layers := initializeLayers(c)

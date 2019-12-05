@@ -66,6 +66,8 @@ n := deep.NewNeural(&deep.Config{
 	Weight: deep.NewNormal(1.0, 0.0),
 	/* Apply bias */
 	Bias: true,
+	/* Error/Loss precision; 4 by default */
+	LossPrecision: 5,
 })
 ```
 Train:
