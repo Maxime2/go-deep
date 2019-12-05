@@ -106,5 +106,5 @@ func Test_Forward_Save_Load(t *testing.T) {
 
 func Test_NumWeights(t *testing.T) {
 	n := NewNeural(&Config{Layout: []int{5, 5, 3}})
-	assert.Equal(t, n.NumWeights(), 5*5+3*5)
+	assert.Equal(t, 5 + 5*6 + 3*5, n.NumWeights())
 }
