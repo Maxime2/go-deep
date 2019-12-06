@@ -96,6 +96,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 			for k := range l.Neurons[j].In {
 				update := t.solver.Update(l.Neurons[j].In[k].Weight,
 					t.deltas[i][j]*l.Neurons[j].In[k].In,
+					l.Neurons[j].In[k].In,
 					it,
 					idx)
 				l.Neurons[j].In[k].Weight += update
