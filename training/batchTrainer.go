@@ -162,6 +162,7 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 			for k := range l.Neurons[j].In {
 				update := t.solver.Update(l.Neurons[j].In[k].Weight,
 					t.accumulatedDeltas[i][j][k],
+					l.Neurons[j].In[k].In,
 					it,
 					idx)
 				if !math.IsNaN(l.Neurons[j].In[k].Weight + update) {

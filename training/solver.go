@@ -5,7 +5,7 @@ import "math"
 // Solver implements an update rule for training a NN
 type Solver interface {
 	Init(size int)
-	Update(value, gradient float64, iteration, idx int) float64
+	Update(value, gradient, in float64, iteration, idx int) float64
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -33,8 +33,9 @@ func (o *SGD) Init(size int) {
 }
 
 // Update returns the update for a given weight
-func (o *SGD) Update(value, gradient float64, iteration, idx int) float64 {
+func (o *SGD) Update(value, gradient, in float64, iteration, idx int) float64 {
 	lr := o.lr / (1 + o.decay*float64(iteration))
+	lr = lr / (1 + lr * in * in)
 
 	o.moments[idx] = o.momentum*o.moments[idx] - lr*gradient
 
@@ -71,7 +72,7 @@ func (o *Adam) Init(size int) {
 }
 
 // Update returns the update for a given weight
-func (o *Adam) Update(value, gradient float64, t, idx int) float64 {
+func (o *Adam) Update(value, gradient, in float64, t, idx int) float64 {
 	lrt := o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
 		(1.0 - math.Pow(o.beta, float64(t)))
 	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*gradient
