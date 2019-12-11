@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	deep "github.com/patrikeh/go-deep"
+	deep "github.com/Maxime2/go-deep"
 )
 
 // Trainer is a neural network trainer

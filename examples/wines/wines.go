@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/patrikeh/go-deep"
-	"github.com/patrikeh/go-deep/training"
+	"github.com/Maxime2/go-deep"
+	"github.com/Maxime2/go-deep/training"
 )
 
 func main() {

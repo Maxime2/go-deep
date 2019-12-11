@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/patrikeh/go-deep/training"
+	"github.com/Maxime2/go-deep/training"
 
-	deep "github.com/patrikeh/go-deep"
+	deep "github.com/Maxime2/go-deep"
 )
 
 /*

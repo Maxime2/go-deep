@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"testing"
 
-	deep "github.com/patrikeh/go-deep"
+	deep "github.com/Maxime2/go-deep"
 )
 
 func Benchmark_xor(b *testing.B) {

@@ -6,7 +6,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	deep "github.com/patrikeh/go-deep"
+	deep "github.com/Maxime2/go-deep"
 )
 
 // StatsPrinter prints training progress

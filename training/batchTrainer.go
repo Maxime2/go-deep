@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	deep "github.com/patrikeh/go-deep"
+	deep "github.com/Maxime2/go-deep"
 )
 
 // BatchTrainer implements parallelized batch training
