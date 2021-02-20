@@ -64,6 +64,8 @@ const (
 	ActivationLinear ActivationType = 4
 	// ActivationSoftmax is a softmax activation (per layer)
 	ActivationSoftmax ActivationType = 5
+	// ActivationSECoS is SECoS type activation
+	ActivationSECoS ActivationType = 6
 )
 
 // Differentiable is an activation function and its first order derivative,
