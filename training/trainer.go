@@ -36,7 +36,7 @@ type internal struct {
 func newTraining(layers []*deep.Layer) *internal {
 	deltas := make([][]float64, len(layers))
 	for i, l := range layers {
-		deltas[i] = make([]float64, len(l.Neurons) + 1)
+		deltas[i] = make([]float64, len(l.Neurons)+1)
 	}
 	return &internal{
 		deltas: deltas,
@@ -83,7 +83,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []float64) {
 		for j, neuron := range n.Layers[i].Neurons {
 			var sum float64
 			for k, s := range neuron.Out {
-				sum += s.Weight * t.deltas[i+1][k]
+				sum += s.GetWeight() * t.deltas[i+1][k]
 			}
 			t.deltas[i][j] = neuron.DActivate(neuron.Value) * sum
 			if math.IsNaN(neuron.DActivate(neuron.Value) * sum) {
@@ -100,13 +100,15 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 	for i, l := range n.Layers {
 		for j := range l.Neurons {
 			for k := range l.Neurons[j].In {
-				update := t.solver.Update(l.Neurons[j].In[k].Weight,
-					t.deltas[i][j]*l.Neurons[j].In[k].In,
-					l.Neurons[j].In[k].In,
+				weight := l.Neurons[j].In[k].GetWeight()
+				in := l.Neurons[j].In[k].GetIn()
+				update := t.solver.Update(weight,
+					t.deltas[i][j]*in,
+					in,
 					it,
 					idx)
-				if !math.IsNaN(l.Neurons[j].In[k].Weight + update) {
-					l.Neurons[j].In[k].Weight += update
+				if !math.IsNaN(weight + update) {
+					l.Neurons[j].In[k].UpdateWeight(weight + update)
 				}
 				idx++
 			}

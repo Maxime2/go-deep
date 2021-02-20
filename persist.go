@@ -7,29 +7,38 @@ import (
 // Dump is a neural network dump
 type Dump struct {
 	Config  *Config
-	Weights [][][]float64
+	Weights [][][][]float64
 }
 
 // ApplyWeights sets the weights from a three-dimensional slice
-func (n *Neural) ApplyWeights(weights [][][]float64) {
+func (n *Neural) ApplyWeights(weights [][][][]float64) {
 	for i, l := range n.Layers {
 		for j := range l.Neurons {
 			for k := range l.Neurons[j].In {
-				n.Layers[i].Neurons[j].In[k].Weight = weights[i][j][k]
+				wLen := len(n.Layers[i].Neurons[j].In[k].Weight)
+				for m := range n.Layers[i].Neurons[j].In[k].Weight {
+					n.Layers[i].Neurons[j].In[k].Weight[m] = weights[i][j][k][m]
+					n.Layers[i].Neurons[j].In[k].In[m] = weights[i][j][k][wLen+m]
+				}
 			}
 		}
 	}
 }
 
 // Weights returns all weights in sequence
-func (n Neural) Weights() [][][]float64 {
-	weights := make([][][]float64, len(n.Layers))
+func (n Neural) Weights() [][][][]float64 {
+	weights := make([][][][]float64, len(n.Layers))
 	for i, l := range n.Layers {
-		weights[i] = make([][]float64, len(l.Neurons))
+		weights[i] = make([][][]float64, len(l.Neurons))
 		for j, n := range l.Neurons {
-			weights[i][j] = make([]float64, len(n.In))
+			weights[i][j] = make([][]float64, len(n.In))
 			for k, in := range n.In {
-				weights[i][j][k] = in.Weight
+				wLen := len(in.Weight)
+				weights[i][j][k] = make([]float64, 2*wLen)
+				for m := range in.Weight {
+					weights[i][j][k][m] = in.Weight[m]
+					weights[i][j][k][wLen+m] = in.In[m]
+				}
 			}
 		}
 	}

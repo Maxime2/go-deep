@@ -70,7 +70,7 @@ func NewNeural(c *Config) *Neural {
 			if c.Mode == ModeRegression && i == len(layers)-1 {
 				continue
 			}
-			biases[i] = layers[i].ApplyBias(c.Weight)
+			biases[i] = layers[i].ApplyBias(c)
 		}
 	}
 
@@ -94,12 +94,12 @@ func initializeLayers(c *Config) []*Layer {
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		for i := range neuron.In {
-			neuron.In[i] = NewSynapse(c.Weight())
+			neuron.In[i] = NewSynapse(c)
 		}
 	}
 
 	for i := 0; i < len(layers)-1; i++ {
-		layers[i].Connect(layers[i+1], c.Weight)
+		layers[i].Connect(layers[i+1], c)
 	}
 
 	return layers
