@@ -1,11 +1,11 @@
 package deep
 
 import (
-	"fmt"
-	"os"
-	"io"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
 )
 
 // Neural is a neural network
@@ -155,6 +155,7 @@ func (n *Neural) String() string {
 	return s
 }
 
+// Save saves network in JSON into the file specified
 func (n *Neural) Save(path string) error {
 	f, err := os.Create(path)
 	if err != nil {
@@ -169,6 +170,7 @@ func (n *Neural) Save(path string) error {
 	return err
 }
 
+// Load retrieves network from the file specified created using Save method
 func (n *Neural) Load(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -177,4 +179,3 @@ func (n *Neural) Load(path string) error {
 	defer f.Close()
 	return json.NewDecoder(f).Decode(n)
 }
-
