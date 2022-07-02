@@ -37,10 +37,10 @@ func (o *SGD) Update(value, gradient, in float64, iteration, idx int) float64 {
 	lr := o.lr / (1 + o.decay*float64(iteration))
 	lr = lr / (1 + lr*in*in)
 
-	o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*Sign(gradient)
+	o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*gradient
 
 	if o.nesterov {
-		o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*Sign(gradient)
+		o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*gradient
 	}
 
 	return o.moments[idx]
@@ -93,12 +93,4 @@ func iparam(val, fallback int) int {
 		return fallback
 	}
 	return val
-}
-
-// Sign function
-func Sign(x float64) float64 {
-	if math.Signbit(x) == true {
-		return -1.0
-	}
-	return 1
 }
