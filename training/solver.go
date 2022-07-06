@@ -35,12 +35,12 @@ func (o *SGD) Init(size int) {
 // Update returns the update for a given weight
 func (o *SGD) Update(value, gradient, in float64, iteration, idx int) float64 {
 	lr := o.lr / (1 + o.decay*float64(iteration))
-	lr = lr / (1 + lr*in*in)
+	lr = lr / (1 + lr * in * in)
 
-	o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*gradient
+	o.moments[idx] = o.momentum*o.moments[idx] - lr*gradient
 
 	if o.nesterov {
-		o.moments[idx] = o.momentum*o.moments[idx] - (1.0-o.momentum)*lr*gradient
+		o.moments[idx] = o.momentum*o.moments[idx] - lr*gradient
 	}
 
 	return o.moments[idx]
