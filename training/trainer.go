@@ -47,8 +47,8 @@ func newTraining(layers []*deep.Layer) *internal {
 func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, iterations int) {
 	t.internal = newTraining(n.Layers)
 
-	train := make(Examples, len(examples))
-	copy(train, examples)
+	//train := make(Examples, len(examples))
+	//copy(train, examples)
 
 	t.printer.Init(n)
 	t.solver.Init(n.NumWeights())
