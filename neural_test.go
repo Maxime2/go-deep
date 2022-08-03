@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/kylelemons/godebug/pretty"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Init(t *testing.T) {
@@ -59,13 +59,17 @@ func Test_Forward_Save_Load(t *testing.T) {
 	for i, l := range n.Layers {
 		for j, n := range l.Neurons {
 			for k := 0; k < 3; k++ {
-				n.In[k].Weight = weights[i][j][k]
+				n.In[k].Weight0 = weights[i][j][k]
+				n.In[k].Weight1 = weights[i][j][k]
+				n.In[k].Weight2 = weights[i][j][k]
 			}
 		}
 	}
 	for _, biases := range n.Biases {
 		for _, bias := range biases {
-			bias.Weight = 1
+			bias.Weight0 = 1
+			bias.Weight1 = 1
+			bias.Weight2 = 1
 		}
 	}
 
@@ -97,7 +101,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 	if diff := pretty.Compare(n, n2); diff != "" {
 		t.Errorf("n and n2 diff: (-got +want)\n%s", diff)
 	}
-	
+
 	assert.Equal(t, true, reflect.DeepEqual(n, n2), "the networks should be the same")
 
 	err = n.Forward([]float64{0.1, 0.2})
@@ -106,5 +110,5 @@ func Test_Forward_Save_Load(t *testing.T) {
 
 func Test_NumWeights(t *testing.T) {
 	n := NewNeural(&Config{Layout: []int{5, 5, 3}})
-	assert.Equal(t, 5 + 5*6 + 3*5, n.NumWeights())
+	assert.Equal(t, 5+5*6+3*5, n.NumWeights())
 }

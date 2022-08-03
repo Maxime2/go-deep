@@ -4,7 +4,6 @@ import (
 	"math"
 )
 
-
 // Neuron is a neural network node
 type Neuron struct {
 	A     ActivationType
@@ -47,17 +46,17 @@ func (n *Neuron) DActivate(x float64) float64 {
 
 // Synapse is an edge between neurons
 type Synapse struct {
-	Weight  float64
-	In, Out float64
-	IsBias  bool
+	Weight0, Weight1, Weight2 float64
+	In, Out                   float64
+	IsBias                    bool
 }
 
 // NewSynapse returns a synapse with the specified initialized weight
 func NewSynapse(weight float64) *Synapse {
-	return &Synapse{Weight: weight}
+	return &Synapse{Weight0: weight, Weight1: weight, Weight2: weight}
 }
 
 func (s *Synapse) fire(value float64) {
 	s.In = value
-	s.Out = s.In * s.Weight
+	s.Out = s.Weight0 + s.In*s.Weight1 + s.In*s.Weight2*s.In
 }

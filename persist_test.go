@@ -23,7 +23,9 @@ func Test_RestoreFromDump(t *testing.T) {
 
 	for i, biases := range n.Biases {
 		for j, bias := range biases {
-			assert.Equal(t, bias.Weight, new.Biases[i][j].Weight)
+			assert.Equal(t, bias.Weight0, new.Biases[i][j].Weight0)
+			assert.Equal(t, bias.Weight1, new.Biases[i][j].Weight1)
+			assert.Equal(t, bias.Weight2, new.Biases[i][j].Weight2)
 		}
 	}
 	assert.Equal(t, n.String(), new.String())
@@ -49,7 +51,9 @@ func Test_Marshal(t *testing.T) {
 
 	for i, biases := range n.Biases {
 		for j, bias := range biases {
-			assert.Equal(t, bias.Weight, new.Biases[i][j].Weight)
+			assert.Equal(t, bias.Weight0, new.Biases[i][j].Weight0)
+			assert.Equal(t, bias.Weight1, new.Biases[i][j].Weight1)
+			assert.Equal(t, bias.Weight2, new.Biases[i][j].Weight2)
 		}
 	}
 	assert.Equal(t, n.String(), new.String())

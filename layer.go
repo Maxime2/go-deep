@@ -71,9 +71,11 @@ func (l *Layer) ApplyBias(weight WeightInitializer) []*Synapse {
 func (l Layer) String() string {
 	weights := make([][]float64, len(l.Neurons))
 	for i, n := range l.Neurons {
-		weights[i] = make([]float64, len(n.In))
+		weights[i] = make([]float64, 3*len(n.In))
 		for j, s := range n.In {
-			weights[i][j] = s.Weight
+			weights[i][3*j] = s.Weight0
+			weights[i][3*j+1] = s.Weight1
+			weights[i][3*j+2] = s.Weight2
 		}
 	}
 	return fmt.Sprintf("%+v", weights)
