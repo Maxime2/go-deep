@@ -147,7 +147,7 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []float64, wid int)
 		for j, n := range l.Neurons {
 			var sum float64
 			for k, s := range n.Out {
-				sum += s.Weight * nextD[k]
+				sum += (s.Weight1 + 2*n.Value*s.Weight2) * nextD[k]
 			}
 			if math.IsNaN(n.DActivate(n.Value) * sum) {
 				iD[j] = n.DActivate(n.Value)
