@@ -22,8 +22,9 @@ func NewNeuron(activation ActivationType) *Neuron {
 func (n *Neuron) fire() {
 	var sum float64
 	for _, s := range n.In {
-		if !math.IsNaN(sum + s.Out) {
-			sum += s.Out
+		preliminarySum := sum + s.Out
+		if !math.IsNaN(preliminarySum) {
+			sum = preliminarySum
 		}
 	}
 	n.Value = n.Activate(sum)

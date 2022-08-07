@@ -85,8 +85,9 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []float64) {
 			for k, s := range neuron.Out {
 				sum += (s.Weight1 + 2*neuron.Value*s.Weight2) * t.deltas[i+1][k]
 			}
-			if !math.IsNaN(neuron.DActivate(neuron.Value) * sum) {
-				t.deltas[i][j] = neuron.DActivate(neuron.Value) * sum
+			sum *= neuron.DActivate(neuron.Value)
+			if !math.IsNaN(sum) {
+				t.deltas[i][j] = sum
 			}
 		}
 	}
@@ -97,31 +98,31 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 	for i, l := range n.Layers {
 		for j := range l.Neurons {
 			for k := range l.Neurons[j].In {
-				update := t.solver.Update(l.Neurons[j].In[k].Weight1,
+				update := l.Neurons[j].In[k].Weight1 + t.solver.Update(l.Neurons[j].In[k].Weight1,
 					t.deltas[i][j]*l.Neurons[j].In[k].In,
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(l.Neurons[j].In[k].Weight1 + update) {
-					l.Neurons[j].In[k].Weight1 += update
+				if !math.IsNaN(update) {
+					l.Neurons[j].In[k].Weight1 = update
 				}
 
-				update = t.solver.Update(l.Neurons[j].In[k].Weight0,
+				update = l.Neurons[j].In[k].Weight0 + t.solver.Update(l.Neurons[j].In[k].Weight0,
 					t.deltas[i][j],
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(l.Neurons[j].In[k].Weight0 + update) {
-					l.Neurons[j].In[k].Weight0 += update
+				if !math.IsNaN(update) {
+					l.Neurons[j].In[k].Weight0 = update
 				}
 
-				update = t.solver.Update(l.Neurons[j].In[k].Weight1,
+				update = l.Neurons[j].In[k].Weight1 + t.solver.Update(l.Neurons[j].In[k].Weight1,
 					t.deltas[i][j]*2*l.Neurons[j].In[k].In*l.Neurons[j].In[k].In,
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(l.Neurons[j].In[k].Weight1 + update) {
-					l.Neurons[j].In[k].Weight1 += update
+				if !math.IsNaN(update) {
+					l.Neurons[j].In[k].Weight1 = update
 				}
 				idx++
 			}
