@@ -69,43 +69,43 @@ const (
 // Differentiable is an activation function and its first order derivative,
 // where the latter is expressed as a function of the former for efficiency
 type Differentiable interface {
-	F(deepfloat64) deepfloat64
-	Df(deepfloat64) deepfloat64
+	F(Deepfloat64) Deepfloat64
+	Df(Deepfloat64) Deepfloat64
 }
 
 // Sigmoid is a logistic activator in the special case of a = 1
 type Sigmoid struct{}
 
 // F is Sigmoid(x)
-func (a Sigmoid) F(x deepfloat64) deepfloat64 { return Logistic(x, 1) }
+func (a Sigmoid) F(x Deepfloat64) Deepfloat64 { return Logistic(x, 1) }
 
 // Df is Sigmoid'(y), where y = Sigmoid(x)
-func (a Sigmoid) Df(y deepfloat64) deepfloat64 { return y * (1 - y) }
+func (a Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
 
 // Logistic is the logistic function
-func Logistic(x, a deepfloat64) deepfloat64 {
-	return 1 / (1 + deepfloat64(math.Exp(float64(-a*x))))
+func Logistic(x, a Deepfloat64) Deepfloat64 {
+	return 1 / (1 + Deepfloat64(math.Exp(float64(-a*x))))
 }
 
 // Tanh is a hyperbolic activator
 type Tanh struct{}
 
 // F is Tanh(x)
-func (a Tanh) F(x deepfloat64) deepfloat64 {
-	return (1 - deepfloat64(math.Exp(float64(-2*x)))) / (1 + deepfloat64(math.Exp(float64(-2*x))))
+func (a Tanh) F(x Deepfloat64) Deepfloat64 {
+	return (1 - Deepfloat64(math.Exp(float64(-2*x)))) / (1 + Deepfloat64(math.Exp(float64(-2*x))))
 }
 
 // Df is Tanh'(y), where y = Tanh(x)
-func (a Tanh) Df(y deepfloat64) deepfloat64 { return 1 - deepfloat64(math.Pow(float64(y), 2)) }
+func (a Tanh) Df(y Deepfloat64) Deepfloat64 { return 1 - Deepfloat64(math.Pow(float64(y), 2)) }
 
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
 // F is ReLU(x)
-func (a ReLU) F(x deepfloat64) deepfloat64 { return deepfloat64(math.Max(float64(x), 0)) }
+func (a ReLU) F(x Deepfloat64) Deepfloat64 { return Deepfloat64(math.Max(float64(x), 0)) }
 
 // Df is ReLU'(y), where y = ReLU(x)
-func (a ReLU) Df(y deepfloat64) deepfloat64 {
+func (a ReLU) Df(y Deepfloat64) Deepfloat64 {
 	if y > 0 {
 		return 1
 	}
@@ -116,7 +116,7 @@ func (a ReLU) Df(y deepfloat64) deepfloat64 {
 type Linear struct{}
 
 // F is the identity function
-func (a Linear) F(x deepfloat64) deepfloat64 { return x }
+func (a Linear) F(x Deepfloat64) Deepfloat64 { return x }
 
 // Df is constant
-func (a Linear) Df(x deepfloat64) deepfloat64 { return 1 }
+func (a Linear) Df(x Deepfloat64) Deepfloat64 { return 1 }

@@ -2,10 +2,12 @@ package training
 
 import "math/rand"
 
+import "github.com/Maxime2/go-deep"
+
 // Example is an input-target pair
 type Example struct {
-	Input    []float64
-	Response []float64
+	Input    []deep.Deepfloat64
+	Response []deep.Deepfloat64
 }
 
 // Examples is a set of input-output pairs

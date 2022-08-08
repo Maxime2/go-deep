@@ -23,7 +23,7 @@ func Test_BoundedRegression(t *testing.T) {
 
 		data := Examples{}
 		for i := 0.0; i < 1; i += 0.01 {
-			data = append(data, Example{Input: []float64{i}, Response: []float64{f(i)}})
+			data = append(data, Example{Input: []deep.Deepfloat64{i}, Response: []deep.Deepfloat64{f(i)}})
 		}
 		n := deep.NewNeural(&deep.Config{
 			Inputs:     1,

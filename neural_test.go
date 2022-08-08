@@ -36,7 +36,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 		Bias:       true,
 	}
 	n := NewNeural(&c)
-	weights := [][][]deepfloat64{
+	weights := [][][]Deepfloat64{
 		{
 			{0.1, 0.4, 0.3},
 			{0.3, 0.7, 0.7},
@@ -73,7 +73,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 		}
 	}
 
-	err := n.Forward([]deepfloat64{0.1, 0.2, 0.7})
+	err := n.Forward([]Deepfloat64{0.1, 0.2, 0.7})
 	assert.Nil(t, err)
 
 	expected := [][]float64{
@@ -104,7 +104,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 
 	assert.Equal(t, true, reflect.DeepEqual(n, n2), "the networks should be the same")
 
-	err = n.Forward([]deepfloat64{0.1, 0.2})
+	err = n.Forward([]Deepfloat64{0.1, 0.2})
 	assert.Error(t, err)
 }
 

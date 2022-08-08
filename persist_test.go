@@ -29,7 +29,7 @@ func Test_RestoreFromDump(t *testing.T) {
 		}
 	}
 	assert.Equal(t, n.String(), new.String())
-	assert.Equal(t, n.Predict([]deepfloat64{0}), new.Predict([]deepfloat64{0}))
+	assert.Equal(t, n.Predict([]Deepfloat64{0}), new.Predict([]Deepfloat64{0}))
 }
 
 func Test_Marshal(t *testing.T) {
@@ -57,5 +57,5 @@ func Test_Marshal(t *testing.T) {
 		}
 	}
 	assert.Equal(t, n.String(), new.String())
-	assert.Equal(t, n.Predict([]deepfloat64{0}), new.Predict([]deepfloat64{0}))
+	assert.Equal(t, n.Predict([]Deepfloat64{0}), new.Predict([]Deepfloat64{0}))
 }
