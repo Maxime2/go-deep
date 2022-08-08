@@ -3,11 +3,11 @@ package deep
 import "math/rand"
 
 // A WeightInitializer returns a (random) weight
-type WeightInitializer func() float64
+type WeightInitializer func() deepfloat64
 
 // NewUniform returns a uniform weight generator
 func NewUniform(stdDev, mean float64) WeightInitializer {
-	return func() float64 { return Uniform(stdDev, mean) }
+	return func() deepfloat64 { return deepfloat64(Uniform(stdDev, mean)) }
 }
 
 // Uniform samples a value from u(mean-stdDev/2,mean+stdDev/2)
@@ -18,7 +18,7 @@ func Uniform(stdDev, mean float64) float64 {
 
 // NewNormal returns a normal weight generator
 func NewNormal(stdDev, mean float64) WeightInitializer {
-	return func() float64 { return Normal(stdDev, mean) }
+	return func() deepfloat64 { return deepfloat64(Normal(stdDev, mean)) }
 }
 
 // Normal samples a value from N(μ, σ)

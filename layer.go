@@ -32,11 +32,11 @@ func (l *Layer) fire() {
 	if l.A == ActivationSoftmax {
 		outs := make([]float64, len(l.Neurons))
 		for i, neuron := range l.Neurons {
-			outs[i] = neuron.Value
+			outs[i] = float64(neuron.Value)
 		}
 		sm := Softmax(outs)
 		for i, neuron := range l.Neurons {
-			neuron.Value = sm[i]
+			neuron.Value = deepfloat64(sm[i])
 		}
 	}
 }
@@ -69,9 +69,9 @@ func (l *Layer) ApplyBias(weight WeightInitializer) []*Synapse {
 }
 
 func (l Layer) String() string {
-	weights := make([][]float64, len(l.Neurons))
+	weights := make([][]deepfloat64, len(l.Neurons))
 	for i, n := range l.Neurons {
-		weights[i] = make([]float64, 3*len(n.In))
+		weights[i] = make([]deepfloat64, 3*len(n.In))
 		for j, s := range n.In {
 			weights[i][3*j] = s.Weight0
 			weights[i][3*j+1] = s.Weight1

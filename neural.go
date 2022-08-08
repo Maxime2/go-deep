@@ -117,7 +117,7 @@ func (n *Neural) fire() {
 }
 
 // Forward computes a forward pass
-func (n *Neural) Forward(input []float64) error {
+func (n *Neural) Forward(input []deepfloat64) error {
 	if len(input) != n.Config.Inputs {
 		return fmt.Errorf("Invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
 	}
@@ -131,11 +131,11 @@ func (n *Neural) Forward(input []float64) error {
 }
 
 // Predict computes a forward pass and returns a prediction
-func (n *Neural) Predict(input []float64) []float64 {
+func (n *Neural) Predict(input []deepfloat64) []deepfloat64 {
 	n.Forward(input)
 
 	outLayer := n.Layers[len(n.Layers)-1]
-	out := make([]float64, len(outLayer.Neurons))
+	out := make([]deepfloat64, len(outLayer.Neurons))
 	for i, neuron := range outLayer.Neurons {
 		out[i] = neuron.Value
 	}
