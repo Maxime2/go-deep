@@ -83,7 +83,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 	}
 	for i := range n.Layers {
 		for j, n := range n.Layers[i].Neurons {
-			assert.InEpsilon(t, expected[i][j], n.Value, 1e-12)
+			assert.InEpsilon(t, expected[i][j], float64(n.Value), 1e-12)
 		}
 	}
 
