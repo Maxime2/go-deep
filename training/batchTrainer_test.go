@@ -19,10 +19,10 @@ func Benchmark_xor(b *testing.B) {
 		Bias:       true,
 	})
 	exs := Examples{
-		{[]float64{0, 0}, []float64{0}},
-		{[]float64{1, 0}, []float64{1}},
-		{[]float64{0, 1}, []float64{1}},
-		{[]float64{1, 1}, []float64{0}},
+		{[]deep.Deepfloat64{0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{0, 1}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{1, 1}, []deep.Deepfloat64{0}},
 	}
 	const minExamples = 4000
 	var dupExs Examples

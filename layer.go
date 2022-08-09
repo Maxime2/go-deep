@@ -30,9 +30,9 @@ func (l *Layer) fire() {
 		n.fire()
 	}
 	if l.A == ActivationSoftmax {
-		outs := make([]float64, len(l.Neurons))
+		outs := make([]Deepfloat64, len(l.Neurons))
 		for i, neuron := range l.Neurons {
-			outs[i] = float64(neuron.Value)
+			outs[i] = neuron.Value
 		}
 		sm := Softmax(outs)
 		for i, neuron := range l.Neurons {

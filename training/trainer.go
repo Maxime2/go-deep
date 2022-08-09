@@ -30,13 +30,13 @@ func NewTrainer(solver Solver, verbosity int) *OnlineTrainer {
 }
 
 type internal struct {
-	deltas [][]float64
+	deltas [][]deep.Deepfloat64
 }
 
 func newTraining(layers []*deep.Layer) *internal {
-	deltas := make([][]float64, len(layers))
+	deltas := make([][]deep.Deepfloat64, len(layers))
 	for i, l := range layers {
-		deltas[i] = make([]float64, len(l.Neurons)+1)
+		deltas[i] = make([]deep.Deepfloat64, len(l.Neurons)+1)
 	}
 	return &internal{
 		deltas: deltas,
@@ -71,7 +71,7 @@ func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) {
 	t.update(n, it)
 }
 
-func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []float64) {
+func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
 		t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 			neuron.Value,
@@ -81,12 +81,12 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []float64) {
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
 		for j, neuron := range n.Layers[i].Neurons {
-			var sum float64
+			var sum deep.Deepfloat64
 			for k, s := range neuron.Out {
 				sum += (s.Weight1 + 2*neuron.Value*s.Weight2) * t.deltas[i+1][k]
 			}
 			sum *= neuron.DActivate(neuron.Value)
-			if !math.IsNaN(sum) {
+			if !math.IsNaN(float64(sum)) {
 				t.deltas[i][j] = sum
 			}
 		}
@@ -103,7 +103,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(update) {
+				if !math.IsNaN(float64(update)) {
 					l.Neurons[j].In[k].Weight1 = update
 				}
 
@@ -112,7 +112,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(update) {
+				if !math.IsNaN(float64(update)) {
 					l.Neurons[j].In[k].Weight0 = update
 				}
 
@@ -121,7 +121,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					l.Neurons[j].In[k].In,
 					it,
 					idx)
-				if !math.IsNaN(update) {
+				if !math.IsNaN(float64(update)) {
 					l.Neurons[j].In[k].Weight1 = update
 				}
 				idx++

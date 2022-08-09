@@ -3,16 +3,16 @@ package deep
 import "math"
 
 // Mean of xx
-func Mean(xx []float64) float64 {
-	var sum float64
+func Mean(xx []Deepfloat64) Deepfloat64 {
+	var sum Deepfloat64
 	for _, x := range xx {
 		sum += x
 	}
-	return sum / float64(len(xx))
+	return sum / Deepfloat64(len(xx))
 }
 
 // Variance of xx
-func Variance(xx []float64) float64 {
+func Variance(xx []Deepfloat64) Deepfloat64 {
 	if len(xx) == 1 {
 		return 0.0
 	}
@@ -20,19 +20,19 @@ func Variance(xx []float64) float64 {
 
 	var variance float64
 	for _, x := range xx {
-		variance += math.Pow((x - m), 2)
+		variance += math.Pow(float64(x-m), 2)
 	}
 
-	return variance / float64(len(xx)-1)
+	return Deepfloat64(variance / float64(len(xx)-1))
 }
 
 // StandardDeviation of xx
-func StandardDeviation(xx []float64) float64 {
-	return math.Sqrt(Variance(xx))
+func StandardDeviation(xx []Deepfloat64) Deepfloat64 {
+	return Deepfloat64(math.Sqrt(float64(Variance(xx))))
 }
 
 // Standardize (z-score) shifts distribution to μ=0 σ=1
-func Standardize(xx []float64) {
+func Standardize(xx []Deepfloat64) {
 	m := Mean(xx)
 	s := StandardDeviation(xx)
 
@@ -46,7 +46,7 @@ func Standardize(xx []float64) {
 }
 
 // Normalize scales to (0,1)
-func Normalize(xx []float64) {
+func Normalize(xx []Deepfloat64) {
 	min, max := Min(xx), Max(xx)
 	for i, x := range xx {
 		xx[i] = (x - min) / (max - min)
@@ -54,7 +54,7 @@ func Normalize(xx []float64) {
 }
 
 // Min is the smallest element
-func Min(xx []float64) float64 {
+func Min(xx []Deepfloat64) Deepfloat64 {
 	min := xx[0]
 	for _, x := range xx {
 		if x < min {
@@ -65,7 +65,7 @@ func Min(xx []float64) float64 {
 }
 
 // Max is the largest element
-func Max(xx []float64) float64 {
+func Max(xx []Deepfloat64) Deepfloat64 {
 	max := xx[0]
 	for _, x := range xx {
 		if x > max {
@@ -76,7 +76,7 @@ func Max(xx []float64) float64 {
 }
 
 // ArgMax is the index of the largest element
-func ArgMax(xx []float64) int {
+func ArgMax(xx []Deepfloat64) int {
 	max, idx := xx[0], 0
 	for i, x := range xx {
 		if x > max {
@@ -98,7 +98,7 @@ func Sgn(x float64) float64 {
 }
 
 // Sum is sum
-func Sum(xx []float64) (sum float64) {
+func Sum(xx []Deepfloat64) (sum Deepfloat64) {
 	for _, x := range xx {
 		sum += x
 	}
@@ -106,12 +106,12 @@ func Sum(xx []float64) (sum float64) {
 }
 
 // Softmax is the softmax function
-func Softmax(xx []float64) []float64 {
-	out := make([]float64, len(xx))
-	var sum float64
+func Softmax(xx []Deepfloat64) []Deepfloat64 {
+	out := make([]Deepfloat64, len(xx))
+	var sum Deepfloat64
 	max := Max(xx)
 	for i, x := range xx {
-		out[i] = math.Exp(x - max)
+		out[i] = Deepfloat64(math.Exp(float64(x - max)))
 		sum += out[i]
 	}
 	for i := range out {
@@ -121,8 +121,8 @@ func Softmax(xx []float64) []float64 {
 }
 
 // Round to nearest integer
-func Round(x float64) float64 {
-	return math.Floor(x + .5)
+func Round(x Deepfloat64) Deepfloat64 {
+	return Deepfloat64(math.Floor(float64(x) + .5))
 }
 
 // Dot product

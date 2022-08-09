@@ -45,30 +45,30 @@ const (
 
 // Loss is satisfied by loss functions
 type Loss interface {
-	F(estimate, ideal [][]float64) float64
-	Df(estimate, ideal, activation float64) float64
+	F(estimate, ideal [][]Deepfloat64) Deepfloat64
+	Df(estimate, ideal, activation Deepfloat64) Deepfloat64
 }
 
 // CrossEntropy is CE loss
 type CrossEntropy struct{}
 
 // F is CE(...)
-func (l CrossEntropy) F(estimate, ideal [][]float64) float64 {
+func (l CrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 
-	var sum float64
+	var sum Deepfloat64
 	for i := range estimate {
-		ce := 0.0
+		ce := Deepfloat64(0.0)
 		for j := range estimate[i] {
-			ce += ideal[i][j] * math.Log(estimate[i][j])
+			ce += ideal[i][j] * Deepfloat64(math.Log(float64(estimate[i][j])))
 		}
 
 		sum -= ce
 	}
-	return sum / float64(len(estimate))
+	return sum / Deepfloat64(len(estimate))
 }
 
 // Df is CE'(...)
-func (l CrossEntropy) Df(estimate, ideal, activation float64) float64 {
+func (l CrossEntropy) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
 	return estimate - ideal
 }
 
@@ -76,21 +76,21 @@ func (l CrossEntropy) Df(estimate, ideal, activation float64) float64 {
 type BinaryCrossEntropy struct{}
 
 // F is CE(...)
-func (l BinaryCrossEntropy) F(estimate, ideal [][]float64) float64 {
+func (l BinaryCrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 	epsilon := 1e-16
-	var sum float64
+	var sum Deepfloat64
 	for i := range estimate {
-		ce := 0.0
+		ce := Deepfloat64(0.0)
 		for j := range estimate[i] {
-			ce += ideal[i][j]*math.Log(estimate[i][j]+epsilon) + (1.0-ideal[i][j])*math.Log(1.0-estimate[i][j]+epsilon)
+			ce += ideal[i][j]*Deepfloat64(math.Log(float64(estimate[i][j])+epsilon)) + (1.0-ideal[i][j])*Deepfloat64(math.Log(1.0-float64(estimate[i][j])+epsilon))
 		}
 		sum -= ce
 	}
-	return sum / float64(len(estimate))
+	return sum / Deepfloat64(len(estimate))
 }
 
 // Df is CE'(...)
-func (l BinaryCrossEntropy) Df(estimate, ideal, activation float64) float64 {
+func (l BinaryCrossEntropy) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
 	return estimate - ideal
 }
 
@@ -98,17 +98,17 @@ func (l BinaryCrossEntropy) Df(estimate, ideal, activation float64) float64 {
 type MeanSquared struct{}
 
 // F is MSE(...)
-func (l MeanSquared) F(estimate, ideal [][]float64) float64 {
-	var sum float64
+func (l MeanSquared) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
+	var sum Deepfloat64
 	for i := 0; i < len(estimate); i++ {
 		for j := 0; j < len(estimate[i]); j++ {
-			sum += math.Pow(estimate[i][j]-ideal[i][j], 2)
+			sum += Deepfloat64(math.Pow(float64(estimate[i][j]-ideal[i][j]), 2))
 		}
 	}
-	return sum / float64(len(estimate)*len(estimate[0]))
+	return sum / Deepfloat64(len(estimate)*len(estimate[0]))
 }
 
 // Df is MSE'(...)
-func (l MeanSquared) Df(estimate, ideal, activation float64) float64 {
+func (l MeanSquared) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
 	return activation * (estimate - ideal)
 }

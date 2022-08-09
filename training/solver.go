@@ -1,11 +1,15 @@
 package training
 
-import "math"
+import (
+	"math"
+
+	deep "github.com/Maxime2/go-deep"
+)
 
 // Solver implements an update rule for training a NN
 type Solver interface {
 	Init(size int)
-	Update(value, gradient, in float64, iteration, idx int) float64
+	Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -14,7 +18,7 @@ type SGD struct {
 	decay    float64
 	momentum float64
 	nesterov bool
-	moments  []float64
+	moments  []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
@@ -29,18 +33,18 @@ func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 
 // Init initializes vectors using number of weights in network
 func (o *SGD) Init(size int) {
-	o.moments = make([]float64, size)
+	o.moments = make([]deep.Deepfloat64, size)
 }
 
 // Update returns the update for a given weight
-func (o *SGD) Update(value, gradient, in float64, iteration, idx int) float64 {
-	lr := o.lr / (1 + o.decay*float64(iteration))
-	lr = lr / (1 + lr * in * in)
+func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
+	lr := deep.Deepfloat64(o.lr / (1 + o.decay*float64(iteration)))
+	lr = lr / (1 + lr*in*in)
 
-	o.moments[idx] = o.momentum*o.moments[idx] - lr*gradient
+	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
 
 	if o.nesterov {
-		o.moments[idx] = o.momentum*o.moments[idx] - lr*gradient
+		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
 	}
 
 	return o.moments[idx]
@@ -72,13 +76,13 @@ func (o *Adam) Init(size int) {
 }
 
 // Update returns the update for a given weight
-func (o *Adam) Update(value, gradient, in float64, t, idx int) float64 {
-	lrt := o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
-		(1.0 - math.Pow(o.beta, float64(t)))
-	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*gradient
-	o.v[idx] = o.beta2*o.v[idx] + (1.0-o.beta2)*math.Pow(gradient, 2.0)
+func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) deep.Deepfloat64 {
+	lrt := deep.Deepfloat64(o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
+		(1.0 - math.Pow(o.beta, float64(t))))
+	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*float64(gradient)
+	o.v[idx] = o.beta2*o.v[idx] + (1.0-o.beta2)*math.Pow(float64(gradient), 2.0)
 
-	return -lrt * (o.m[idx] / (math.Sqrt(o.v[idx]) + o.epsilon))
+	return -lrt * deep.Deepfloat64(o.m[idx]/(math.Sqrt(o.v[idx])+o.epsilon))
 }
 
 func fparam(val, fallback float64) float64 {

@@ -57,8 +57,8 @@ func accuracy(n *deep.Neural, validation Examples) float64 {
 	return float64(correct) / float64(len(validation))
 }
 
-func crossValidate(n *deep.Neural, validation Examples) float64 {
-	predictions, responses := make([][]float64, len(validation)), make([][]float64, len(validation))
+func crossValidate(n *deep.Neural, validation Examples) deep.Deepfloat64 {
+	predictions, responses := make([][]deep.Deepfloat64, len(validation)), make([][]deep.Deepfloat64, len(validation))
 	for i := 0; i < len(validation); i++ {
 		predictions[i] = n.Predict(validation[i].Input)
 		responses[i] = validation[i].Response

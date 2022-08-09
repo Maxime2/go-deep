@@ -19,27 +19,27 @@ type BatchTrainer struct {
 }
 
 type internalb struct {
-	deltas            [][][]float64
-	partialDeltas     [][][][]float64
-	accumulatedDeltas [][][]float64
+	deltas            [][][]deep.Deepfloat64
+	partialDeltas     [][][][]deep.Deepfloat64
+	accumulatedDeltas [][][]deep.Deepfloat64
 	moments           [][][]float64
 }
 
 func newBatchTraining(layers []*deep.Layer, parallelism int) *internalb {
-	deltas := make([][][]float64, parallelism)
-	partialDeltas := make([][][][]float64, parallelism)
-	accumulatedDeltas := make([][][]float64, len(layers))
+	deltas := make([][][]deep.Deepfloat64, parallelism)
+	partialDeltas := make([][][][]deep.Deepfloat64, parallelism)
+	accumulatedDeltas := make([][][]deep.Deepfloat64, len(layers))
 	for w := 0; w < parallelism; w++ {
-		deltas[w] = make([][]float64, len(layers))
-		partialDeltas[w] = make([][][]float64, len(layers))
+		deltas[w] = make([][]deep.Deepfloat64, len(layers))
+		partialDeltas[w] = make([][][]deep.Deepfloat64, len(layers))
 
 		for i, l := range layers {
-			deltas[w][i] = make([]float64, len(l.Neurons))
-			accumulatedDeltas[i] = make([][]float64, len(l.Neurons))
-			partialDeltas[w][i] = make([][]float64, len(l.Neurons))
+			deltas[w][i] = make([]deep.Deepfloat64, len(l.Neurons))
+			accumulatedDeltas[i] = make([][]deep.Deepfloat64, len(l.Neurons))
+			partialDeltas[w][i] = make([][]deep.Deepfloat64, len(l.Neurons))
 			for j, n := range l.Neurons {
-				partialDeltas[w][i][j] = make([]float64, len(n.In))
-				accumulatedDeltas[i][j] = make([]float64, len(n.In))
+				partialDeltas[w][i][j] = make([]deep.Deepfloat64, len(n.In))
+				accumulatedDeltas[i][j] = make([]deep.Deepfloat64, len(n.In))
 			}
 		}
 	}
@@ -127,7 +127,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 	}
 }
 
-func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []float64, wid int) {
+func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64, wid int) {
 	loss := deep.GetLoss(n.Config.Loss)
 	deltas := t.deltas[wid]
 	partialDeltas := t.partialDeltas[wid]
@@ -145,12 +145,12 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []float64, wid int)
 		iD := deltas[i]
 		nextD := deltas[i+1]
 		for j, n := range l.Neurons {
-			var sum float64
+			var sum deep.Deepfloat64
 			for k, s := range n.Out {
 				sum += (s.Weight1 + 2*n.Value*s.Weight2) * nextD[k]
 			}
 			sum *= n.DActivate(n.Value)
-			if math.IsNaN(sum) {
+			if math.IsNaN(float64(sum)) {
 				iD[j] = n.DActivate(n.Value)
 			} else {
 				iD[j] = n.DActivate(n.Value) * sum
@@ -183,7 +183,7 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 					s.In,
 					it,
 					idx)
-				if !math.IsNaN(update) {
+				if !math.IsNaN(float64(update)) {
 					s.Weight1 = update
 				}
 				jAD[k] = 0
