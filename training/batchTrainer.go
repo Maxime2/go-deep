@@ -182,7 +182,7 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 					jAD[k],
 					s.In,
 					it,
-					idx)
+					1, idx)
 				if !math.IsNaN(float64(update)) {
 					s.Weight1 = update
 				}

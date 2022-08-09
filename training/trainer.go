@@ -102,7 +102,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					t.deltas[i][j]*l.Neurons[j].In[k].In,
 					l.Neurons[j].In[k].In,
 					it,
-					idx)
+					1, idx)
 				if !math.IsNaN(float64(update)) {
 					l.Neurons[j].In[k].Weight1 = update
 				}
@@ -111,18 +111,18 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					t.deltas[i][j],
 					l.Neurons[j].In[k].In,
 					it,
-					idx)
+					0, idx)
 				if !math.IsNaN(float64(update)) {
 					l.Neurons[j].In[k].Weight0 = update
 				}
 
-				update = l.Neurons[j].In[k].Weight1 + t.solver.Update(l.Neurons[j].In[k].Weight1,
+				update = l.Neurons[j].In[k].Weight2 + t.solver.Update(l.Neurons[j].In[k].Weight2,
 					t.deltas[i][j]*2*l.Neurons[j].In[k].In*l.Neurons[j].In[k].In,
 					l.Neurons[j].In[k].In,
 					it,
-					idx)
+					2, idx)
 				if !math.IsNaN(float64(update)) {
-					l.Neurons[j].In[k].Weight1 = update
+					l.Neurons[j].In[k].Weight2 = update
 				}
 				idx++
 			}
