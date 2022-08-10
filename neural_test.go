@@ -59,17 +59,17 @@ func Test_Forward_Save_Load(t *testing.T) {
 	for i, l := range n.Layers {
 		for j, n := range l.Neurons {
 			for k := 0; k < 3; k++ {
-				n.In[k].Weight0 = weights[i][j][k]
+				n.In[k].Weight0 = 0
 				n.In[k].Weight1 = weights[i][j][k]
-				n.In[k].Weight2 = weights[i][j][k]
+				n.In[k].Weight2 = 0
 			}
 		}
 	}
 	for _, biases := range n.Biases {
 		for _, bias := range biases {
-			bias.Weight0 = 1
+			bias.Weight0 = 0
 			bias.Weight1 = 1
-			bias.Weight2 = 1
+			bias.Weight2 = 0
 		}
 	}
 
