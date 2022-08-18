@@ -46,12 +46,12 @@ func (l *Layer) fire() {
 func (l *Layer) Connect(next *Layer, weight WeightInitializer) {
 	for i := range l.Neurons {
 		for j := range next.Neurons {
-			syn := NewSynapse(weight())
+			syn := NewSynapse(weight(), weight(), weight())
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
 		// Add recurrent synapse
-		syn := NewSynapse(weight())
+		syn := NewSynapse(weight(), weight(), weight())
 		l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 		l.Neurons[i].In = append(l.Neurons[i].In, syn)
 	}
@@ -61,7 +61,7 @@ func (l *Layer) Connect(next *Layer, weight WeightInitializer) {
 func (l *Layer) ApplyBias(weight WeightInitializer) []*Synapse {
 	biases := make([]*Synapse, len(l.Neurons))
 	for i := range l.Neurons {
-		biases[i] = NewSynapse(weight())
+		biases[i] = NewSynapse(weight(), weight(), weight())
 		biases[i].IsBias = true
 		l.Neurons[i].In = append(l.Neurons[i].In, biases[i])
 	}

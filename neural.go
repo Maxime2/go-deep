@@ -94,7 +94,7 @@ func initializeLayers(c *Config) []*Layer {
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		for i := range neuron.In {
-			neuron.In[i] = NewSynapse(c.Weight())
+			neuron.In[i] = NewSynapse(c.Weight(), c.Weight(), c.Weight())
 		}
 	}
 

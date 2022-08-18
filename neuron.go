@@ -53,8 +53,8 @@ type Synapse struct {
 }
 
 // NewSynapse returns a synapse with the specified initialized weight
-func NewSynapse(weight Deepfloat64) *Synapse {
-	return &Synapse{Weight0: weight, Weight1: weight, Weight2: weight}
+func NewSynapse(weight0, weight1, weight2 Deepfloat64) *Synapse {
+	return &Synapse{Weight0: weight0, Weight1: weight1, Weight2: weight2}
 }
 
 func (s *Synapse) fire(value Deepfloat64) {
