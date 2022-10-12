@@ -73,13 +73,13 @@ func toExample(in []string) training.Example {
 		panic(err)
 	}
 	resEncoded := onehot(3, res)
-	var features []float64
+	var features []deep.Deepfloat64
 	for i := 1; i < len(in); i++ {
 		res, err := strconv.ParseFloat(in[i], 64)
 		if err != nil {
 			panic(err)
 		}
-		features = append(features, res)
+		features = append(features, deep.Deepfloat64(res))
 	}
 
 	return training.Example{
@@ -88,8 +88,8 @@ func toExample(in []string) training.Example {
 	}
 }
 
-func onehot(classes int, val float64) []float64 {
-	res := make([]float64, classes)
+func onehot(classes int, val float64) []deep.Deepfloat64 {
+	res := make([]deep.Deepfloat64, classes)
 	res[int(val)-1] = 1
 	return res
 }

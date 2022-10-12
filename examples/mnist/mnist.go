@@ -16,10 +16,10 @@ import (
 )
 
 /*
-	mnist classifier
-	mnist is a set of hand-written digits 0-9
-	the dataset in a sane format (as used here) can be found at:
-	https://pjreddie.com/projects/mnist-in-csv/
+mnist classifier
+mnist is a set of hand-written digits 0-9
+the dataset in a sane format (as used here) can be found at:
+https://pjreddie.com/projects/mnist-in-csv/
 */
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -89,13 +89,13 @@ func toExample(in []string) training.Example {
 		panic(err)
 	}
 	resEncoded := onehot(10, res)
-	var features []float64
+	var features []deep.Deepfloat64
 	for i := 1; i < len(in); i++ {
 		res, err := strconv.ParseFloat(in[i], 64)
 		if err != nil {
 			panic(err)
 		}
-		features = append(features, res)
+		features = append(features, deep.Deepfloat64(res))
 	}
 
 	return training.Example{
@@ -104,8 +104,8 @@ func toExample(in []string) training.Example {
 	}
 }
 
-func onehot(classes int, val float64) []float64 {
-	res := make([]float64, classes)
+func onehot(classes int, val float64) []deep.Deepfloat64 {
+	res := make([]deep.Deepfloat64, classes)
 	res[int(val)] = 1
 	return res
 }
