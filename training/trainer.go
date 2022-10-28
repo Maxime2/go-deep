@@ -117,7 +117,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 				}
 
 				update = l.Neurons[j].In[k].Weight2 + t.solver.Update(l.Neurons[j].In[k].Weight2,
-					t.deltas[i][j]*2*l.Neurons[j].In[k].In*l.Neurons[j].In[k].In,
+					t.deltas[i][j]*l.Neurons[j].In[k].In*l.Neurons[j].In[k].In,
 					l.Neurons[j].In[k].In,
 					it,
 					2, idx)
