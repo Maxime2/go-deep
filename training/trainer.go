@@ -83,7 +83,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		for j, neuron := range n.Layers[i].Neurons {
 			var sum deep.Deepfloat64
 			for k, s := range neuron.Out {
-				sum += (s.Weight1 + neuron.Value*s.Weight2) * t.deltas[i+1][k]
+				sum += s.FireDerivative(neuron.Value) * t.deltas[i+1][k]
 			}
 			sum *= neuron.DActivate(neuron.Value)
 			if !math.IsNaN(float64(sum)) {
@@ -97,32 +97,16 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 	var idx int
 	for i, l := range n.Layers {
 		for j := range l.Neurons {
-			for k := range l.Neurons[j].In {
-				update := l.Neurons[j].In[k].Weight1 + t.solver.Update(l.Neurons[j].In[k].Weight1,
-					t.deltas[i][j]*l.Neurons[j].In[k].In,
-					l.Neurons[j].In[k].In,
-					it,
-					1, idx)
-				if !math.IsNaN(float64(update)) {
-					l.Neurons[j].In[k].Weight1 = update
-				}
-
-				update = l.Neurons[j].In[k].Weight0 + t.solver.Update(l.Neurons[j].In[k].Weight0,
-					t.deltas[i][j],
-					l.Neurons[j].In[k].In,
-					it,
-					0, idx)
-				if !math.IsNaN(float64(update)) {
-					l.Neurons[j].In[k].Weight0 = update
-				}
-
-				update = l.Neurons[j].In[k].Weight2 + t.solver.Update(l.Neurons[j].In[k].Weight2,
-					t.deltas[i][j]*l.Neurons[j].In[k].In*l.Neurons[j].In[k].In,
-					l.Neurons[j].In[k].In,
-					it,
-					2, idx)
-				if !math.IsNaN(float64(update)) {
-					l.Neurons[j].In[k].Weight2 = update
+			for _, synapse := range l.Neurons[j].In {
+				for k := 0; k < len(synapse.Weights); k++ {
+					update := synapse.Weights[k] + t.solver.Update(synapse.Weights[k],
+						t.deltas[i][j]*deep.Deepfloat64(math.Pow(float64(synapse.In), float64(k))),
+						synapse.In,
+						it,
+						idx)
+					if !math.IsNaN(float64(update)) {
+						synapse.Weights[k] = update
+					}
 				}
 				idx++
 			}

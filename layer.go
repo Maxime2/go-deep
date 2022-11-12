@@ -43,25 +43,25 @@ func (l *Layer) fire() {
 
 // Connect fully connects layer l to next, and initializes each
 // synapse with the given weight function
-func (l *Layer) Connect(next *Layer, weight WeightInitializer) {
+func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 	for i := range l.Neurons {
 		for j := range next.Neurons {
-			syn := NewSynapse(weight(), weight(), weight())
+			syn := NewSynapse(degree, weight)
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
 		// Add recurrent synapse
-		syn := NewSynapse(weight(), weight(), weight())
+		syn := NewSynapse(degree, weight)
 		l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 		l.Neurons[i].In = append(l.Neurons[i].In, syn)
 	}
 }
 
 // ApplyBias creates and returns a bias synapse for each neuron in l
-func (l *Layer) ApplyBias(weight WeightInitializer) []*Synapse {
+func (l *Layer) ApplyBias(degree int, weight WeightInitializer) []*Synapse {
 	biases := make([]*Synapse, len(l.Neurons))
 	for i := range l.Neurons {
-		biases[i] = NewSynapse(weight(), weight(), weight())
+		biases[i] = NewSynapse(degree, weight)
 		biases[i].IsBias = true
 		l.Neurons[i].In = append(l.Neurons[i].In, biases[i])
 	}
@@ -69,13 +69,11 @@ func (l *Layer) ApplyBias(weight WeightInitializer) []*Synapse {
 }
 
 func (l Layer) String() string {
-	weights := make([][]Deepfloat64, len(l.Neurons))
+	weights := make([][][]Deepfloat64, len(l.Neurons))
 	for i, n := range l.Neurons {
-		weights[i] = make([]Deepfloat64, 3*len(n.In))
+		weights[i] = make([][]Deepfloat64, len(n.In))
 		for j, s := range n.In {
-			weights[i][3*j] = s.Weight0
-			weights[i][3*j+1] = s.Weight1
-			weights[i][3*j+2] = s.Weight2
+			weights[i][j] = s.Weights
 		}
 	}
 	return fmt.Sprintf("%+v", weights)

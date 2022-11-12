@@ -1,8 +1,10 @@
 package training
 
-import "math/rand"
+import (
+	"math/rand"
 
-import "github.com/Maxime2/go-deep"
+	"github.com/Maxime2/go-deep"
+)
 
 // Example is an input-target pair
 type Example struct {

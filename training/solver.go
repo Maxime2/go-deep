@@ -9,7 +9,7 @@ import (
 // Solver implements an update rule for training a NN
 type Solver interface {
 	Init(size int)
-	Update(value, gradient, in deep.Deepfloat64, iteration, pwr, idx int) deep.Deepfloat64
+	Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -17,8 +17,8 @@ type SGD struct {
 	lr       float64
 	decay    float64
 	momentum float64
-	nesterov bool
-	moments  [3][]deep.Deepfloat64
+	//nesterov bool
+	moments []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
@@ -27,29 +27,27 @@ func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 		lr:       fparam(lr, 0.01),
 		decay:    decay,
 		momentum: momentum,
-		nesterov: nesterov,
+		//nesterov: nesterov,
 	}
 }
 
 // Init initializes vectors using number of weights in network
 func (o *SGD) Init(size int) {
-	o.moments[0] = make([]deep.Deepfloat64, size)
-	o.moments[1] = make([]deep.Deepfloat64, size)
-	o.moments[2] = make([]deep.Deepfloat64, size)
+	o.moments = make([]deep.Deepfloat64, size)
 }
 
 // Update returns the update for a given weight
-func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, pwr, idx int) deep.Deepfloat64 {
+func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
 	lr := deep.Deepfloat64(o.lr / (1 + o.decay*float64(iteration)))
 	lr = lr / (1 + lr*in*in)
 
-	o.moments[pwr][idx] = deep.Deepfloat64(o.momentum)*o.moments[pwr][idx] - lr*gradient
+	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
+	//
+	//	if o.nesterov {
+	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
+	//	}
 
-	if o.nesterov {
-		o.moments[pwr][idx] = deep.Deepfloat64(o.momentum)*o.moments[pwr][idx] - lr*gradient
-	}
-
-	return o.moments[pwr][idx]
+	return o.moments[idx]
 }
 
 // Adam is an Adam solver
@@ -78,7 +76,7 @@ func (o *Adam) Init(size int) {
 }
 
 // Update returns the update for a given weight
-func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, pwr, idx int) deep.Deepfloat64 {
+func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) deep.Deepfloat64 {
 	lrt := deep.Deepfloat64(o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
 		(1.0 - math.Pow(o.beta, float64(t))))
 	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*float64(gradient)

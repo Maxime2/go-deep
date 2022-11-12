@@ -13,33 +13,33 @@ import (
 func Test_BoundedRegression(t *testing.T) {
 	rand.Seed(0)
 
-	funcs := []func(float64) deep.Deepfloat64{
-		func(x float64) deep.Deepfloat64 { return deep.Deepfloat64(math.Sin(x)) },
-		func(x float64) deep.Deepfloat64 { return deep.Deepfloat64(math.Pow(x, 2)) },
-		func(x float64) deep.Deepfloat64 { return deep.Deepfloat64(math.Sqrt(x)) },
+	funcs := []func(deep.Deepfloat64) deep.Deepfloat64{
+		func(x deep.Deepfloat64) deep.Deepfloat64 { return deep.Deepfloat64(math.Sin(float64(x))) },
+		func(x deep.Deepfloat64) deep.Deepfloat64 { return deep.Deepfloat64(math.Pow(float64(x), 2)) },
+		func(x deep.Deepfloat64) deep.Deepfloat64 { return deep.Deepfloat64(math.Sqrt(float64(x))) },
 	}
 
 	for _, f := range funcs {
 
 		data := Examples{}
 		for i := 0.0; i < 1; i += 0.01 {
-			data = append(data, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{f(i)}})
+			data = append(data, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{f(deep.Deepfloat64(i))}})
 		}
 		n := deep.NewNeural(&deep.Config{
 			Inputs:     1,
 			Layout:     []int{4, 4, 1},
-			Activation: deep.ActivationTanh,
+			Activation: deep.ActivationSigmoid,
 			Mode:       deep.ModeRegression,
 			Weight:     deep.NewUniform(0.5, 0),
 			Bias:       true,
 		})
 
-		trainer := NewTrainer(NewSGD(0.25, 0.5, 0, false), 0)
+		trainer := NewTrainer(NewSGD(0.25, 0.5, 0, false), 100)
 		trainer.Train(n, data, nil, 5000)
 
-		tests := []float64{0.0, 0.1, 0.25, 0.5, 0.75, 0.9}
+		tests := []deep.Deepfloat64{0.0, 0.1, 0.25, 0.5, 0.75, 0.9}
 		for _, x := range tests {
-			assert.InEpsilon(t, f(x)+1, n.Predict([]deep.Deepfloat64{deep.Deepfloat64(x)})[0]+1, 0.1)
+			assert.InEpsilon(t, float64(f(x)+1), float64(n.Predict([]deep.Deepfloat64{deep.Deepfloat64(x)})[0]+1), 0.1)
 		}
 	}
 }
@@ -48,24 +48,28 @@ func Test_RegressionLinearOuts(t *testing.T) {
 	rand.Seed(0)
 	squares := Examples{}
 	for i := 0.0; i < 100.0; i++ {
-		squares = append(squares, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{deep.Deepfloat64(math.Sqrt(i))}})
+		squares = append(squares, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{deep.Deepfloat64(math.Sqrt(1+i))}})
 	}
 	squares.Shuffle()
 	n := deep.NewNeural(&deep.Config{
-		Inputs:     1,
-		Layout:     []int{3, 3, 1},
-		Activation: deep.ActivationReLU,
+		Inputs: 1,
+		Layout: []int{3, 3, 1},
+		//Activation: deep.ActivationReLU,
+		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeRegression,
-		Weight:     deep.NewNormal(0.5, 0.5),
-		Bias:       true,
+		Weight:     deep.NewNormal(0.1/9, 0.3/9),
+		Bias:       false,
 	})
 
-	trainer := NewBatchTrainer(NewAdam(0.01, 0, 0, 0), 0, 25, 2)
-	trainer.Train(n, squares, nil, 25000)
+	//	trainer := NewBatchTrainer(NewAdam(0.01, 0, 0, 0), 0, 25, 2)
+	//rainer := NewTrainer(NewAdam(0.01, 0, 0, 0), 0)
+	trainer := NewTrainer(NewSGD(0.01, 0, 1e-6, false), 10000)
+	trainer.Train(n, squares, squares, 250000)
+	n.Save("test1")
 
 	for i := 0; i < 100; i++ {
 		x := deep.Deepfloat64(rand.Intn(99) + 1)
-		assert.InEpsilon(t, math.Sqrt(float64(x))+1, n.Predict([]deep.Deepfloat64{x})[0]+1, 0.1)
+		assert.InEpsilon(t, math.Sqrt(float64(1+x))+1, float64(n.Predict([]deep.Deepfloat64{x})[0]+1), 0.1, "for %+v want: %+v have: %+v\n", x, math.Sqrt(float64(x))+1, float64(n.Predict([]deep.Deepfloat64{x})[0]+1))
 	}
 }
 
@@ -92,9 +96,9 @@ func Test_Training(t *testing.T) {
 	trainer.Train(n, data, nil, 1000)
 
 	v := n.Predict([]deep.Deepfloat64{0})
-	assert.InEpsilon(t, 1, 1+v[0], 0.1)
+	assert.InEpsilon(t, 1, float64(1+v[0]), 0.1)
 	v = n.Predict([]deep.Deepfloat64{5})
-	assert.InEpsilon(t, 1.0, v[0], 0.1)
+	assert.InEpsilon(t, 1.0, float64(v[0]), 0.1)
 }
 
 var data = []Example{
@@ -125,7 +129,7 @@ func Test_Prediction(t *testing.T) {
 	trainer.Train(n, data, nil, 5000)
 
 	for _, d := range data {
-		assert.InEpsilon(t, n.Predict(d.Input)[0]+1, d.Response[0]+1, 0.1)
+		assert.InEpsilon(t, float64(n.Predict(d.Input)[0]+1), float64(d.Response[0]+1), 0.1)
 	}
 }
 
@@ -143,8 +147,8 @@ func Test_CrossVal(t *testing.T) {
 	trainer.Train(n, data, data, 1000)
 
 	for _, d := range data {
-		assert.InEpsilon(t, n.Predict(d.Input)[0]+1, d.Response[0]+1, 0.1)
-		assert.InEpsilon(t, 1, crossValidate(n, data)+1, 0.01)
+		assert.InEpsilon(t, float64(n.Predict(d.Input)[0]+1), float64(d.Response[0]+1), 0.1)
+		assert.InEpsilon(t, 1, float64(crossValidate(n, data)+1), 0.01)
 	}
 }
 
@@ -168,22 +172,22 @@ func Test_MultiClass(t *testing.T) {
 		Activation: deep.ActivationReLU,
 		Mode:       deep.ModeMultiClass,
 		Loss:       deep.LossMeanSquared,
-		Weight:     deep.NewUniform(0.1, 0),
+		Weight:     deep.NewUniform(0.1, 0.2),
 		Bias:       true,
 	})
 
-	trainer := NewTrainer(NewSGD(0.01, 0.1, 0, false), 0)
-	trainer.Train(n, data, data, 1000)
+	trainer := NewTrainer(NewSGD(0.01, 0.1, 0, false), 100)
+	trainer.Train(n, data, data, 2000)
 
 	for _, d := range data {
 		est := n.Predict(d.Input)
-		assert.InEpsilon(t, 1.0, deep.Sum(est), 0.00001)
+		assert.InEpsilon(t, 1.0, float64(deep.Sum(est)), 0.00001)
 		if d.Response[0] == 1.0 {
-			assert.InEpsilon(t, n.Predict(d.Input)[0]+1, d.Response[0]+1, 0.1)
+			assert.InEpsilon(t, float64(n.Predict(d.Input)[0]+1), float64(d.Response[0]+1), 0.1)
 		} else {
-			assert.InEpsilon(t, n.Predict(d.Input)[1]+1, d.Response[1]+1, 0.1)
+			assert.InEpsilon(t, float64(n.Predict(d.Input)[1]+1), float64(d.Response[1]+1), 0.1)
 		}
-		assert.InEpsilon(t, 1, crossValidate(n, data)+1, 0.01)
+		assert.InEpsilon(t, 1, float64(crossValidate(n, data)+1), 0.01)
 	}
 
 }
@@ -222,7 +226,7 @@ func Test_xor(t *testing.T) {
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
 		Weight:     deep.NewUniform(.25, 0),
-		Bias:       true,
+		Bias:       false,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0, 0}, []deep.Deepfloat64{0}},
@@ -235,7 +239,7 @@ func Test_xor(t *testing.T) {
 	trainer.Train(n, permutations, permutations, 500)
 
 	for _, perm := range permutations {
-		assert.InEpsilon(t, n.Predict(perm.Input)[0]+1, perm.Response[0]+1, 0.2)
+		assert.InEpsilon(t, float64(n.Predict(perm.Input)[0]+1), float64(perm.Response[0]+1), 0.2, "input: %+v; want: %+v have: %+v\n", perm.Input, n.Predict(perm.Input)[0]+1, perm.Response[0]+1)
 	}
 }
 

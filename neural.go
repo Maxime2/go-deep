@@ -36,6 +36,8 @@ type Config struct {
 	Bias bool
 	// Error/Loss precision
 	LossPrecision int
+	// Specifies basis size
+	Degree int
 }
 
 // NewNeural returns a new neural network
@@ -61,6 +63,10 @@ func NewNeural(c *Config) *Neural {
 		c.LossPrecision = 4
 	}
 
+	if c.Degree == 0 {
+		c.Degree = 7
+	}
+
 	layers := initializeLayers(c)
 
 	var biases [][]*Synapse
@@ -70,7 +76,7 @@ func NewNeural(c *Config) *Neural {
 			if c.Mode == ModeRegression && i == len(layers)-1 {
 				continue
 			}
-			biases[i] = layers[i].ApplyBias(c.Weight)
+			biases[i] = layers[i].ApplyBias(c.Degree, c.Weight)
 		}
 	}
 
@@ -94,12 +100,12 @@ func initializeLayers(c *Config) []*Layer {
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		for i := range neuron.In {
-			neuron.In[i] = NewSynapse(c.Weight(), c.Weight(), c.Weight())
+			neuron.In[i] = NewSynapse(c.Degree, c.Weight)
 		}
 	}
 
 	for i := 0; i < len(layers)-1; i++ {
-		layers[i].Connect(layers[i+1], c.Weight)
+		layers[i].Connect(layers[i+1], c.Degree, c.Weight)
 	}
 
 	return layers
@@ -145,8 +151,8 @@ func (n *Neural) Predict(input []Deepfloat64) []Deepfloat64 {
 // NumWeights returns the number of weights in the network
 func (n *Neural) NumWeights() (num int) {
 	for _, l := range n.Layers {
-		for _, n := range l.Neurons {
-			num += len(n.In)
+		for _, neuron := range l.Neurons {
+			num += len(neuron.In) * (n.Config.Degree + 1)
 		}
 	}
 	return
