@@ -38,6 +38,8 @@ type Config struct {
 	LossPrecision int
 	// Specifies basis size
 	Degree int
+	// Specify Synap Tags for the input layer
+	InputTags []string
 }
 
 // NewNeural returns a new neural network
@@ -99,8 +101,14 @@ func initializeLayers(c *Config) []*Layer {
 
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
-		for i := range neuron.In {
-			neuron.In[i] = NewSynapse(c.Degree, c.Weight)
+		if c.InputTags == nil {
+			for i := range neuron.In {
+				neuron.In[i] = NewSynapse(c.Degree, c.Weight)
+			}
+		} else {
+			for i := range neuron.In {
+				neuron.In[i] = NewSynapseWithTag(c.InputTags[i], c.Degree, c.Weight)
+			}
 		}
 	}
 

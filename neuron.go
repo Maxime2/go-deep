@@ -50,15 +50,26 @@ type Synapse struct {
 	Weights []Deepfloat64
 	In, Out Deepfloat64
 	IsBias  bool
+	Tag     string
 }
 
-// NewSynapse returns a synapse with the specified initialized weight
+// NewSynapse returns a synapse with the weigths set with specified initializer
 func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
 	return &Synapse{Weights: weights}
+}
+
+// NewSynapseWithTag returns a synapse with the weigths preset with specified initializer
+// and marked with specified tag
+func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synapse {
+	var weights = make([]Deepfloat64, degree+1)
+	for i := 0; i <= degree; i++ {
+		weights[i] = weight()
+	}
+	return &Synapse{Weights: weights, Tag: tag}
 }
 
 func (s *Synapse) fire(value Deepfloat64) {
@@ -79,4 +90,8 @@ func (s *Synapse) FireDerivative(value Deepfloat64) Deepfloat64 {
 		mul *= value
 	}
 	return res
+}
+
+func (s *Synapse) SetTag(tag string) {
+	s.Tag = tag
 }
