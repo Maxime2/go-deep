@@ -50,10 +50,6 @@ func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
-		// Add recurrent synapse
-		syn := NewSynapse(degree, weight)
-		l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
-		l.Neurons[i].In = append(l.Neurons[i].In, syn)
 	}
 }
 
