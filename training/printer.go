@@ -2,7 +2,7 @@ package training
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"text/tabwriter"
 	"time"
 
@@ -16,7 +16,7 @@ type StatsPrinter struct {
 
 // NewStatsPrinter creates a StatsPrinter
 func NewStatsPrinter() *StatsPrinter {
-	return &StatsPrinter{tabwriter.NewWriter(os.Stdout, 16, 0, 3, ' ', 0)}
+	return &StatsPrinter{tabwriter.NewWriter(log.Writer(), 16, 0, 3, ' ', 0)}
 }
 
 // Init initializes printer
