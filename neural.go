@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -174,8 +175,8 @@ func (n *Neural) String() string {
 	return s
 }
 
-// Save saves network in JSON into the file specified
-func (n *Neural) Save(path string) error {
+// Save saves network in readable JSON into the file specified
+func (n *Neural) SaveReadable(path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -189,12 +190,28 @@ func (n *Neural) Save(path string) error {
 	return err
 }
 
-// Load retrieves network from the file specified created using Save method
-func (n *Neural) Load(path string) error {
-	f, err := os.Open(path)
+// Save saves network into the file specified to be loaded later
+func (n *Neural) Save(path string) error {
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	return json.NewDecoder(f).Decode(n)
+	b, err := n.Marshal()
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	return err
+}
+
+// Load retrieves network from the file specified created using Save method
+func Load(path string) (*Neural, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	b, _ := ioutil.ReadAll(f)
+	return Unmarshal(b)
 }

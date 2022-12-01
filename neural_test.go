@@ -93,8 +93,7 @@ func Test_Forward_Save_Load(t *testing.T) {
 	err = n.Save(tmpfile.Name())
 	assert.Nil(t, err)
 
-	n2 := NewNeural(&c)
-	err = n2.Load(tmpfile.Name())
+	n2, err := Load(tmpfile.Name())
 	assert.Nil(t, err)
 
 	if diff := pretty.Compare(n, n2); diff != "" {
