@@ -54,7 +54,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	t.solver.Init(n.NumWeights())
 
 	ts := time.Now()
-	for i := 1; i <= max(iterations, n.Config.N_iterations); i++ {
+	for i := 1; i <= min(iterations, n.Config.N_iterations); i++ {
 		examples.Shuffle()
 		n.Config.N_iterations = 1
 		for j := 0; j < len(examples); j++ {
