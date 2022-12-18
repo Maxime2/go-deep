@@ -3,7 +3,6 @@ package deep
 import (
 	"io/ioutil"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/kylelemons/godebug/pretty"
@@ -26,7 +25,7 @@ func Test_Init(t *testing.T) {
 	}
 }
 
-func Test_Forward_Save_Load(t *testing.T) {
+func Test_Forward(t *testing.T) {
 	c := Config{
 		Degree:     1,
 		Inputs:     3,
@@ -86,6 +85,52 @@ func Test_Forward_Save_Load(t *testing.T) {
 		}
 	}
 
+	err = n.Forward([]Deepfloat64{0.1, 0.2})
+	assert.Error(t, err)
+}
+
+func Test_Save_Load(t *testing.T) {
+	c := Config{
+		Degree:     1,
+		Inputs:     3,
+		Layout:     []int{3, 3, 3},
+		Activation: ActivationReLU,
+		Mode:       ModeMultiClass,
+		Bias:       true,
+	}
+	n := NewNeural(&c)
+	weights := [][][]Deepfloat64{
+		{
+			{0.1, 0.4, 0.3},
+			{0.3, 0.7, 0.7},
+			{0.5, 0.2, 0.9},
+		},
+		{
+			{0.2, 0.3, 0.5},
+			{0.3, 0.5, 0.7},
+			{0.6, 0.4, 0.8},
+		},
+		{
+			{0.1, 0.4, 0.8},
+			{0.3, 0.7, 0.2},
+			{0.5, 0.2, 0.9},
+		},
+	}
+	for i, l := range n.Layers {
+		for j, n := range l.Neurons {
+			for k := 0; k < 3; k++ {
+				n.In[k].Weights[0] = 0
+				n.In[k].Weights[1] = weights[i][j][k]
+			}
+		}
+	}
+	for _, biases := range n.Biases {
+		for _, bias := range biases {
+			bias.Weights[0] = 0
+			bias.Weights[1] = 1
+		}
+	}
+
 	tmpfile, err := ioutil.TempFile("", "test_load_save")
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name()) // clean up
@@ -99,14 +144,9 @@ func Test_Forward_Save_Load(t *testing.T) {
 	if diff := pretty.Compare(n, n2); diff != "" {
 		t.Errorf("n and n2 diff: (-got +want)\n%s", diff)
 	}
-
-	assert.Equal(t, true, reflect.DeepEqual(n, n2), "the networks should be the same")
-
-	err = n.Forward([]Deepfloat64{0.1, 0.2})
-	assert.Error(t, err)
 }
 
 func Test_NumWeights(t *testing.T) {
 	n := NewNeural(&Config{Layout: []int{5, 5, 3}, Degree: 1})
-	assert.Equal(t, 2*(5+5*6+3*5), n.NumWeights())
+	assert.Equal(t, 2*(5*5+3*5), n.NumWeights())
 }
