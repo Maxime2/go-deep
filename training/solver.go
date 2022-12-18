@@ -18,7 +18,9 @@ type SGD struct {
 	decay    float64
 	momentum float64
 	//nesterov bool
-	moments []deep.Deepfloat64
+	moments   []deep.Deepfloat64
+	lrs       []deep.Deepfloat64
+	gradients []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
@@ -34,14 +36,25 @@ func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 // Init initializes vectors using number of weights in network
 func (o *SGD) Init(size int) {
 	o.moments = make([]deep.Deepfloat64, size)
+	o.gradients = make([]deep.Deepfloat64, size)
+	o.lrs = make([]deep.Deepfloat64, size)
+	for i := 0; i < size; i++ {
+		o.lrs[i] = deep.Deepfloat64(o.lr)
+	}
 }
 
 // Update returns the update for a given weight
 func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
-	lr := deep.Deepfloat64(o.lr / (1 + o.decay*float64(iteration)))
-	lr = lr / (1 + lr*in*in)
+	o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
+	//lr = lr / (1 + lr*in*in)
 
-	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
+	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - o.lrs[idx]*gradient
+	if math.Signbit(float64(gradient)) != math.Signbit(float64(o.gradients[idx])) {
+		o.lrs[idx] /= 2
+	} else {
+		o.lrs[idx] *= 2
+	}
+	o.gradients[idx] = gradient
 	//
 	//	if o.nesterov {
 	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
