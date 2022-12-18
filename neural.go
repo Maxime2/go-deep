@@ -10,6 +10,9 @@ import (
 	"os"
 )
 
+// Smallest number
+const Eps = 1e-12
+
 // Neural is a neural network
 type Neural struct {
 	Layers []*Layer

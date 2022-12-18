@@ -50,7 +50,13 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) d
 
 	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - o.lrs[idx]*gradient
 	if math.Signbit(float64(gradient)) != math.Signbit(float64(o.gradients[idx])) {
-		o.lrs[idx] /= 1.1
+		if o.lrs[idx] > deep.Eps {
+			o.lrs[idx] *= 0.95
+		}
+	} else {
+		if o.lrs[idx] < deep.Deepfloat64(o.lr) {
+			o.lrs[idx] *= 1.05
+		}
 	}
 	o.gradients[idx] = gradient
 	//
