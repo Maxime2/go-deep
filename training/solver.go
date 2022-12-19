@@ -55,7 +55,7 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) d
 		}
 	} else {
 		if o.lrs[idx] < deep.Deepfloat64(o.lr) {
-			o.lrs[idx] *= 1.05
+			o.lrs[idx] *= 1 / 0.95
 		}
 	}
 	o.gradients[idx] = gradient
