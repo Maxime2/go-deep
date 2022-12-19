@@ -45,7 +45,7 @@ func (o *SGD) Init(size int) {
 
 // Update returns the update for a given weight
 func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
-	o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
+	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
 	//lr = lr / (1 + lr*in*in)
 
 	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - o.lrs[idx]*gradient
