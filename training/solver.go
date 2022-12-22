@@ -10,6 +10,8 @@ import (
 type Solver interface {
 	Init(size int)
 	Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
+	InitGradients()
+	AdjustLrs()
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -18,9 +20,10 @@ type SGD struct {
 	decay    float64
 	momentum float64
 	//nesterov bool
-	moments   []deep.Deepfloat64
-	lrs       []deep.Deepfloat64
-	gradients []deep.Deepfloat64
+	moments     []deep.Deepfloat64
+	lrs         []deep.Deepfloat64
+	gradients   []deep.Deepfloat64
+	gradients_1 []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
@@ -36,10 +39,30 @@ func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 // Init initializes vectors using number of weights in network
 func (o *SGD) Init(size int) {
 	o.moments = make([]deep.Deepfloat64, size)
-	o.gradients = make([]deep.Deepfloat64, size)
+	o.gradients_1 = make([]deep.Deepfloat64, size)
 	o.lrs = make([]deep.Deepfloat64, size)
 	for i := 0; i < size; i++ {
 		o.lrs[i] = deep.Deepfloat64(o.lr)
+	}
+}
+
+// Initialise Gradients
+func (o *SGD) InitGradients() {
+	o.gradients = make([]deep.Deepfloat64, len(o.moments))
+}
+
+// Adjust learning rates based on gradient signs
+func (o *SGD) AdjustLrs() {
+	for idx := range o.lrs {
+		if math.Signbit(float64(o.gradients[idx])) != math.Signbit(float64(o.gradients_1[idx])) {
+			if o.lrs[idx] > deep.Eps {
+				o.lrs[idx] *= 0.95
+			}
+		} else {
+			if o.lrs[idx] < deep.Deepfloat64(o.lr) {
+				o.lrs[idx] *= 1 / 0.95
+			}
+		}
 	}
 }
 
@@ -49,16 +72,8 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) d
 	//lr = lr / (1 + lr*in*in)
 
 	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - o.lrs[idx]*gradient
-	if math.Signbit(float64(gradient)) != math.Signbit(float64(o.gradients[idx])) {
-		if o.lrs[idx] > deep.Eps {
-			o.lrs[idx] *= 0.95
-		}
-	} else {
-		if o.lrs[idx] < deep.Deepfloat64(o.lr) {
-			o.lrs[idx] *= 1 / 0.95
-		}
-	}
-	o.gradients[idx] = gradient
+	o.gradients[idx] += gradient
+
 	//
 	//	if o.nesterov {
 	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
@@ -90,6 +105,16 @@ func NewAdam(lr, beta, beta2, epsilon float64) *Adam {
 // Init initializes vectors using number of weights in network
 func (o *Adam) Init(size int) {
 	o.v, o.m = make([]float64, size), make([]float64, size)
+}
+
+// Initialise gradients
+func (o *Adam) InitGradients() {
+
+}
+
+// Adjust learning rates based on gradient signs
+func (o *Adam) AdjustLrs() {
+
 }
 
 // Update returns the update for a given weight
