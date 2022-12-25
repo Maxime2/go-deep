@@ -23,51 +23,51 @@ type Solver interface {
 
 // SGD is stochastic gradient descent with nesterov/momentum
 type SGD struct {
-	lr       float64
-	decay    float64
-	momentum float64
+	Lr       float64
+	Decay    float64
+	Momentum float64
 	//nesterov bool
-	moments     []deep.Deepfloat64
-	lrs         []deep.Deepfloat64
-	gradients   []deep.Deepfloat64
-	gradients_1 []deep.Deepfloat64
+	Moments     []deep.Deepfloat64
+	Lrs         []deep.Deepfloat64
+	Gradients   []deep.Deepfloat64
+	Gradients_1 []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
 func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 	return &SGD{
-		lr:       fparam(lr, 0.01),
-		decay:    decay,
-		momentum: momentum,
+		Lr:       fparam(lr, 0.01),
+		Decay:    decay,
+		Momentum: momentum,
 		//nesterov: nesterov,
 	}
 }
 
 // Init initializes vectors using number of weights in network
 func (o *SGD) Init(size int) {
-	o.moments = make([]deep.Deepfloat64, size)
-	o.gradients_1 = make([]deep.Deepfloat64, size)
-	o.lrs = make([]deep.Deepfloat64, size)
+	o.Moments = make([]deep.Deepfloat64, size)
+	o.Gradients_1 = make([]deep.Deepfloat64, size)
+	o.Lrs = make([]deep.Deepfloat64, size)
 	for i := 0; i < size; i++ {
-		o.lrs[i] = deep.Deepfloat64(o.lr)
+		o.Lrs[i] = deep.Deepfloat64(o.Lr)
 	}
 }
 
 // Initialise Gradients
 func (o *SGD) InitGradients() {
-	o.gradients = make([]deep.Deepfloat64, len(o.moments))
+	o.Gradients = make([]deep.Deepfloat64, len(o.Moments))
 }
 
 // Adjust learning rates based on gradient signs
 func (o *SGD) AdjustLrs() {
-	for idx := range o.lrs {
-		if math.Signbit(float64(o.gradients[idx])) != math.Signbit(float64(o.gradients_1[idx])) {
-			if o.lrs[idx] > deep.Eps {
-				o.lrs[idx] *= 0.95
+	for idx := range o.Lrs {
+		if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
+			if o.Lrs[idx] > deep.Eps {
+				o.Lrs[idx] *= 0.95
 			}
 		} else {
-			if o.lrs[idx] < deep.Deepfloat64(o.lr) {
-				o.lrs[idx] *= 1 / 0.95
+			if o.Lrs[idx] < deep.Deepfloat64(o.Lr) {
+				o.Lrs[idx] *= 1 / 0.95
 			}
 		}
 	}
@@ -78,15 +78,15 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) d
 	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
 	//lr = lr / (1 + lr*in*in)
 
-	o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - o.lrs[idx]*gradient
-	o.gradients[idx] += gradient
+	o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*gradient
+	o.Gradients[idx] += gradient
 
 	//
 	//	if o.nesterov {
 	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
 	//	}
 
-	return o.moments[idx]
+	return o.Moments[idx]
 }
 
 // Save saves SGD into the file specified to be loaded later
