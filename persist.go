@@ -27,7 +27,7 @@ func (n Neural) Weights() [][][][]Deepfloat64 {
 	for i, l := range n.Layers {
 		weights[i] = make([][][]Deepfloat64, len(l.Neurons))
 		for j, n := range l.Neurons {
-			weights[i][j] = make([][]Deepfloat64, 3*len(n.In))
+			weights[i][j] = make([][]Deepfloat64, len(n.In))
 			for k, in := range n.In {
 				weights[i][j][k] = in.Weights
 			}
