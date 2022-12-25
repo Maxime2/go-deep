@@ -48,7 +48,7 @@ func Test_RegressionLinearOuts(t *testing.T) {
 	rand.Seed(0)
 	squares := Examples{}
 	for i := 0.0; i < 100.0; i++ {
-		squares = append(squares, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{deep.Deepfloat64(math.Sqrt(1+i))}})
+		squares = append(squares, Example{Input: []deep.Deepfloat64{deep.Deepfloat64(i)}, Response: []deep.Deepfloat64{deep.Deepfloat64(math.Sqrt(1 + i))}})
 	}
 	squares.Shuffle()
 	n := deep.NewNeural(&deep.Config{
@@ -65,7 +65,6 @@ func Test_RegressionLinearOuts(t *testing.T) {
 	//rainer := NewTrainer(NewAdam(0.01, 0, 0, 0), 0)
 	trainer := NewTrainer(NewSGD(0.01, 0, 1e-6, false), 10000)
 	trainer.Train(n, squares, squares, 250000)
-	n.Save("test1")
 
 	for i := 0; i < 100; i++ {
 		x := deep.Deepfloat64(rand.Intn(99) + 1)
