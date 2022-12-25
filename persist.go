@@ -10,7 +10,7 @@ type Dump struct {
 	Weights [][][][]Deepfloat64
 }
 
-// ApplyWeights sets the weights from a three-dimensional slice
+// ApplyWeights sets the weights from a four-dimensional slice
 func (n *Neural) ApplyWeights(weights [][][][]Deepfloat64) {
 	for i, l := range n.Layers {
 		for j := range l.Neurons {
