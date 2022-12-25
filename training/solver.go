@@ -70,6 +70,10 @@ func (o *SGD) AdjustLrs() {
 				o.Lrs[idx] *= 1 / 0.95
 			}
 		}
+		if o.Lrs[idx] < deep.Eps {
+			o.Lrs[idx] = deep.Eps
+		}
+		o.Gradients_1[idx] = o.Gradients[idx]
 	}
 }
 
