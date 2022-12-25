@@ -1,7 +1,12 @@
 package training
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"math"
+	"os"
 
 	deep "github.com/Maxime2/go-deep"
 )
@@ -12,6 +17,8 @@ type Solver interface {
 	Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
 	InitGradients()
 	AdjustLrs()
+	Save(path string) error
+	Load(path string) error
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -82,6 +89,35 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) d
 	return o.moments[idx]
 }
 
+// Save saves SGD into the file specified to be loaded later
+func (o *SGD) Save(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err := json.Marshal(o)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	return err
+}
+
+// Load retrieves SGD from the file specified created using Save method
+func (o *SGD) Load(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, _ := ioutil.ReadAll(f)
+	if err := json.Unmarshal(b, o); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Adam is an Adam solver
 type Adam struct {
 	lr      float64
@@ -125,6 +161,35 @@ func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) deep.Dee
 	o.v[idx] = o.beta2*o.v[idx] + (1.0-o.beta2)*math.Pow(float64(gradient), 2.0)
 
 	return -lrt * deep.Deepfloat64(o.m[idx]/(math.Sqrt(o.v[idx])+o.epsilon))
+}
+
+// Save saves Adam into the file specified to be loaded later
+func (o *Adam) Save(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err := json.Marshal(o)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	return err
+}
+
+// Load retrieves Adam from the file specified created using Save method
+func (o *Adam) Load(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, _ := ioutil.ReadAll(f)
+	if err := json.Unmarshal(b, o); err != nil {
+		return err
+	}
+	return nil
 }
 
 func fparam(val, fallback float64) float64 {
