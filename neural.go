@@ -113,14 +113,14 @@ func initializeLayers(c *Config) []*Layer {
 		if i == (len(layers)-1) && c.Mode != ModeDefault {
 			act = OutputActivation(c.Mode)
 		}
-		layers[i] = NewLayer(c.Layout[i], act)
+		layers[i] = NewLayer(i, c.Layout[i], act)
 	}
 
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 		if c.InputTags == nil {
 			for i := range neuron.In {
-				neuron.In[i] = NewSynapse(c.Degree, c.Weight)
+				neuron.In[i] = NewSynapseWithTag(fmt.Sprintf("In:%d", i), c.Degree, c.Weight)
 			}
 		} else {
 			for i := range neuron.In {
@@ -230,4 +230,27 @@ func Load(path string) (*Neural, error) {
 	defer f.Close()
 	b, _ := ioutil.ReadAll(f)
 	return Unmarshal(b)
+}
+
+// Save the network in DOT format for graphviz
+func (n *Neural) Dot(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "digraph {\n")
+
+	for l, lr := range n.Layers {
+		for n, nr := range lr.Neurons {
+			for _, in := range nr.In {
+				fmt.Fprintf(f, "\"%s\" -> \"L:%d N:%d\"[label=\"%v\"]\n", in.Tag, l, n, in.Weights)
+			}
+		}
+	}
+
+	fmt.Fprintf(f, "}\n")
+
+	return nil
 }

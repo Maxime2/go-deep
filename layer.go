@@ -4,12 +4,13 @@ import "fmt"
 
 // Layer is a set of neurons and corresponding activation
 type Layer struct {
+	Number  int
 	Neurons []*Neuron
 	A       ActivationType
 }
 
 // NewLayer creates a new layer with n nodes
-func NewLayer(n int, activation ActivationType) *Layer {
+func NewLayer(l, n int, activation ActivationType) *Layer {
 	neurons := make([]*Neuron, n)
 
 	for i := 0; i < n; i++ {
@@ -20,6 +21,7 @@ func NewLayer(n int, activation ActivationType) *Layer {
 		neurons[i] = NewNeuron(act)
 	}
 	return &Layer{
+		Number:  l,
 		Neurons: neurons,
 		A:       activation,
 	}
@@ -46,7 +48,7 @@ func (l *Layer) fire() {
 func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 	for i := range l.Neurons {
 		for j := range next.Neurons {
-			syn := NewSynapse(degree, weight)
+			syn := NewSynapseWithTag(fmt.Sprintf("L:%d N:%d", l.Number, i), degree, weight)
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
@@ -57,7 +59,7 @@ func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 func (l *Layer) ApplyBias(degree int, weight WeightInitializer) []*Synapse {
 	biases := make([]*Synapse, len(l.Neurons))
 	for i := range l.Neurons {
-		biases[i] = NewSynapse(degree, weight)
+		biases[i] = NewSynapseWithTag(fmt.Sprintf("L:%d B:%d", l.Number, i), degree, weight)
 		biases[i].IsBias = true
 		l.Neurons[i].In = append(l.Neurons[i].In, biases[i])
 	}

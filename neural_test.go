@@ -144,6 +144,7 @@ func Test_Save_Load(t *testing.T) {
 	if diff := pretty.Compare(n, n2); diff != "" {
 		t.Errorf("n and n2 diff: (-got +want)\n%s", diff)
 	}
+	n.Dot("test.dot")
 }
 
 func Test_NumWeights(t *testing.T) {
