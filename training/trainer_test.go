@@ -245,3 +245,89 @@ func Test_xor(t *testing.T) {
 func printResult(ideal, actual []float64) {
 	fmt.Printf("want: %+v have: %+v\n", ideal, actual)
 }
+
+func Test_RHW(t *testing.T) {
+	c := deep.Config{
+		Degree:        1,
+		Inputs:        6,
+		Layout:        []int{2, 1},
+		Activation:    deep.ActivationSigmoid,
+		Mode:          deep.ModeMultiLabel,
+		Bias:          false,
+		LossPrecision: 12,
+		Weight:        deep.NewNormal(0.05, 0.09),
+	}
+	n := deep.NewNeural(&c)
+	permutations := Examples{
+		{[]deep.Deepfloat64{0, 0, 0, 0, 0, 0}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{0, 0, 0, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 0, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 1, 0, 0}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{0, 0, 1, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 0, 1, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 0, 1, 0}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{0, 1, 0, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 0, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{0, 1, 1, 1, 1, 0}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{0, 1, 1, 1, 1, 1}, []deep.Deepfloat64{0}},
+
+		{[]deep.Deepfloat64{1, 0, 0, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 0, 0, 1}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{1, 0, 0, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 0, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 1, 0, 1}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{1, 0, 1, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 0, 1, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 0, 1, 1}, []deep.Deepfloat64{1}},
+		{[]deep.Deepfloat64{1, 1, 0, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 0, 1, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 0, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 0, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 0, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 0, 1, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 1, 0, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 1, 0, 1}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 1, 1, 0}, []deep.Deepfloat64{0}},
+		{[]deep.Deepfloat64{1, 1, 1, 1, 1, 1}, []deep.Deepfloat64{1}},
+	}
+
+	trainer := NewTrainer(NewSGD(1.0, 0.1, 1e-6, false), 500)
+	trainer.Train(n, permutations, permutations, 22900)
+
+	n.Dot("rhw-test.dot")
+}
