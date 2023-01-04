@@ -46,7 +46,7 @@ const (
 // Loss is satisfied by loss functions
 type Loss interface {
 	F(estimate, ideal [][]Deepfloat64) Deepfloat64
-	Df(estimate, ideal, activation Deepfloat64) Deepfloat64
+	Df(estimate, ideal Deepfloat64) Deepfloat64
 }
 
 // CrossEntropy is CE loss
@@ -68,7 +68,7 @@ func (l CrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 }
 
 // Df is CE'(...)
-func (l CrossEntropy) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
+func (l CrossEntropy) Df(estimate, ideal Deepfloat64) Deepfloat64 {
 	return estimate - ideal
 }
 
@@ -90,7 +90,7 @@ func (l BinaryCrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 }
 
 // Df is CE'(...)
-func (l BinaryCrossEntropy) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
+func (l BinaryCrossEntropy) Df(estimate, ideal Deepfloat64) Deepfloat64 {
 	return estimate - ideal
 }
 
@@ -109,6 +109,6 @@ func (l MeanSquared) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 }
 
 // Df is MSE'(...)
-func (l MeanSquared) Df(estimate, ideal, activation Deepfloat64) Deepfloat64 {
-	return activation * (estimate - ideal)
+func (l MeanSquared) Df(estimate, ideal Deepfloat64) Deepfloat64 {
+	return estimate - ideal
 }

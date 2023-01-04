@@ -136,8 +136,8 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64,
 	for i, n := range n.Layers[len(n.Layers)-1].Neurons {
 		lastDeltas[i] = loss.Df(
 			n.Value,
-			ideal[i],
-			n.DActivate(n.Value))
+			ideal[i]) *
+			n.DActivate(n.Value)
 	}
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
