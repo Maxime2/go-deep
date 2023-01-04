@@ -84,7 +84,7 @@ func NewNeural(c *Config) *Neural {
 		c.Numerator = math.Log(math.Pow10(c.LossPrecision))
 	}
 
-	c.N_iterations = 1 // int(c.Numerator)
+	c.N_iterations = 2 // int(c.Numerator)
 
 	layers := initializeLayers(c)
 

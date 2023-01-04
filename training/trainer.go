@@ -65,7 +65,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	for i := 1; i <= min(iterations, n.Config.N_iterations); i++ {
 		examples.Shuffle()
 		t.solver.InitGradients()
-		n.Config.N_iterations = 1
+		n.Config.N_iterations = 2
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
@@ -91,7 +91,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		t.d_E_y[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 			neuron.Value,
 			ideal[i])
-		t.d_E_x[len(n.Layers)-1][i] = t.d_E_y[len(n.Layers)-1][i] * y * (1 - y)
+		t.d_E_x[len(n.Layers)-1][i] = t.d_E_y[len(n.Layers)-1][i] * y
 	}
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
@@ -108,9 +108,8 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//	t.deltas[i][j] = sum
 			//}
 			if !math.IsNaN(float64(sum_y)) {
-				y := neuron.DActivate(neuron.Value)
 				t.d_E_y[i][j] = sum_y
-				t.d_E_x[i][j] = t.d_E_y[i][j] * y * (1 - y)
+				t.d_E_x[i][j] = t.d_E_y[i][j] * neuron.DActivate(neuron.Value)
 			}
 		}
 	}
