@@ -326,7 +326,7 @@ func Test_RHW(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1, 1, 1, 1, 1}, []deep.Deepfloat64{1}},
 	}
 
-	trainer := NewTrainer(NewSGD(1.0, 0.1, 1e-6, false), 500)
+	trainer := NewTrainer(NewSGD(0.1, 0.9, 0, false), 5)
 	trainer.Train(n, permutations, permutations, 22900)
 
 	n.Dot("rhw-test.dot")
