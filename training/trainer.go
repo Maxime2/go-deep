@@ -134,8 +134,8 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 					if n.Config.N_iterations < int(iterations) {
 						n.Config.N_iterations = int(iterations)
 					}
+					idx++
 				}
-				idx++
 			}
 		}
 	}
