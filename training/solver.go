@@ -14,11 +14,12 @@ import (
 // Solver implements an update rule for training a NN
 type Solver interface {
 	Init(size int)
-	Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
+	Update(value, gradient, in deep.Deepfloat64, iteration, idx int)
+	Adjust(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
 	InitGradients()
-	AdjustLrs()
 	Save(path string) error
 	Load(path string) error
+	Gradient(idx int) float64
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
@@ -58,39 +59,43 @@ func (o *SGD) InitGradients() {
 	o.Gradients = make([]deep.Deepfloat64, len(o.Moments))
 }
 
-// Adjust learning rates based on gradient signs
-func (o *SGD) AdjustLrs() {
-	for idx := range o.Lrs {
-		if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
-			if o.Lrs[idx] > deep.Eps {
-				o.Lrs[idx] *= 0.95
-			}
-		} else {
-			if o.Lrs[idx] < deep.Deepfloat64(o.Lr) {
-				o.Lrs[idx] *= 1 / 0.95
-			}
-		}
-		if o.Lrs[idx] < deep.Eps {
-			o.Lrs[idx] = deep.Eps
-		}
-		o.Gradients_1[idx] = o.Gradients[idx]
-	}
+// Update updates cumulative gradient for a given weight
+func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) {
+	o.Gradients[idx] += gradient
 }
 
-// Update returns the update for a given weight
-func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
+// Adjust returns the update for a given weight and adjusts learnig rate based on gradint signs
+func (o *SGD) Adjust(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
 	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
 	//lr = lr / (1 + lr*in*in)
 
-	o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*gradient
-	o.Gradients[idx] += gradient
+	o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 
 	//
 	//	if o.nesterov {
 	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
 	//	}
 
+	if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
+		if o.Lrs[idx] > deep.Eps {
+			o.Lrs[idx] *= 0.95
+		}
+	} else {
+		if o.Lrs[idx] < deep.Deepfloat64(o.Lr) {
+			o.Lrs[idx] *= 1 / 0.95
+		}
+	}
+	if o.Lrs[idx] < deep.Eps {
+		o.Lrs[idx] = deep.Eps
+	}
+	o.Gradients_1[idx] = o.Gradients[idx]
+
 	return o.Moments[idx]
+}
+
+// Gradient returns gradient value for an index
+func (o *SGD) Gradient(idx int) float64 {
+	return float64(o.Gradients[idx])
 }
 
 // Save saves SGD into the file specified to be loaded later
@@ -153,18 +158,22 @@ func (o *Adam) InitGradients() {
 }
 
 // Adjust learning rates based on gradient signs
-func (o *Adam) AdjustLrs() {
-
-}
-
-// Update returns the update for a given weight
-func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) deep.Deepfloat64 {
+func (o *Adam) Adjust(value, gradient, in deep.Deepfloat64, t, idx int) deep.Deepfloat64 {
 	lrt := deep.Deepfloat64(o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
 		(1.0 - math.Pow(o.beta, float64(t))))
 	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*float64(gradient)
 	o.v[idx] = o.beta2*o.v[idx] + (1.0-o.beta2)*math.Pow(float64(gradient), 2.0)
 
 	return -lrt * deep.Deepfloat64(o.m[idx]/(math.Sqrt(o.v[idx])+o.epsilon))
+}
+
+// Update returns the update for a given weight
+func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) {
+}
+
+// Initialise gradients
+func (o *Adam) Gradient(idx int) float64 {
+	return 0.0
 }
 
 // Save saves Adam into the file specified to be loaded later

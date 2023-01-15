@@ -72,7 +72,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			t.printer.PrintProgress(n, validation, time.Since(ts), i)
 		}
-		t.solver.AdjustLrs()
+		t.adjust(n, i)
 	}
 }
 
@@ -122,17 +122,35 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					gradient := t.d_E_x[i][j] * deep.Deepfloat64(math.Pow(float64(synapse.In), float64(k)))
-					update := synapse.Weights[k] + t.solver.Update(synapse.Weights[k],
+					t.solver.Update(synapse.Weights[k],
 						gradient,
+						synapse.In,
+						it,
+						idx)
+					idx++
+				}
+			}
+		}
+	}
+}
+
+func (t *OnlineTrainer) adjust(n *deep.Neural, it int) {
+	var idx int
+	for _, l := range n.Layers {
+		for j := range l.Neurons {
+			for _, synapse := range l.Neurons[j].In {
+				for k := 0; k < len(synapse.Weights); k++ {
+					update := synapse.Weights[k] + t.solver.Adjust(synapse.Weights[k],
+						0,
 						synapse.In,
 						it,
 						idx)
 					if !math.IsNaN(float64(update)) {
 						synapse.Weights[k] = update
 					}
-					iterations := n.Config.Numerator / math.Log(1.0/math.Abs(float64(gradient)))
-					if n.Config.N_iterations < int(iterations) {
-						n.Config.N_iterations = int(iterations)
+					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
+					if n.Config.N_iterations < iterations {
+						n.Config.N_iterations = iterations
 					}
 					idx++
 				}
