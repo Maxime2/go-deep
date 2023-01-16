@@ -63,16 +63,16 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 
 	ts := time.Now()
 	for i := 1; i <= min(iterations, n.Config.N_iterations); i++ {
-		examples.Shuffle()
+		//examples.Shuffle()
 		t.solver.InitGradients()
 		n.Config.N_iterations = 2
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
+		t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			t.printer.PrintProgress(n, validation, time.Since(ts), i)
 		}
-		t.adjust(n, i)
 	}
 }
 
