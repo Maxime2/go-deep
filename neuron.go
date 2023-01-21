@@ -47,29 +47,30 @@ func (n *Neuron) DActivate(x Deepfloat64) Deepfloat64 {
 
 // Synapse is an edge between neurons
 type Synapse struct {
-	Weights []Deepfloat64
-	In, Out Deepfloat64
-	IsBias  bool
-	Tag     string
+	Weights   []Deepfloat64
+	In, Out   Deepfloat64
+	IsBias    bool
+	Tag       string
+	Neuron_In *Neuron
 }
 
 // NewSynapse returns a synapse with the weigths set with specified initializer
-func NewSynapse(degree int, weight WeightInitializer) *Synapse {
+func NewSynapse(neuron_in *Neuron, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
-	return &Synapse{Weights: weights}
+	return &Synapse{Weights: weights, Neuron_In: neuron_in}
 }
 
 // NewSynapseWithTag returns a synapse with the weigths preset with specified initializer
 // and marked with specified tag
-func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synapse {
+func NewSynapseWithTag(tag string, neuron_in *Neuron, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
-	return &Synapse{Weights: weights, Tag: tag}
+	return &Synapse{Weights: weights, Tag: tag, Neuron_In: neuron_in}
 }
 
 func (s *Synapse) fire(value Deepfloat64) {

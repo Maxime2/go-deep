@@ -135,15 +135,19 @@ func Test_Save_Load(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name()) // clean up
 
+	t.Log("Doing Save");
 	err = n.Save(tmpfile.Name())
 	assert.Nil(t, err)
 
+	t.Log("Doing Load");
 	n2, err := Load(tmpfile.Name())
 	assert.Nil(t, err)
 
+	t.Log("Doing Compare");
 	if diff := pretty.Compare(n, n2); diff != "" {
 		t.Errorf("n and n2 diff: (-got +want)\n%s", diff)
 	}
+	t.Log("Doing test.dot");
 	n.Dot("test.dot")
 }
 
