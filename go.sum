@@ -6,3 +6,5 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.1.4 h1:ToftOQTytwshuOSj6bDSolVUa3GINfJP/fg3OkkOzQQ=
 github.com/stretchr/testify v1.1.4/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/theothertomelliott/acyclic v0.0.0-20180926180839-eba177c77c8a h1:VE0Lt6y6rdH5Qw/U7JBZ8jw8N/t9NmzCiWf0nXGBusQ=
+github.com/theothertomelliott/acyclic v0.0.0-20180926180839-eba177c77c8a/go.mod h1:Lf1fgDzzzm31NWJNN1fjs0b0ozYFgalZM/lxm2AK+68=

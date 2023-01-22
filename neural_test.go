@@ -135,6 +135,10 @@ func Test_Save_Load(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name()) // clean up
 
+	t.Log("Doing SaveReadable");
+	err = n.SaveReadable(tmpfile.Name())
+	assert.Nil(t, err)
+
 	t.Log("Doing Save");
 	err = n.Save(tmpfile.Name())
 	assert.Nil(t, err)

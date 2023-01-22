@@ -2,12 +2,13 @@ package deep
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
 	"os"
+
+	"github.com/theothertomelliott/acyclic"
 )
 
 // Smallest number
@@ -198,12 +199,8 @@ func (n *Neural) SaveReadable(path string) error {
 		return err
 	}
 	defer f.Close()
-	b, err := json.MarshalIndent(n, "", "\t")
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(f, bytes.NewReader(b))
-	return err
+	acyclic.Fprint(f, n)
+	return nil
 }
 
 // Save saves network into the file specified to be loaded later
