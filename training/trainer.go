@@ -140,17 +140,24 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) {
 		for j := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
-					update := synapse.Weights[k] + t.solver.Adjust(synapse.Weights[k],
-						0,
-						synapse.In,
-						it,
-						idx)
-					if !math.IsNaN(float64(update)) {
-						synapse.Weights[k] = update
-					}
-					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
-					if n.Config.N_iterations < iterations {
-						n.Config.N_iterations = iterations
+					if !synapse.IsComplete[k] {
+						update := synapse.Weights[k] + t.solver.Adjust(synapse.Weights[k],
+							0,
+							synapse.In,
+							it,
+							idx)
+						if !math.IsNaN(float64(update)) {
+							if it > 2 &&
+								(update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+								synapse.IsComplete[k] = true
+							}
+							synapse.Weights_1[k] = synapse.Weights[k]
+							synapse.Weights[k] = update
+						}
+						iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
+						if n.Config.N_iterations < iterations {
+							n.Config.N_iterations = iterations
+						}
 					}
 					idx++
 				}
