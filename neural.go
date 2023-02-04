@@ -14,6 +14,9 @@ import (
 // Smallest number
 const Eps = 1e-12
 
+// Minimal number of iterations
+const MinIterations = 5
+
 // Neural is a neural network
 type Neural struct {
 	Layers []*Layer
@@ -85,7 +88,7 @@ func NewNeural(c *Config) *Neural {
 		c.Numerator = math.Log(math.Pow10(c.LossPrecision))
 	}
 
-	c.N_iterations = 4 // int(c.Numerator)
+	c.N_iterations = MinIterations // int(c.Numerator)
 
 	layers := initializeLayers(c)
 

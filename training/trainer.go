@@ -65,7 +65,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	for i := 1; i <= min(iterations, n.Config.N_iterations); i++ {
 		//examples.Shuffle()
 		t.solver.InitGradients()
-		n.Config.N_iterations = 2
+		n.Config.N_iterations = deep.MinIterations
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
@@ -154,10 +154,10 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) {
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
 						}
-						iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
-						if n.Config.N_iterations < iterations {
-							n.Config.N_iterations = iterations
-						}
+					}
+					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
+					if n.Config.N_iterations < iterations {
+						n.Config.N_iterations = iterations
 					}
 					idx++
 				}
