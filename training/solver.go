@@ -69,17 +69,23 @@ func (o *SGD) Adjust(value, value_1, in deep.Deepfloat64, iteration, idx int) de
 	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
 	//lr = lr / (1 + lr*in*in)
 
+	var newValue deep.Deepfloat64
 	if iteration > 2 {
-		o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] -
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] -
 			(value-value_1)/(o.Gradients[idx]-o.Gradients_1[idx])*o.Gradients[idx]
+		if math.IsNaN(float64(newValue)) {
+			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+		}
 	} else {
-		o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 	}
-
-	//
-	//	if o.nesterov {
-	//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
-	//	}
+	if !math.IsNaN(float64(newValue)) {
+		o.Moments[idx] = newValue
+		//
+		//	if o.nesterov {
+		//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
+		//	}
+	}
 
 	if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
 		if o.Lrs[idx] > deep.Eps {
