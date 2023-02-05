@@ -12,7 +12,7 @@ import (
 )
 
 // Smallest number
-const Eps = 1e-12
+const Eps = 1e-24
 
 // Minimal number of iterations
 const MinIterations = 5
