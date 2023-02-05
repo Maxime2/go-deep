@@ -145,7 +145,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) (int) {
 				for k := 0; k < len(synapse.Weights); k++ {
 					if !synapse.IsComplete[k] {
 						update := synapse.Weights[k] + t.solver.Adjust(synapse.Weights[k],
-							0,
+							synapse.Weights_1[k],
 							synapse.In,
 							it,
 							idx)

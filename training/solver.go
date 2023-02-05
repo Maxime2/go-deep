@@ -65,11 +65,16 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) {
 }
 
 // Adjust returns the update for a given weight and adjusts learnig rate based on gradint signs
-func (o *SGD) Adjust(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
+func (o *SGD) Adjust(value, value_1, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
 	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
 	//lr = lr / (1 + lr*in*in)
 
-	o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+	if iteration > 2 {
+		o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] -
+			(value-value_1)/(o.Gradients[idx]-o.Gradients_1[idx])*o.Gradients[idx]
+	} else {
+		o.Moments[idx] = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+	}
 
 	//
 	//	if o.nesterov {
