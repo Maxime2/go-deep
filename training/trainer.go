@@ -63,7 +63,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	t.solver.Init(numWeights)
 
 	ts := time.Now()
-	for i := 1; i <= min(iterations, n.Config.N_iterations); i++ {
+	for i := 1; i <= iterations; /*min(iterations, n.Config.N_iterations)*/ i++ {
 		//examples.Shuffle()
 		t.solver.InitGradients()
 		n.Config.N_iterations = deep.MinIterations
@@ -72,7 +72,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		}
 		completed := t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
-			rCompleted := float64(completed) / float64(numWeights) * 100.0;
+			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
 		}
 	}
@@ -136,7 +136,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 	}
 }
 
-func (t *OnlineTrainer) adjust(n *deep.Neural, it int) (int) {
+func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 	var idx int
 	var completed int
 	for _, l := range n.Layers {
@@ -150,10 +150,14 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) (int) {
 							it,
 							idx)
 						if !math.IsNaN(float64(update)) {
-							if it > 2 &&
-								(update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-								//synapse.IsComplete[k] = true
-								completed++
+							if it > 2 {
+								if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+									update = 0
+								}
+								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+									//synapse.IsComplete[k] = true
+									completed++
+								}
 							}
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
