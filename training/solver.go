@@ -70,7 +70,7 @@ func (o *SGD) Adjust(value, value_1, in deep.Deepfloat64, iteration, idx int) de
 	//lr = lr / (1 + lr*in*in)
 
 	var newValue deep.Deepfloat64
-	if iteration > 2 {
+	if iteration > 3 {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] -
 			(value-value_1)/(o.Gradients[idx]-o.Gradients_1[idx])*o.Gradients[idx]
 		if math.IsNaN(float64(newValue)) {

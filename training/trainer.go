@@ -150,14 +150,15 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 							it,
 							idx)
 						if !math.IsNaN(float64(update)) {
-							if it > 2 {
+							if it > 3 {
 								if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-									update = 0
-									synapse.IsComplete[k] = true
-									completed++
-								}
-								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-									synapse.IsComplete[k] = true
+									if update > synapse.Weights[k] {
+										update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))/2 + synapse.Weights[k]
+									} else {
+										update = synapse.Weights[k] - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))/2
+									}
+								} else if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+									//synapse.IsComplete[k] = true
 									completed++
 								}
 							}
