@@ -1,14 +1,12 @@
 package training
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"math"
 	"os"
 	"time"
 
 	deep "github.com/Maxime2/go-deep"
+	"github.com/theothertomelliott/acyclic"
 )
 
 // Trainer is a neural network trainer
@@ -185,18 +183,15 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 	return completed
 }
 
+// Save() saves internal of the trainer in readable JSON into file specified
 func (t *OnlineTrainer) Save(path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	b, err := json.Marshal(t.internal)
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(f, bytes.NewReader(b))
-	return err
+	acyclic.Fprint(f, t.internal)
+	return nil
 }
 
 func (t *OnlineTrainer) SolverSave(path string) error {
