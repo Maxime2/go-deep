@@ -1,7 +1,11 @@
 package training
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"math"
+	"os"
 	"time"
 
 	deep "github.com/Maxime2/go-deep"
@@ -30,24 +34,24 @@ func NewTrainer(solver Solver, verbosity int) *OnlineTrainer {
 }
 
 type internal struct {
-	deltas [][]deep.Deepfloat64
-	d_E_y  [][]deep.Deepfloat64
-	d_E_x  [][]deep.Deepfloat64
+	//deltas [][]deep.Deepfloat64
+	D_E_y [][]deep.Deepfloat64
+	D_E_x [][]deep.Deepfloat64
 }
 
 func newTraining(layers []*deep.Layer) *internal {
-	deltas := make([][]deep.Deepfloat64, len(layers))
+	//deltas := make([][]deep.Deepfloat64, len(layers))
 	d_E_y := make([][]deep.Deepfloat64, len(layers))
 	d_E_x := make([][]deep.Deepfloat64, len(layers))
 	for i, l := range layers {
-		deltas[i] = make([]deep.Deepfloat64, len(l.Neurons)+1)
+		//deltas[i] = make([]deep.Deepfloat64, len(l.Neurons)+1)
 		d_E_y[i] = make([]deep.Deepfloat64, len(l.Neurons))
 		d_E_x[i] = make([]deep.Deepfloat64, len(l.Neurons))
 	}
 	return &internal{
-		deltas: deltas,
-		d_E_y:  d_E_y,
-		d_E_x:  d_E_x,
+		//deltas: deltas,
+		D_E_y: d_E_y,
+		D_E_x: d_E_x,
 	}
 }
 
@@ -90,10 +94,10 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
 		//	ideal[i]) * y
-		t.d_E_y[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
+		t.D_E_y[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 			neuron.Value,
 			ideal[i])
-		t.d_E_x[len(n.Layers)-1][i] = t.d_E_y[len(n.Layers)-1][i] * y
+		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * y
 	}
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
@@ -103,15 +107,15 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			for k, s := range neuron.Out {
 				fd := s.FireDerivative(neuron.Value)
 				//sum += fd * t.deltas[i+1][k]
-				sum_y += fd * t.d_E_x[i+1][k]
+				sum_y += fd * t.D_E_x[i+1][k]
 			}
 			//sum *= neuron.DActivate(neuron.Value)
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
 			if !math.IsNaN(float64(sum_y)) {
-				t.d_E_y[i][j] = sum_y
-				t.d_E_x[i][j] = t.d_E_y[i][j] * neuron.DActivate(neuron.Value)
+				t.D_E_y[i][j] = sum_y
+				t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
 			}
 		}
 	}
@@ -123,7 +127,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 		for j := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
-					gradient := t.d_E_x[i][j] * deep.Deepfloat64(math.Pow(float64(synapse.Neuron_In.Value), float64(k)))
+					gradient := t.D_E_x[i][j] * deep.Deepfloat64(math.Pow(float64(synapse.Neuron_In.Value), float64(k)))
 					t.solver.Update(synapse.Weights[k],
 						gradient,
 						synapse.In,
@@ -179,4 +183,22 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 		}
 	}
 	return completed
+}
+
+func (t *OnlineTrainer) Save(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err := json.Marshal(t.internal)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, bytes.NewReader(b))
+	return err
+}
+
+func (t *OnlineTrainer) SolverSave(path string) error {
+	return t.solver.Save(path)
 }
