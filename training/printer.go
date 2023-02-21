@@ -21,19 +21,20 @@ func NewStatsPrinter() *StatsPrinter {
 
 // Init initializes printer
 func (p *StatsPrinter) Init(n *deep.Neural) {
-	fmt.Fprintf(p.w, "Epochs\tElapsed\tLoss (%s)\t", n.Config.Loss)
+	fmt.Fprintf(p.w, "Epochs\tElapsed\tError\tLoss (%s)\t", n.Config.Loss)
 	if n.Config.Mode == deep.ModeMultiClass {
-		fmt.Fprintf(p.w, "Accuracy\t\n---\t---\t---\t---\t\n")
+		fmt.Fprintf(p.w, "Accuracy\t\n---\t---\t---\t---\t---\t\n")
 	} else {
-		fmt.Fprintf(p.w, "\n---\t---\t---\t\n")
+		fmt.Fprintf(p.w, "\n---\t---\t---\t---\t\n")
 	}
 }
 
 // PrintProgress prints the current state of training
-func (p *StatsPrinter) PrintProgress(n *deep.Neural, validation Examples, elapsed time.Duration, iteration int, completed float64) {
-	fmt.Fprintf(p.w, "%d (%d, %.2f%%)\t%s\t%.*e\t%s\n",
+func (p *StatsPrinter) PrintProgress(n *deep.Neural, examples, validation Examples, elapsed time.Duration, iteration int, completed float64) {
+	fmt.Fprintf(p.w, "%d (%d, %.2f%%)\t%s\t%.*e\t%.*e\t%s\n",
 		iteration, n.Config.N_iterations, completed,
 		elapsed.String(),
+		n.Config.LossPrecision, crossValidate(n, examples),
 		n.Config.LossPrecision, crossValidate(n, validation),
 		formatAccuracy(n, validation))
 	p.w.Flush()

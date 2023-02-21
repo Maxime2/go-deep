@@ -75,7 +75,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		completed := t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
-			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
+			t.printer.PrintProgress(n, examples, validation, time.Since(ts), i, rCompleted)
 		}
 	}
 }
