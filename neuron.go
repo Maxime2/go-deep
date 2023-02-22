@@ -50,6 +50,7 @@ type Synapse struct {
 	Weights    []Deepfloat64
 	Weights_1  []Deepfloat64
 	IsComplete []bool
+	FakeRoot   [][]Deepfloat64
 	In, Out    Deepfloat64
 	IsBias     bool
 	Tag        string
@@ -61,6 +62,7 @@ func NewSynapse(neuron_in *Neuron, degree int, weight WeightInitializer) *Synaps
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
+	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
@@ -68,6 +70,7 @@ func NewSynapse(neuron_in *Neuron, degree int, weight WeightInitializer) *Synaps
 		Weights:    weights,
 		Weights_1:  weights_1,
 		IsComplete: isComplete,
+		FakeRoot:   fakeRoot,
 		In:         0,
 		Out:        0,
 		IsBias:     false,
@@ -82,6 +85,7 @@ func NewSynapseWithTag(tag string, neuron_in *Neuron, degree int, weight WeightI
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
+	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
@@ -89,6 +93,7 @@ func NewSynapseWithTag(tag string, neuron_in *Neuron, degree int, weight WeightI
 		Weights:    weights,
 		Weights_1:  weights_1,
 		IsComplete: isComplete,
+		FakeRoot:   fakeRoot,
 		In:         0,
 		Out:        0,
 		IsBias:     false,
@@ -119,4 +124,16 @@ func (s *Synapse) FireDerivative(value Deepfloat64) Deepfloat64 {
 
 func (s *Synapse) SetTag(tag string) {
 	s.Tag = tag
+}
+
+func (s *Synapse) WeightFunction(value Deepfloat64, k int) Deepfloat64 {
+	f := value
+	for _, root := range s.FakeRoot[k] {
+		f /= (value - root)
+	}
+	return f
+}
+
+func (s *Synapse) AddFakeRoot(k int, root Deepfloat64) {
+	s.FakeRoot[k] = append(s.FakeRoot[k], root)
 }

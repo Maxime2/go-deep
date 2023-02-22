@@ -178,11 +178,9 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 		for j, n := range l.Neurons {
 			jAD := iAD[j]
 			for k, s := range n.In {
-				update := s.Weights[1] + t.solver.Adjust(s.Weights[1],
-					jAD[k],
-					s.In,
-					it,
-					idx)
+				// jAD[k]
+				delta, _ /*fakeRoot*/ := t.solver.Adjust(s, 1, it, idx)
+				update := s.Weights[1] + delta
 				if !math.IsNaN(float64(update)) {
 					s.Weights[1] = update
 				}

@@ -15,7 +15,7 @@ import (
 type Solver interface {
 	Init(size int)
 	Update(value, gradient, in deep.Deepfloat64, iteration, idx int)
-	Adjust(value, gradient, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64
+	Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepfloat64, bool)
 	InitGradients()
 	Save(path string) error
 	Load(path string) error
@@ -65,26 +65,29 @@ func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) {
 }
 
 // Adjust returns the update for a given weight and adjusts learnig rate based on gradint signs
-func (o *SGD) Adjust(value, value_1, in deep.Deepfloat64, iteration, idx int) deep.Deepfloat64 {
-	//o.lrs[idx] = deep.Deepfloat64(o.lrs[idx] / deep.Deepfloat64(1+o.decay*float64(iteration)))
-	//lr = lr / (1 + lr*in*in)
-
+func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepfloat64, bool) {
 	var newValue deep.Deepfloat64
+	fakeRoot := false
+
 	if iteration > 3 {
-		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] -
-			(value-value_1)/(o.Gradients[idx]-o.Gradients_1[idx])*o.Gradients[idx]
+		value := synapse.Weights[k]
+		value_1 := synapse.Weights_1[k]
+		fx := synapse.WeightFunction(o.Gradients[idx], k)
+		fx_1 := o.Gradients_1[idx]
+		d_inv := (value - value_1) / (fx - fx_1)
+
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d_inv*fx
 		if math.IsNaN(float64(newValue)) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+		} else {
+			fakeRoot = math.Signbit(float64(d_inv))
+			o.Gradients[idx] = fx
 		}
 	} else {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 	}
 	if !math.IsNaN(float64(newValue)) {
 		o.Moments[idx] = newValue
-		//
-		//	if o.nesterov {
-		//		o.moments[idx] = deep.Deepfloat64(o.momentum)*o.moments[idx] - lr*gradient
-		//	}
 	}
 
 	if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
@@ -101,7 +104,7 @@ func (o *SGD) Adjust(value, value_1, in deep.Deepfloat64, iteration, idx int) de
 	}
 	o.Gradients_1[idx] = o.Gradients[idx]
 
-	return o.Moments[idx]
+	return o.Moments[idx], fakeRoot
 }
 
 // Gradient returns gradient value for an index
@@ -145,7 +148,8 @@ type Adam struct {
 	beta2   float64
 	epsilon float64
 
-	v, m []float64
+	v, m     []float64
+	gradints []float64
 }
 
 // NewAdam returns a new Adam solver
@@ -161,6 +165,7 @@ func NewAdam(lr, beta, beta2, epsilon float64) *Adam {
 // Init initializes vectors using number of weights in network
 func (o *Adam) Init(size int) {
 	o.v, o.m = make([]float64, size), make([]float64, size)
+	o.gradints = make([]float64, size)
 }
 
 // Initialise gradients
@@ -169,17 +174,21 @@ func (o *Adam) InitGradients() {
 }
 
 // Adjust learning rates based on gradient signs
-func (o *Adam) Adjust(value, gradient, in deep.Deepfloat64, t, idx int) deep.Deepfloat64 {
+func (o *Adam) Adjust(synapse *deep.Synapse, k, t, idx int) (deep.Deepfloat64, bool) {
+	//value := synapse.Weights[k]
+	gradient := o.gradints[idx]
+
 	lrt := deep.Deepfloat64(o.lr * (math.Sqrt(1.0 - math.Pow(o.beta2, float64(t)))) /
 		(1.0 - math.Pow(o.beta, float64(t))))
 	o.m[idx] = o.beta*o.m[idx] + (1.0-o.beta)*float64(gradient)
 	o.v[idx] = o.beta2*o.v[idx] + (1.0-o.beta2)*math.Pow(float64(gradient), 2.0)
 
-	return -lrt * deep.Deepfloat64(o.m[idx]/(math.Sqrt(o.v[idx])+o.epsilon))
+	return -lrt * deep.Deepfloat64(o.m[idx]/(math.Sqrt(o.v[idx])+o.epsilon)), false
 }
 
 // Update returns the update for a given weight
 func (o *Adam) Update(value, gradient, in deep.Deepfloat64, t, idx int) {
+	o.gradints[idx] = float64(gradient)
 }
 
 // Initialise gradients

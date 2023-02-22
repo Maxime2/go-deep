@@ -146,11 +146,8 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					if !synapse.IsComplete[k] {
-						update := synapse.Weights[k] + t.solver.Adjust(synapse.Weights[k],
-							synapse.Weights_1[k],
-							synapse.In,
-							it,
-							idx)
+						delta, fakeRoot := t.solver.Adjust(synapse, k, it, idx)
+						update := synapse.Weights[k] + delta
 						if !math.IsNaN(float64(update)) {
 							if it > 3 {
 								if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
@@ -163,6 +160,9 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 									//synapse.IsComplete[k] = true
 									completed++
+									if fakeRoot {
+										synapse.AddFakeRoot(k, update)
+									}
 								}
 							}
 							synapse.Weights_1[k] = synapse.Weights[k]
