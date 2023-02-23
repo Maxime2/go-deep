@@ -162,6 +162,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 									completed++
 									if fakeRoot {
 										synapse.AddFakeRoot(k, update)
+										update = n.Config.Weight()
 									}
 								}
 							}
