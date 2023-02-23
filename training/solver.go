@@ -73,7 +73,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		value := synapse.Weights[k]
 		value_1 := synapse.Weights_1[k]
 		fx := synapse.WeightFunction(o.Gradients[idx], k)
-		fx_1 := o.Gradients_1[idx]
+		fx_1 := synapse.WeightFunction(o.Gradients_1[idx], k)
 		d_inv := (value - value_1) / (fx - fx_1)
 
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d_inv*fx
@@ -81,7 +81,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 		} else {
 			fakeRoot = math.Signbit(float64(d_inv))
-			o.Gradients[idx] = fx
+			//o.Gradients[idx] = fx
 		}
 	} else {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
