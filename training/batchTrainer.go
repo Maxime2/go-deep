@@ -147,7 +147,7 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64,
 		for j, n := range l.Neurons {
 			var sum deep.Deepfloat64
 			for k, s := range n.Out {
-				sum += s.FireDerivative(n.Value) * nextD[k]
+				sum += s.FireDerivative() * nextD[k]
 			}
 			sum *= n.DActivate(n.Value)
 			if math.IsNaN(float64(sum)) {

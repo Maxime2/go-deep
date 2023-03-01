@@ -103,7 +103,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum deep.Deepfloat64
 			var sum_y deep.Deepfloat64
 			for k, s := range neuron.Out {
-				fd := s.FireDerivative(neuron.Value)
+				fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
 				sum_y += fd * t.D_E_x[i+1][k]
 			}

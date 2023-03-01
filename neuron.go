@@ -109,12 +109,12 @@ func (s *Synapse) fire(value Deepfloat64) {
 	}
 }
 
-func (s *Synapse) FireDerivative(value Deepfloat64) Deepfloat64 {
+func (s *Synapse) FireDerivative() Deepfloat64 {
 	mul := Deepfloat64(1)
 	var res Deepfloat64
 	for k := 1; k < len(s.Weights); k++ {
 		res += Deepfloat64(k) * mul * s.Weights[k]
-		mul *= value
+		mul *= s.In
 	}
 	return res
 }
