@@ -54,11 +54,10 @@ type Synapse struct {
 	In, Out    Deepfloat64
 	IsBias     bool
 	Tag        string
-	Neuron_In  *Neuron
 }
 
 // NewSynapse returns a synapse with the weigths set with specified initializer
-func NewSynapse(neuron_in *Neuron, degree int, weight WeightInitializer) *Synapse {
+func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
@@ -75,13 +74,12 @@ func NewSynapse(neuron_in *Neuron, degree int, weight WeightInitializer) *Synaps
 		Out:        0,
 		IsBias:     false,
 		Tag:        "",
-		Neuron_In:  neuron_in,
 	}
 }
 
 // NewSynapseWithTag returns a synapse with the weigths preset with specified initializer
 // and marked with specified tag
-func NewSynapseWithTag(tag string, neuron_in *Neuron, degree int, weight WeightInitializer) *Synapse {
+func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
@@ -98,7 +96,6 @@ func NewSynapseWithTag(tag string, neuron_in *Neuron, degree int, weight WeightI
 		Out:        0,
 		IsBias:     false,
 		Tag:        tag,
-		Neuron_In:  neuron_in,
 	}
 }
 
