@@ -114,9 +114,9 @@ func initializeLayers(c *Config) []*Layer {
 	layers := make([]*Layer, len(c.Layout))
 	for i := range layers {
 		act := c.Activation
-		//if i == (len(layers)-1) && c.Mode != ModeDefault {
-		//	act = OutputActivation(c.Mode)
-		//}
+		if i == (len(layers)-1) && c.Mode != ModeDefault {
+			act = OutputActivation(c.Mode)
+		}
 		layers[i] = NewLayer(i, c.Layout[i], act)
 	}
 
