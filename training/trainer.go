@@ -159,10 +159,11 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 								}
 								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 									//synapse.IsComplete[k] = true
-									completed++
 									if fakeRoot {
 										synapse.AddFakeRoot(k, update)
 										update = n.Config.Weight()
+									} else {
+										completed++
 									}
 								}
 							}
