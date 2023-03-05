@@ -77,6 +77,9 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			t.printer.PrintProgress(n, examples, validation, time.Since(ts), i, rCompleted)
 		}
+		if completed == numWeights {
+			break
+		}
 	}
 }
 
