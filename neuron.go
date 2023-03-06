@@ -134,3 +134,7 @@ func (s *Synapse) WeightFunction(value Deepfloat64, k int) Deepfloat64 {
 func (s *Synapse) AddFakeRoot(k int, root Deepfloat64) {
 	s.FakeRoot[k] = append(s.FakeRoot[k], root)
 }
+
+func (s *Synapse) GetGradient(D_E_x Deepfloat64, k int) Deepfloat64 {
+	return D_E_x * s.WeightFunction(Deepfloat64(math.Pow(float64(s.In), float64(k))), k)
+}

@@ -72,8 +72,8 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	if iteration > 3 {
 		value := synapse.Weights[k]
 		value_1 := synapse.Weights_1[k]
-		fx := synapse.WeightFunction(o.Gradients[idx], k)
-		fx_1 := synapse.WeightFunction(o.Gradients_1[idx], k)
+		fx := o.Gradients[idx]
+		fx_1 := o.Gradients_1[idx]
 		d_inv := (value - value_1) / (fx - fx_1)
 
 		//newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d_inv*fx

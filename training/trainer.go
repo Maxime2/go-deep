@@ -128,7 +128,7 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 		for j := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
-					gradient := t.D_E_x[i][j] * deep.Deepfloat64(math.Pow(float64(synapse.In), float64(k)))
+					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 					t.solver.Update(synapse.Weights[k],
 						gradient,
 						synapse.In,
