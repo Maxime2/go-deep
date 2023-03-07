@@ -144,10 +144,14 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) {
 func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 	var idx int
 	var completed int
+	minLayerFakeRoot := len(n.Layers)
 	for _, l := range n.Layers {
 		for j := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
+					if l.Number > minLayerFakeRoot {
+						synapse.ClearFakeRoots(k)
+					}
 					if !synapse.IsComplete[k] {
 						delta, fakeRoot := t.solver.Adjust(synapse, k, it, idx)
 						update := synapse.Weights[k] + delta
@@ -162,9 +166,10 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 								}
 								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 									//synapse.IsComplete[k] = true
-									if fakeRoot {
+									if fakeRoot && l.Number <= minLayerFakeRoot {
 										synapse.AddFakeRoot(k, update)
 										update = n.Config.Weight()
+										minLayerFakeRoot = l.Number
 									} else {
 										completed++
 									}
