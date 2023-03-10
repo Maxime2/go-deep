@@ -5,3 +5,4 @@
 /examples/mnist/mnist_train.data
 *.pdf
 *.neural
+*~
