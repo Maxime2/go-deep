@@ -69,7 +69,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	var newValue deep.Deepfloat64
 	fakeRoot := false
 
-	if iteration > 3 {
+	if iteration > 2 {
 		value := synapse.Weights[k]
 		value_1 := synapse.Weights_1[k]
 		fx := o.Gradients[idx]
@@ -78,9 +78,9 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 
 		//newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d_inv*fx
 		//if math.IsNaN(float64(newValue)) {
-			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 		//} else {
-			fakeRoot = math.Signbit(float64(d_inv))
+		fakeRoot = !math.Signbit(float64(d_inv / -1))
 		//}
 	} else {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
