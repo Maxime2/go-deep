@@ -32,6 +32,7 @@ type SGD struct {
 	Lrs         []deep.Deepfloat64
 	Gradients   []deep.Deepfloat64
 	Gradients_1 []deep.Deepfloat64
+	Gradients_2 []deep.Deepfloat64
 }
 
 // NewSGD returns a new SGD solver
@@ -48,6 +49,7 @@ func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
 func (o *SGD) Init(size int) {
 	o.Moments = make([]deep.Deepfloat64, size)
 	o.Gradients_1 = make([]deep.Deepfloat64, size)
+	o.Gradients_2 = make([]deep.Deepfloat64, size)
 	o.Lrs = make([]deep.Deepfloat64, size)
 	for i := 0; i < size; i++ {
 		o.Lrs[i] = deep.Deepfloat64(o.Lr)
@@ -72,15 +74,18 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	if iteration > 2 {
 		value := synapse.Weights[k]
 		value_1 := synapse.Weights_1[k]
+		value_2 := synapse.Weights_2[k]
 		fx := o.Gradients[idx]
 		fx_1 := o.Gradients_1[idx]
-		d_inv := (value - value_1) / (fx - fx_1)
+		fx_2 := o.Gradients_1[idx]
+		d := (fx - fx_1) / (value - value_1)
+		dd := (d - (fx_1 - fx_2) / (value_1 - value_2)) / (value_2 - value)
 
-		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d_inv*fx
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - fx / d
 		if math.IsNaN(float64(newValue)) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 		} //else {
-		fakeRoot = !math.Signbit(float64(d_inv / -1))
+		fakeRoot = math.Abs(float64(fx)) < deep.Eps && !math.Signbit(float64(dd))
 		//}
 	} else {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
@@ -101,6 +106,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	if o.Lrs[idx] < deep.Eps {
 		o.Lrs[idx] = deep.Eps
 	}
+	o.Gradients_2[idx] = o.Gradients_1[idx]
 	o.Gradients_1[idx] = o.Gradients[idx]
 
 	return o.Moments[idx], fakeRoot

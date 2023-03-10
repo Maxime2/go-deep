@@ -175,6 +175,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 									}
 								}
 							}
+							synapse.Weights_2[k] = synapse.Weights_1[k]
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
 						}

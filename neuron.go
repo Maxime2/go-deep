@@ -49,6 +49,7 @@ func (n *Neuron) DActivate(x Deepfloat64) Deepfloat64 {
 type Synapse struct {
 	Weights    []Deepfloat64
 	Weights_1  []Deepfloat64
+	Weights_2  []Deepfloat64
 	IsComplete []bool
 	FakeRoot   [][]Deepfloat64
 	In, Out    Deepfloat64
@@ -60,6 +61,7 @@ type Synapse struct {
 func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
+	var weights_2 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
 	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
@@ -68,6 +70,7 @@ func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 	return &Synapse{
 		Weights:    weights,
 		Weights_1:  weights_1,
+		Weights_2:  weights_2,
 		IsComplete: isComplete,
 		FakeRoot:   fakeRoot,
 		In:         0,
@@ -82,6 +85,7 @@ func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
+	var weights_2 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
 	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
@@ -90,6 +94,7 @@ func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synaps
 	return &Synapse{
 		Weights:    weights,
 		Weights_1:  weights_1,
+		Weights_2:  weights_2,
 		IsComplete: isComplete,
 		FakeRoot:   fakeRoot,
 		In:         0,
