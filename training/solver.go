@@ -79,14 +79,15 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		fx_1 := o.Gradients_1[idx]
 		fx_2 := o.Gradients_1[idx]
 		d := (fx - fx_1) / (value - value_1)
-		dd := (d - (fx_1 - fx_2) / (value_1 - value_2)) / (value_2 - value)
+		dd := (d - (fx_1-fx_2)/(value_1-value_2)) / (value_2 - value)
 
-		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - fx / d
+		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - fx/d
 		if math.IsNaN(float64(newValue)) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
-		} //else {
+		} else {
+			o.Lrs[idx] = 1 / d
+		}
 		fakeRoot = math.Abs(float64(fx)) < deep.Eps && !math.Signbit(float64(dd))
-		//}
 	} else {
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 	}
@@ -95,16 +96,9 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	}
 
 	if math.Signbit(float64(o.Gradients[idx])) != math.Signbit(float64(o.Gradients_1[idx])) {
-		if o.Lrs[idx] > deep.Eps {
-			o.Lrs[idx] *= 0.95
-		}
+		o.Lrs[idx] *= 0.95
 	} else {
-		if o.Lrs[idx] < deep.Deepfloat64(o.Lr) {
-			o.Lrs[idx] *= 1 / 0.95
-		}
-	}
-	if o.Lrs[idx] < deep.Eps {
-		o.Lrs[idx] = deep.Eps
+		o.Lrs[idx] *= 1 / 0.95
 	}
 	o.Gradients_2[idx] = o.Gradients_1[idx]
 	o.Gradients_1[idx] = o.Gradients[idx]
