@@ -64,7 +64,11 @@ func (o *SGD) InitGradients() {
 // Update updates cumulative gradient for a given weight
 func (o *SGD) Update(value, gradient, in deep.Deepfloat64, iteration, idx int) {
 	newGradient := o.Gradients[idx] + gradient
-	if !math.IsNaN(float64(newGradient)) {
+	if math.IsInf(float64(newGradient), -1) {
+		o.Gradients[idx] = 1e-99
+	} else if math.IsInf(float64(newGradient), 1) {
+		o.Gradients[idx] = 1e99
+	} else if !math.IsNaN(float64(newGradient)) {
 		o.Gradients[idx] = newGradient
 	}
 }
@@ -82,7 +86,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		d := (value - value_1) / (fx - fx_1)
 
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d*fx
-		if math.IsNaN(float64(newValue)) {
+		if math.IsNaN(float64(newValue)) || math.IsInf(float64(newValue), 0) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
 		} else {
 			o.Lrs[idx] = d
