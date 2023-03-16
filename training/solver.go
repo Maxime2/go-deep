@@ -88,8 +88,8 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d*fx
 		if math.IsNaN(float64(newValue)) || math.IsInf(float64(newValue), 0) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
-		} else {
-			o.Lrs[idx] = d
+			//} else {
+			//	o.Lrs[idx] = d
 		}
 		fakeRoot = math.Abs(float64(fx)) < deep.Eps && !math.Signbit(float64(-d))
 	} else {
