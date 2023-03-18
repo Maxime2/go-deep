@@ -85,13 +85,19 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		fx_1 := o.Gradients_1[idx]
 		d := (value - value_1) / (fx - fx_1)
 
-		if iteration&1 != 0 {
+		//f idx == 0 {
+		//	fmt.Printf("idx: %v;; d:%v; fx: %v; fx_1: %v\n", idx, d, fx, fx_1)
+		//	fmt.Printf("\tvalue: %v; value_1: %v\n", value, value_1)
+		//}
+		if (iteration & 1) != 0 {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d*fx
 		} else {
 			tau := (math.Pow(float64(fx_1), 2) + float64(o.Lrs[idx])*math.Pow(float64(fx), 2)) /
 				(math.Pow(float64(fx_1), 2) + math.Pow(float64(fx), 2))
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] + deep.Deepfloat64(tau)*o.Moments[idx]
-			synapse.Weights[k] = synapse.Weights_1[k]
+			//if idx == 0 {
+			//	fmt.Printf("\tMoments: %v; tau: %v; newValue: %v\n", o.Moments[idx], tau, newValue)
+			//}
 		}
 		if math.IsNaN(float64(newValue)) || math.IsInf(float64(newValue), 0) {
 			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
@@ -113,6 +119,9 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 	}
 	o.Gradients_1[idx] = o.Gradients[idx]
 
+	//if idx == 0 {
+	//	fmt.Printf("\tAdjust: %v;\t   newWeight: %v\n", o.Moments[idx], synapse.Weights[k]+o.Moments[idx])
+	//}
 	return o.Moments[idx], fakeRoot
 }
 
