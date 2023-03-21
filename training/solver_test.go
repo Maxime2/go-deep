@@ -10,8 +10,8 @@ import (
 )
 
 func Test_Save_Load(t *testing.T) {
-	s := NewSGD(0.1, 0, 1e-1, false)
-	s2 := NewSGD(0.2, 0, 1e-1, true)
+	s := NewSGD(0.1)
+	s2 := NewSGD(0.2)
 
 	s.Init(10)
 	s2.Init(10)

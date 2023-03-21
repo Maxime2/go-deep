@@ -26,10 +26,7 @@ type Solver interface {
 
 // SGD is stochastic gradient descent with nesterov/momentum
 type SGD struct {
-	Lr       float64
-	Decay    float64
-	Momentum float64
-	//nesterov bool
+	Lr          float64
 	Moments     []deep.Deepfloat64
 	Lrs         []deep.Deepfloat64
 	Gradients   []deep.Deepfloat64
@@ -37,12 +34,9 @@ type SGD struct {
 }
 
 // NewSGD returns a new SGD solver
-func NewSGD(lr, momentum, decay float64, nesterov bool) *SGD {
+func NewSGD(lr float64) *SGD {
 	return &SGD{
-		Lr:       fparam(lr, 0.01),
-		Decay:    decay,
-		Momentum: momentum,
-		//nesterov: nesterov,
+		Lr: fparam(lr, 0.01),
 	}
 }
 
@@ -90,23 +84,23 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int) (deep.Deepflo
 		//	fmt.Printf("\tvalue: %v; value_1: %v\n", value, value_1)
 		//}
 		if (iteration & 1) != 0 {
-			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - d*fx
+			newValue = -d * fx
 		} else {
 			tau := (math.Pow(float64(fx_1), 2) + float64(o.Lrs[idx])*math.Pow(float64(fx), 2)) /
 				(math.Pow(float64(fx_1), 2) + math.Pow(float64(fx), 2))
-			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] + deep.Deepfloat64(tau)*o.Moments[idx]
+			newValue = deep.Deepfloat64(tau) * o.Moments[idx]
 			//if idx == 0 {
 			//	fmt.Printf("\tMoments: %v; tau: %v; newValue: %v\n", o.Moments[idx], tau, newValue)
 			//}
 		}
 		if math.IsNaN(float64(newValue)) || math.IsInf(float64(newValue), 0) {
-			newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+			newValue = -o.Lrs[idx] * o.Gradients[idx]
 			//} else {
 			//	o.Lrs[idx] = d
 		}
 		fakeRoot = math.Abs(float64(fx)) < deep.Eps && !math.Signbit(float64(-d))
 	} else {
-		newValue = deep.Deepfloat64(o.Momentum)*o.Moments[idx] - o.Lrs[idx]*o.Gradients[idx]
+		newValue = -o.Lrs[idx] * o.Gradients[idx]
 	}
 	if !math.IsNaN(float64(newValue)) {
 		o.Moments[idx] = newValue

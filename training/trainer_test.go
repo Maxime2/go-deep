@@ -34,7 +34,7 @@ func Test_BoundedRegression(t *testing.T) {
 			Bias:       true,
 		})
 
-		trainer := NewTrainer(NewSGD(0.25, 0.5, 0, false), 100)
+		trainer := NewTrainer(NewSGD(0.25), 100)
 		trainer.Train(n, data, nil, 5000)
 
 		tests := []deep.Deepfloat64{0.0, 0.1, 0.25, 0.5, 0.75, 0.9}
@@ -63,7 +63,7 @@ func Test_RegressionLinearOuts(t *testing.T) {
 
 	//	trainer := NewBatchTrainer(NewAdam(0.01, 0, 0, 0), 0, 25, 2)
 	//rainer := NewTrainer(NewAdam(0.01, 0, 0, 0), 0)
-	trainer := NewTrainer(NewSGD(0.01, 0, 1e-6, false), 10000)
+	trainer := NewTrainer(NewSGD(0.01), 10000)
 	trainer.Train(n, squares, squares, 250000)
 
 	for i := 0; i < 100; i++ {
@@ -91,7 +91,7 @@ func Test_Training(t *testing.T) {
 		Bias:       true,
 	})
 
-	trainer := NewTrainer(NewSGD(0.5, 0.1, 0, false), 0)
+	trainer := NewTrainer(NewSGD(0.5), 0)
 	trainer.Train(n, data, nil, 1000)
 
 	v := n.Predict([]deep.Deepfloat64{0})
@@ -123,7 +123,7 @@ func Test_Prediction(t *testing.T) {
 		Weight:     deep.NewUniform(0.5, 0),
 		Bias:       true,
 	})
-	trainer := NewTrainer(NewSGD(0.5, 0.1, 0, false), 0)
+	trainer := NewTrainer(NewSGD(0.5), 0)
 
 	trainer.Train(n, data, nil, 5000)
 
@@ -142,7 +142,7 @@ func Test_CrossVal(t *testing.T) {
 		Bias:       true,
 	})
 
-	trainer := NewTrainer(NewSGD(0.5, 0.1, 0, false), 0)
+	trainer := NewTrainer(NewSGD(0.5), 0)
 	trainer.Train(n, data, data, 1000)
 
 	for _, d := range data {
@@ -175,7 +175,7 @@ func Test_MultiClass(t *testing.T) {
 		Bias:       true,
 	})
 
-	trainer := NewTrainer(NewSGD(0.01, 0.1, 0, false), 100)
+	trainer := NewTrainer(NewSGD(0.01), 100)
 	trainer.Train(n, data, data, 2000)
 
 	for _, d := range data {
@@ -208,7 +208,7 @@ func Test_or(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1}, []deep.Deepfloat64{1}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.5, 0, 0, false), 10)
+	trainer := NewTrainer(NewSGD(0.5), 10)
 
 	trainer.Train(n, permutations, permutations, 25)
 
@@ -234,7 +234,7 @@ func Test_xor(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1}, []deep.Deepfloat64{0}},
 	}
 
-	trainer := NewTrainer(NewSGD(1.0, 0.1, 1e-6, false), 50)
+	trainer := NewTrainer(NewSGD(1.0), 50)
 	trainer.Train(n, permutations, permutations, 500)
 
 	for _, perm := range permutations {
@@ -252,10 +252,10 @@ func Test_RHW(t *testing.T) {
 		Inputs:        6,
 		Layout:        []int{2, 1},
 		Activation:    deep.ActivationSigmoid,
-		Mode:          deep.ModeMultiLabel,
+		Mode:          deep.ModeBinary,
 		Bias:          false,
 		LossPrecision: 12,
-		Weight:        deep.NewNormal(0.05, 0.09),
+		Weight:        deep.NewUniform(0.06, 0.0),
 	}
 	n := deep.NewNeural(&c)
 	permutations := Examples{
@@ -326,8 +326,16 @@ func Test_RHW(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1, 1, 1, 1, 1}, []deep.Deepfloat64{1}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.1, 0.9, 0, false), 5)
-	trainer.Train(n, permutations, permutations, 22900)
+	n.SaveReadable("rhw-test-pre.neural")
+	trainer := NewTrainer(NewSGD(0.1), 1)
+	trainer.Train(n, permutations, permutations, 1425)
+	trainer.SolverSave("rhw-test.sgd")
+	trainer.Save("rhw-test.trainer")
 
 	n.Dot("rhw-test.dot")
+	for _, p := range permutations {
+		predict := float64(n.Predict(p.Input)[0])
+		assert.InEpsilon(t, 1+float64(p.Response[0]), 1+predict, 0.0005, "Response: %v; Predict: %v | %v", p.Response[0], predict, p.Input)
+	}
+	n.SaveReadable("rhw-test-apri.neural")
 }
