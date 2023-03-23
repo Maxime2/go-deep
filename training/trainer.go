@@ -164,10 +164,10 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 							completed++
 							synapse.IsComplete[k] = true
 						} else {
-							if it > 2 && (it&1) != 0 {
-								update = (synapse.Weights[k] + delta)
-							} else {
+							if it > 2 && (it&1) == 0 {
 								update = (synapse.Weights_1[k] + delta)
+							} else {
+								update = (synapse.Weights[k] + delta)
 							}
 							//if idx >= 0 {
 							//	fmt.Printf("  Trainer: update: %v\n", update)
