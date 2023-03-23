@@ -35,7 +35,7 @@ func Test_Loss(t *testing.T) {
 	}
 	for _, test := range tests {
 		loss := GetLoss(test.loss)
-		estimate := loss.F(test.input, test.target)
+		estimate := loss.Cf(test.input, test.target)
 		assert.InEpsilon(t, float64(test.res), float64(estimate), 1e-1, fmt.Sprintf("%s estimate: %.2f expected: %.2f", test.loss.String(), estimate, test.res))
 		assert.NotEqual(t, "N/A", test.loss.String())
 	}

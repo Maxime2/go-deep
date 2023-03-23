@@ -32,6 +32,7 @@ func NewTrainer(solver Solver, verbosity int) *OnlineTrainer {
 }
 
 type internal struct {
+	E, E_1 deep.Deepfloat64
 	//deltas [][]deep.Deepfloat64
 	D_E_y [][]deep.Deepfloat64
 	D_E_x [][]deep.Deepfloat64
@@ -68,6 +69,8 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	for i := 1; i <= iterations; /*min(iterations, n.Config.N_iterations)*/ i++ {
 		//examples.Shuffle()
 		t.solver.InitGradients()
+		t.E_1 = t.E
+		t.E = 0
 		n.Config.N_iterations = deep.MinIterations
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
@@ -91,11 +94,13 @@ func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) {
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
+		loss := deep.GetLoss(n.Config.Loss)
+		t.E += loss.F(neuron.Value, ideal[i])
 		y := neuron.DActivate(neuron.Value)
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
 		//	ideal[i]) * y
-		t.D_E_y[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
+		t.D_E_y[len(n.Layers)-1][i] = loss.Df(
 			neuron.Value,
 			ideal[i])
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * y
@@ -154,43 +159,48 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 						synapse.ClearFakeRoots(k)
 					}
 					if !synapse.IsComplete[k] {
-						delta, fakeRoot := t.solver.Adjust(synapse, k, it, idx)
-						if it > 2 && (it&1) != 0 {
-							update = (synapse.Weights[k] + delta)
+						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, t.E, t.E_1)
+						if itsdone {
+							completed++
+							synapse.IsComplete[k] = true
 						} else {
-							update = (synapse.Weights_1[k] + delta)
-						}
-						//if idx == 0 {
-						//	fmt.Printf("  Trainer: update: %v\n", update)
-						//}
-						if !math.IsNaN(float64(update)) {
-							if it > 3 {
-								//if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-								//	if update > synapse.Weights[k] {
-								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-								//	} else {
-								//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-								//	}
-								//}
-								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-									//synapse.IsComplete[k] = true
-									if fakeRoot && l.Number <= minLayerFakeRoot {
-										synapse.AddFakeRoot(k, update)
-										update = n.Config.Weight()
-										minLayerFakeRoot = l.Number
-									} else {
-										completed++
+							if it > 2 && (it&1) != 0 {
+								update = (synapse.Weights[k] + delta)
+							} else {
+								update = (synapse.Weights_1[k] + delta)
+							}
+							//if idx >= 0 {
+							//	fmt.Printf("  Trainer: update: %v\n", update)
+							//}
+							if !math.IsNaN(float64(update)) {
+								if it > 3 {
+									//if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+									//	if update > synapse.Weights[k] {
+									//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+									//	} else {
+									//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
+									//	}
+									//}
+									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+										//synapse.IsComplete[k] = true
+										if fakeRoot && l.Number <= minLayerFakeRoot {
+											synapse.AddFakeRoot(k, update)
+											update = n.Config.Weight()
+											minLayerFakeRoot = l.Number
+										} else {
+											//completed++
+										}
 									}
 								}
+								//if idx == 0 {
+								//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; update: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], update)
+								//}
+								synapse.Weights_1[k] = synapse.Weights[k]
+								synapse.Weights[k] = update
+								//if idx == 0 {
+								//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; delta: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], delta)
+								//}
 							}
-							//if idx == 0 {
-							//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; update: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], update)
-							//}
-							synapse.Weights_1[k] = synapse.Weights[k]
-							synapse.Weights[k] = update
-							//if idx == 0 {
-							//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; delta: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], delta)
-							//}
 						}
 					} else {
 						completed++

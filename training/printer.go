@@ -65,5 +65,5 @@ func crossValidate(n *deep.Neural, validation Examples) deep.Deepfloat64 {
 		responses[i] = validation[i].Response
 	}
 
-	return deep.GetLoss(n.Config.Loss).F(predictions, responses)
+	return deep.GetLoss(n.Config.Loss).Cf(predictions, responses)
 }

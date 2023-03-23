@@ -45,15 +45,21 @@ const (
 
 // Loss is satisfied by loss functions
 type Loss interface {
-	F(estimate, ideal [][]Deepfloat64) Deepfloat64
+	F(estimate, ideal Deepfloat64) Deepfloat64
+	Cf(estimate, ideal [][]Deepfloat64) Deepfloat64
 	Df(estimate, ideal Deepfloat64) Deepfloat64
 }
 
 // CrossEntropy is CE loss
 type CrossEntropy struct{}
 
-// F is CE(...)
-func (l CrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
+// F is MSE(...)
+func (l CrossEntropy) F(estimate, ideal Deepfloat64) Deepfloat64 {
+	return Deepfloat64(math.Pow(float64(estimate-ideal), 2))
+}
+
+// Cf is CE(...)
+func (l CrossEntropy) Cf(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 
 	var sum Deepfloat64
 	for i := range estimate {
@@ -75,8 +81,13 @@ func (l CrossEntropy) Df(estimate, ideal Deepfloat64) Deepfloat64 {
 // BinaryCrossEntropy is binary CE loss
 type BinaryCrossEntropy struct{}
 
-// F is CE(...)
-func (l BinaryCrossEntropy) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
+// F is MSE(...)
+func (l BinaryCrossEntropy) F(estimate, ideal Deepfloat64) Deepfloat64 {
+	return Deepfloat64(math.Pow(float64(estimate-ideal), 2))
+}
+
+// Cf is CE(...)
+func (l BinaryCrossEntropy) Cf(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 	epsilon := 1e-16
 	var sum Deepfloat64
 	for i := range estimate {
@@ -98,7 +109,13 @@ func (l BinaryCrossEntropy) Df(estimate, ideal Deepfloat64) Deepfloat64 {
 type MeanSquared struct{}
 
 // F is MSE(...)
-func (l MeanSquared) F(estimate, ideal [][]Deepfloat64) Deepfloat64 {
+func (l MeanSquared) F(estimate, ideal Deepfloat64) Deepfloat64 {
+	d := estimate - ideal
+	return d * d
+}
+
+// Cf is MSE(...)
+func (l MeanSquared) Cf(estimate, ideal [][]Deepfloat64) Deepfloat64 {
 	var sum Deepfloat64
 	for i := 0; i < len(estimate); i++ {
 		for j := 0; j < len(estimate[i]); j++ {
