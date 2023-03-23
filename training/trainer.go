@@ -173,7 +173,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 							//	fmt.Printf("  Trainer: update: %v\n", update)
 							//}
 							if !math.IsNaN(float64(update)) {
-								if it > 3 {
+								if it > 2 {
 									//if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
 									//	if update > synapse.Weights[k] {
 									//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]

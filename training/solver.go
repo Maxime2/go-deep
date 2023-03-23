@@ -73,7 +73,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int, E, E_1 deep.D
 	fakeRoot := false
 	completed := false
 
-	if iteration > 4 {
+	if iteration > 2 {
 		value := synapse.Weights[k]
 		value_1 := synapse.Weights_1[k]
 		fx := o.Gradients[idx]
@@ -87,12 +87,12 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int, E, E_1 deep.D
 		//}
 		if math.Abs(float64(fx)) < deep.Eps && d > 0 && !math.IsInf(float64(d), 0) {
 			completed = true
-			newValue = 0
+			return 0, false, completed
 		} else if (iteration & 1) != 0 {
 			//newValue = -d * fx
 			newValue = -E / fx
 		} else {
-			tau := (E_1 + o.Lrs[idx]*E) / (E_1 + E)
+			tau := (E_1*E_1 + o.Lrs[idx]*E*E) / (E_1*E_1 + E*E)
 			newValue = deep.Deepfloat64(tau) * o.Moments[idx]
 			//if idx == 0 {
 			//	fmt.Printf("\tMoments: %v; tau: %v; newValue: %v\n", o.Moments[idx], tau, newValue)
