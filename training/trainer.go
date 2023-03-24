@@ -75,6 +75,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
+		t.E /= deep.Deepfloat64(n.NumWeights())
 		completed := t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
