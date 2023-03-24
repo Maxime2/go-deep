@@ -122,7 +122,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 		}
 
 		if t.verbosity > 0 && it%t.verbosity == 0 && len(validation) > 0 {
-			t.printer.PrintProgress(n, examples, validation, time.Since(ts), it, 0.0)
+			t.printer.PrintProgress(n, 0.0, validation, time.Since(ts), it, 0.0)
 		}
 	}
 }
