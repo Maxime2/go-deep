@@ -1,6 +1,8 @@
 package deep
 
-import "math"
+import (
+	"math"
+)
 
 // Mode denotes inference mode
 type Mode int
@@ -84,7 +86,21 @@ func (a Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
-	return 1 / (1 + Deepfloat64(math.Exp(float64(-a*x))))
+	if a*x > 36 {
+		return 0.9999999999999999
+	}
+	if a*x < -709 {
+		return 1.216780750623423e-308
+	}
+	exponent := math.Exp(float64(-a * x))
+	if math.IsInf(exponent, 1) {
+		return 0.9999999999999999
+	}
+	if math.IsInf(exponent, -1) {
+		return 0.0000000000000001
+	}
+	r := 1.0 / (1.0 + exponent)
+	return Deepfloat64(r)
 }
 
 // Tanh is a hyperbolic activator
