@@ -75,7 +75,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
-		t.E /= deep.Deepfloat64(n.NumWeights())
+		t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
 		completed := t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
@@ -165,11 +165,9 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 							completed++
 							synapse.IsComplete[k] = true
 						} else {
-							if it > 2 && (it&1) == 0 {
-								update = (synapse.Weights_1[k] + delta)
-							} else {
-								update = (synapse.Weights[k] + delta)
-							}
+
+							update = (synapse.Weights[k] + delta)
+
 							//if idx >= 0 {
 							//	fmt.Printf("  Trainer: update: %v\n", update)
 							//}

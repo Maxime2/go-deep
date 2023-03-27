@@ -86,16 +86,19 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int, E, E_1 deep.D
 		//	fmt.Printf("\tE: %v; E_1: %v\n", E, E_1)
 		//}
 		if math.Abs(float64(fx)) < deep.Eps && d > 0 && !math.IsInf(float64(d), 0) {
-			completed = true
+			//completed = true
 			newValue = 0
-		} else if (iteration & 1) != 0 {
+			fakeRoot = math.Abs(float64(fx)) < deep.Eps && !math.Signbit(float64(-d))
+			if !fakeRoot {
+				completed = true
+			}
+		} else {
 			//newValue = -d * fx
 			newValue = -E / fx
-		} else {
 			tau := (E_1*E_1 + o.Lrs[idx]*E*E) / (E_1*E_1 + E*E)
-			newValue = tau * o.Moments[idx]
+			newValue *= tau
 			//if idx == 0 {
-			//	fmt.Printf("\tMoments: %v; tau: %v; newValue: %v\n", o.Moments[idx], tau, newValue)
+			//	fmt.Printf("\tnewValue: %v; tau: %v\n", newValue, tau)
 			//}
 		}
 		if math.IsNaN(float64(newValue)) || math.IsInf(float64(newValue), 0) {
