@@ -47,8 +47,8 @@ func (l *Layer) fire() {
 // synapse with the given weight function
 func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 	for i := range l.Neurons {
-		for j := range next.Neurons {
-			syn := NewSynapseWithTag(fmt.Sprintf("L:%d N:%d", l.Number, i), degree, weight)
+		for j, neuron := range next.Neurons {
+			syn := NewSynapseWithTag(neuron, degree, weight, fmt.Sprintf("L:%d N:%d", l.Number, i))
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
@@ -58,8 +58,8 @@ func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
 // ApplyBias creates and returns a bias synapse for each neuron in l
 func (l *Layer) ApplyBias(degree int, weight WeightInitializer) []*Synapse {
 	biases := make([]*Synapse, len(l.Neurons))
-	for i := range l.Neurons {
-		biases[i] = NewSynapseWithTag(fmt.Sprintf("L:%d B:%d", l.Number, i), degree, weight)
+	for i, neuron := range l.Neurons {
+		biases[i] = NewSynapseWithTag(neuron, degree, weight, fmt.Sprintf("L:%d B:%d", l.Number, i))
 		biases[i].IsBias = true
 		l.Neurons[i].In = append(l.Neurons[i].In, biases[i])
 	}

@@ -10,6 +10,8 @@ type Neuron struct {
 	In    []*Synapse
 	Out   []*Synapse
 	Value Deepfloat64
+	Error Deepfloat64
+	Sum   Deepfloat64
 }
 
 // NewNeuron returns a neuron with the given activation
@@ -20,14 +22,14 @@ func NewNeuron(activation ActivationType) *Neuron {
 }
 
 func (n *Neuron) fire() {
-	var sum Deepfloat64
+	n.Sum = 0
 	for _, s := range n.In {
-		preliminarySum := sum + s.Out
+		preliminarySum := n.Sum + s.Out
 		if !math.IsNaN(float64(preliminarySum)) {
-			sum = preliminarySum
+			n.Sum = preliminarySum
 		}
 	}
-	n.Value = n.Activate(sum)
+	n.Value = n.Activate(n.Sum)
 
 	nVal := n.Value
 	for _, s := range n.Out {
@@ -51,13 +53,14 @@ type Synapse struct {
 	Weights_1  []Deepfloat64
 	IsComplete []bool
 	FakeRoot   [][]Deepfloat64
+	Up         *Neuron
 	In, Out    Deepfloat64
 	IsBias     bool
 	Tag        string
 }
 
 // NewSynapse returns a synapse with the weigths set with specified initializer
-func NewSynapse(degree int, weight WeightInitializer) *Synapse {
+func NewSynapse(up *Neuron, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
@@ -74,12 +77,13 @@ func NewSynapse(degree int, weight WeightInitializer) *Synapse {
 		Out:        0,
 		IsBias:     false,
 		Tag:        "",
+		Up:         up,
 	}
 }
 
 // NewSynapseWithTag returns a synapse with the weigths preset with specified initializer
 // and marked with specified tag
-func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synapse {
+func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag string) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
@@ -96,6 +100,7 @@ func NewSynapseWithTag(tag string, degree int, weight WeightInitializer) *Synaps
 		Out:        0,
 		IsBias:     false,
 		Tag:        tag,
+		Up:         up,
 	}
 }
 

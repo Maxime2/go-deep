@@ -32,10 +32,18 @@ func NewTrainer(solver Solver, verbosity int) *OnlineTrainer {
 }
 
 type internal struct {
-	E, E_1 deep.Deepfloat64
+	E, E_1 [][]deep.Deepfloat64
 	//deltas [][]deep.Deepfloat64
 	D_E_y [][]deep.Deepfloat64
 	D_E_x [][]deep.Deepfloat64
+}
+
+func newE(layers []*deep.Layer) [][]deep.Deepfloat64 {
+	E := make([][]deep.Deepfloat64, len(layers))
+	for i, l := range layers {
+		E[i] = make([]deep.Deepfloat64, len(l.Neurons))
+	}
+	return E
 }
 
 func newTraining(layers []*deep.Layer) *internal {
@@ -51,6 +59,8 @@ func newTraining(layers []*deep.Layer) *internal {
 		//deltas: deltas,
 		D_E_y: d_E_y,
 		D_E_x: d_E_x,
+		E:     newE(layers),
+		E_1:   newE(layers),
 	}
 }
 
@@ -70,16 +80,21 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		//examples.Shuffle()
 		t.solver.InitGradients()
 		t.E_1 = t.E
-		t.E = 0
+		t.E = newE(n.Layers)
 		n.Config.N_iterations = deep.MinIterations
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], i)
 		}
-		t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
+		for i := range t.E {
+			for _, x := range t.E[i] {
+				x /= deep.Deepfloat64(len(examples))
+			}
+		}
+		//t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
 		completed := t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
-			t.printer.PrintProgress(n, t.E, validation, time.Since(ts), i, rCompleted)
+			t.printer.PrintProgress(n, t.E[len(n.Layers)-1], validation, time.Since(ts), i, rCompleted)
 		}
 		if completed == numWeights {
 			break
@@ -94,9 +109,11 @@ func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) {
 }
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
+	loss := deep.GetLoss(n.Config.Loss)
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
-		loss := deep.GetLoss(n.Config.Loss)
-		t.E += loss.F(neuron.Value, ideal[i])
+		error := loss.F(neuron.Value, ideal[i])
+		t.E[len(n.Layers)-1][i] += error
+		neuron.Error = loss.If(error)
 		y := neuron.DActivate(neuron.Value)
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
@@ -111,7 +128,9 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		for j, neuron := range n.Layers[i].Neurons {
 			//var sum deep.Deepfloat64
 			var sum_y deep.Deepfloat64
+			var n_error deep.Deepfloat64
 			for k, s := range neuron.Out {
+				n_error += s.Up.Error / s.Up.Sum * s.Out
 				fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
 				sum_y += fd * t.D_E_x[i+1][k]
@@ -120,6 +139,8 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
+			t.E[i][j] += n_error
+			neuron.Error = loss.If(n_error)
 			if !math.IsNaN(float64(sum_y)) {
 				t.D_E_y[i][j] = sum_y
 				t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
@@ -152,7 +173,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
 	minLayerFakeRoot := len(n.Layers)
-	for _, l := range n.Layers {
+	for i, l := range n.Layers {
 		for j := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
@@ -160,7 +181,7 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 						synapse.ClearFakeRoots(k)
 					}
 					if !synapse.IsComplete[k] {
-						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, t.E, t.E_1)
+						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, t.E[i][j], t.E_1[i][j])
 						if itsdone {
 							completed++
 							synapse.IsComplete[k] = true
