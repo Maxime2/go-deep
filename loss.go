@@ -56,7 +56,8 @@ type CrossEntropy struct{}
 
 // F is MSE(...)
 func (l CrossEntropy) F(estimate, ideal Deepfloat64) Deepfloat64 {
-	return Deepfloat64(math.Pow(float64(estimate-ideal), 2))
+	d := estimate - ideal
+	return d * d / 2
 }
 
 // Cf is CE(...)
@@ -89,7 +90,8 @@ type BinaryCrossEntropy struct{}
 
 // F is MSE(...)
 func (l BinaryCrossEntropy) F(estimate, ideal Deepfloat64) Deepfloat64 {
-	return Deepfloat64(math.Pow(float64(estimate-ideal), 2))
+	d := estimate - ideal
+	return d * d / 2
 }
 
 // Cf is CE(...)
@@ -122,7 +124,7 @@ type MeanSquared struct{}
 // F is MSE(...)
 func (l MeanSquared) F(estimate, ideal Deepfloat64) Deepfloat64 {
 	d := estimate - ideal
-	return d * d
+	return d * d / 2
 }
 
 // Cf is MSE(...)
