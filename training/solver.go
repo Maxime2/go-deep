@@ -94,9 +94,10 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int, E, E_1 deep.D
 			}
 		} else {
 			//newValue = -d * fx
-			newValue = -E / fx
-			tau := (E_1*E_1 + o.Lrs[idx]*E*E) / (E_1*E_1 + E*E)
-			newValue *= tau
+			//newValue = -E / fx
+			newValue = -o.Lrs[idx] * o.Gradients[idx]
+			//tau := (E_1*E_1 + o.Lrs[idx]*E*E) / (E_1*E_1 + E*E)
+			//newValue *= tau
 			//if idx == 0 {
 			//	fmt.Printf("\tnewValue: %v; tau: %v\n", newValue, tau)
 			//}
@@ -125,7 +126,7 @@ func (o *SGD) Adjust(synapse *deep.Synapse, k, iteration, idx int, E, E_1 deep.D
 	o.Gradients_1[idx] = o.Gradients[idx]
 
 	//if idx == 0 {
-	//	fmt.Printf("\tAdjust: %v;\t   newWeight: %v\n", o.Moments[idx], synapse.Weights[k]+o.Moments[idx])
+	//	fmt.Printf("\tAdjust: %v;\tLr: %v;\t   newWeight: %v\n", o.Moments[idx], o.Lrs[idx], synapse.Weights[k]+o.Moments[idx])
 	//}
 	return o.Moments[idx], fakeRoot, completed
 }

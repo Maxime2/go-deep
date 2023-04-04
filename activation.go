@@ -73,6 +73,8 @@ const (
 type Differentiable interface {
 	F(Deepfloat64) Deepfloat64
 	Df(Deepfloat64) Deepfloat64
+	If(Deepfloat64) Deepfloat64
+	Idomain(Deepfloat64) Deepfloat64
 }
 
 // Sigmoid is a logistic activator in the special case of a = 1
@@ -83,6 +85,20 @@ func (a Sigmoid) F(x Deepfloat64) Deepfloat64 { return Logistic(x, 1) }
 
 // Df is Sigmoid'(y), where y = Sigmoid(x)
 func (a Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
+
+// If is inverse to Sigmoid
+func (a Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(-math.Log(1/float64(y) - 1)) }
+
+// Idomain() ensures the value is in the domain of activation inverse function
+func (a Sigmoid) Idomain(y Deepfloat64) Deepfloat64 {
+	if y < Eps {
+		return Eps
+	}
+	if y > 1-Eps {
+		return 1 - Eps
+	}
+	return y
+}
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
@@ -114,6 +130,22 @@ func (a Tanh) F(x Deepfloat64) Deepfloat64 {
 // Df is Tanh'(y), where y = Tanh(x)
 func (a Tanh) Df(y Deepfloat64) Deepfloat64 { return 1 - Deepfloat64(math.Pow(float64(y), 2)) }
 
+// If is Artanh(y)
+func (a Tanh) If(y Deepfloat64) Deepfloat64 {
+	return Deepfloat64(0.5 * math.Log(float64(1+y)/float64(1-y)))
+}
+
+// Idomain() ensures the value is in the domain of activation inverse function
+func (a Tanh) Idomain(y Deepfloat64) Deepfloat64 {
+	if y < -1+Eps {
+		return -1 + Eps
+	}
+	if y > 1-Eps {
+		return 1 - Eps
+	}
+	return y
+}
+
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
@@ -128,6 +160,12 @@ func (a ReLU) Df(y Deepfloat64) Deepfloat64 {
 	return 0
 }
 
+// If is inverse to ReLU(), to some extent
+func (a ReLU) If(y Deepfloat64) Deepfloat64 { return y }
+
+// Idomain() ensures the value is in the domain of activation inverse function
+func (a ReLU) Idomain(y Deepfloat64) Deepfloat64 { return y }
+
 // Linear is a linear activator
 type Linear struct{}
 
@@ -136,3 +174,9 @@ func (a Linear) F(x Deepfloat64) Deepfloat64 { return x }
 
 // Df is constant
 func (a Linear) Df(x Deepfloat64) Deepfloat64 { return 1 }
+
+// If is reverse to identity
+func (a Linear) If(y Deepfloat64) Deepfloat64 { return y }
+
+// Idomain() ensures the value is in the domain of activation inverse function
+func (a Linear) Idomain(y Deepfloat64) Deepfloat64 { return y }

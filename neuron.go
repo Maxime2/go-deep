@@ -10,7 +10,7 @@ type Neuron struct {
 	In    []*Synapse
 	Out   []*Synapse
 	Value Deepfloat64
-	Error Deepfloat64
+	Ideal Deepfloat64
 	Sum   Deepfloat64
 }
 

@@ -110,10 +110,12 @@ func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) {
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
 	loss := deep.GetLoss(n.Config.Loss)
+	activation := deep.GetActivation(n.Layers[len(n.Layers)-1].A)
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
 		error := loss.F(neuron.Value, ideal[i])
 		t.E[len(n.Layers)-1][i] += error
-		neuron.Error = loss.If(error)
+		neuron.Ideal = activation.If(ideal[i])
+		//fmt.Printf(" oo i:%v; ideal: %v; neuron.ideal: %v\n", i, ideal[i], neuron.Ideal)
 		y := neuron.DActivate(neuron.Value)
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
@@ -125,26 +127,32 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	}
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
+		activation = deep.GetActivation(n.Layers[i].A)
 		for j, neuron := range n.Layers[i].Neurons {
 			//var sum deep.Deepfloat64
-			var sum_y deep.Deepfloat64
-			var n_error deep.Deepfloat64
-			for k, s := range neuron.Out {
-				n_error += s.Up.Error / s.Up.Sum * s.Out
-				fd := s.FireDerivative()
+			//var sum_y deep.Deepfloat64
+			var n_ideal deep.Deepfloat64
+			for _/*k*/, s := range neuron.Out {
+				n_ideal += s.Up.Ideal / s.Up.Sum * s.Out
+				//fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
-				sum_y += fd * t.D_E_x[i+1][k]
+				//sum_y += fd * t.D_E_x[i+1][k]
 			}
 			//sum *= neuron.DActivate(neuron.Value)
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
-			t.E[i][j] += n_error
-			neuron.Error = loss.If(n_error)
-			if !math.IsNaN(float64(sum_y)) {
-				t.D_E_y[i][j] = sum_y
-				t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
-			}
+			n_ideal = activation.Idomain(n_ideal)
+			t.E[i][j] += n_ideal
+			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
+			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
+
+			neuron.Ideal = activation.If(n_ideal)
+			//fmt.Printf(" __ i:%v; j:%v; ideal: %v; neuron.ideal: %v\n", i, j, n_ideal, neuron.Ideal)
+			//if !math.IsNaN(float64(sum_y)) {
+			//	t.D_E_y[i][j] = sum_y
+			//	t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
+			//}
 		}
 	}
 }
@@ -174,14 +182,14 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 	var update deep.Deepfloat64
 	minLayerFakeRoot := len(n.Layers)
 	for i, l := range n.Layers {
-		for j := range l.Neurons {
+		for j, neuron := range l.Neurons {
 			for _, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					if l.Number > minLayerFakeRoot {
 						synapse.ClearFakeRoots(k)
 					}
 					if !synapse.IsComplete[k] {
-						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, t.E[i][j], t.E_1[i][j])
+						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, neuron.Ideal /*t.E[i][j]*/, t.E_1[i][j])
 						if itsdone {
 							completed++
 							synapse.IsComplete[k] = true
