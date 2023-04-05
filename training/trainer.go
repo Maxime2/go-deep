@@ -132,7 +132,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum deep.Deepfloat64
 			//var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
-			for _/*k*/, s := range neuron.Out {
+			for _ /*k*/, s := range neuron.Out {
 				n_ideal += s.Up.Ideal / s.Up.Sum * s.Out
 				//fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
@@ -142,7 +142,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
-			n_ideal = activation.Idomain(n_ideal)
+			n_ideal = activation.Idomain(n_ideal / deep.Deepfloat64(len(neuron.Out)))
 			t.E[i][j] += n_ideal
 			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
 			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
