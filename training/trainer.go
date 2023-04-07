@@ -112,8 +112,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	loss := deep.GetLoss(n.Config.Loss)
 	activation := deep.GetActivation(n.Layers[len(n.Layers)-1].A)
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
-		error := loss.F(neuron.Value, ideal[i])
-		t.E[len(n.Layers)-1][i] += error
+		t.E[len(n.Layers)-1][i] += loss.F(neuron.Value, ideal[i])
 		neuron.Ideal = activation.If(ideal[i])
 		//fmt.Printf(" oo i:%v; ideal: %v; neuron.ideal: %v\n", i, ideal[i], neuron.Ideal)
 		y := neuron.DActivate(neuron.Value)
@@ -142,12 +141,12 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
-			n_ideal = activation.If(activation.Idomain(n_ideal / deep.Deepfloat64(len(neuron.Out))))
-			t.E[i][j] += n_ideal
+			n_ideal = activation.Idomain(n_ideal / deep.Deepfloat64(len(neuron.Out)))
+			t.E[i][j] += loss.F(neuron.Value, n_ideal)
+			neuron.Ideal = activation.If(n_ideal)
 			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
 			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
 
-			neuron.Ideal = n_ideal
 			//fmt.Printf(" __ i:%v; j:%v; ideal: %v; neuron.ideal: %v\n", i, j, n_ideal, neuron.Ideal)
 			//if !math.IsNaN(float64(sum_y)) {
 			//	t.D_E_y[i][j] = sum_y
