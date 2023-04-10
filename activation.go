@@ -87,7 +87,7 @@ func (a Sigmoid) F(x Deepfloat64) Deepfloat64 { return Logistic(x, 1) }
 func (a Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
 
 // If is inverse to Sigmoid
-func (a Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(-math.Log(1/float64(y) - 1)) }
+func (a Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(math.Log(float64(y / (1 - y)))) }
 
 // Idomain() ensures the value is in the domain of activation inverse function
 func (a Sigmoid) Idomain(y Deepfloat64) Deepfloat64 {
