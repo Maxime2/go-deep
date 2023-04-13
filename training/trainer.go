@@ -132,7 +132,13 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
 			for _ /*k*/, s := range neuron.Out {
-				n_ideal += s.Up.Ideal / s.Up.Sum * s.Out
+				//fmt.Printf("\t oo i:%v; j:%v; k:%v;; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
+				if math.Signbit(float64(s.Up.Ideal)) != math.Signbit(float64(s.Out)) {
+					n_ideal += s.In / 1.1
+
+				} else {
+					n_ideal += s.In * 1.1
+				}
 				//fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
 				//sum_y += fd * t.D_E_x[i+1][k]
@@ -141,6 +147,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//if !math.IsNaN(float64(sum)) {
 			//	t.deltas[i][j] = sum
 			//}
+			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
 			n_ideal = activation.Idomain(n_ideal / deep.Deepfloat64(len(neuron.Out)))
 			t.E[i][j] += loss.F(neuron.Value, n_ideal)
 			neuron.Ideal = activation.If(n_ideal)
@@ -201,13 +208,6 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 							//}
 							if !math.IsNaN(float64(update)) {
 								if it > 2 {
-									//if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-									//	if update > synapse.Weights[k] {
-									//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-									//	} else {
-									//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-									//	}
-									//}
 									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 										//synapse.IsComplete[k] = true
 										if fakeRoot && l.Number <= minLayerFakeRoot {
@@ -216,6 +216,13 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 											minLayerFakeRoot = l.Number
 										} else {
 											//completed++
+											if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+												if update > synapse.Weights[k] {
+													update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+												} else {
+													update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
+												}
+											}
 										}
 									}
 								}
