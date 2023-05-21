@@ -86,7 +86,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 	}
 
 	t.printer.Init(n)
-	t.solver.Init(n.NumWeights())
+	t.solver.Init(n.Layers)
 
 	ts := time.Now()
 	for it := 1; it <= iterations; it++ {
@@ -179,7 +179,7 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 			jAD := iAD[j]
 			for k, s := range n.In {
 				// jAD[k]
-				delta, _ /*fakeRoot*/, _ /*itsdone*/ := t.solver.Adjust(s, 1, it, idx, 0 /* t.E */, 0 /* t.E_1 */)
+				delta, _ /*itsdone*/ := t.solver.Adjust(i, j, k, 1, 0, it)
 				update := s.Weights[1] + delta
 				if !math.IsNaN(float64(update)) {
 					s.Weights[1] = update

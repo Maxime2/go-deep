@@ -52,7 +52,6 @@ type Synapse struct {
 	Weights    []Deepfloat64
 	Weights_1  []Deepfloat64
 	IsComplete []bool
-	FakeRoot   [][]Deepfloat64
 	Up         *Neuron
 	In, Out    Deepfloat64
 	IsBias     bool
@@ -64,7 +63,6 @@ func NewSynapse(up *Neuron, degree int, weight WeightInitializer) *Synapse {
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
-	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
@@ -72,7 +70,6 @@ func NewSynapse(up *Neuron, degree int, weight WeightInitializer) *Synapse {
 		Weights:    weights,
 		Weights_1:  weights_1,
 		IsComplete: isComplete,
-		FakeRoot:   fakeRoot,
 		In:         0,
 		Out:        0,
 		IsBias:     false,
@@ -87,7 +84,6 @@ func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag str
 	var weights = make([]Deepfloat64, degree+1)
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
-	var fakeRoot = make([][]Deepfloat64, degree+1)
 	for i := 0; i <= degree; i++ {
 		weights[i] = weight()
 	}
@@ -95,7 +91,6 @@ func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag str
 		Weights:    weights,
 		Weights_1:  weights_1,
 		IsComplete: isComplete,
-		FakeRoot:   fakeRoot,
 		In:         0,
 		Out:        0,
 		IsBias:     false,
@@ -130,18 +125,10 @@ func (s *Synapse) SetTag(tag string) {
 
 func (s *Synapse) WeightFunction(value Deepfloat64, k int) Deepfloat64 {
 	f := value
-	for _, root := range s.FakeRoot[k] {
-		f /= (value - root)
-	}
+	//for _, root := range s.FakeRoot[k] {
+	//	f /= (value - root)
+	//}
 	return f
-}
-
-func (s *Synapse) AddFakeRoot(k int, root Deepfloat64) {
-	s.FakeRoot[k] = append(s.FakeRoot[k], root)
-}
-
-func (s *Synapse) ClearFakeRoots(k int) {
-	s.FakeRoot[k] = s.FakeRoot[k][:0]
 }
 
 func (s *Synapse) GetGradient(D_E_x Deepfloat64, k int) Deepfloat64 {

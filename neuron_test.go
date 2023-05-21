@@ -19,7 +19,6 @@ func Test_Synapse_Fire(t *testing.T) {
 			-53.10317433993435},
 		Weights_1:  make([]Deepfloat64, degree+1),
 		IsComplete: make([]bool, degree+1),
-		FakeRoot:   make([][]Deepfloat64, degree+1),
 		In:         7.9556310898783e-14,
 		Out:        0,
 		IsBias:     false,

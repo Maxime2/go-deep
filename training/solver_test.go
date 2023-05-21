@@ -5,16 +5,22 @@ import (
 	"os"
 	"testing"
 
+	deep "github.com/Maxime2/go-deep"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Save_Load(t *testing.T) {
+	n := deep.NewNeural(&deep.Config{
+		Inputs: 3,
+		Layout: []int{4, 4, 2},
+		Bias:   false,
+	})
 	s := NewSGD(0.1)
 	s2 := NewSGD(0.2)
 
-	s.Init(10)
-	s2.Init(10)
+	s.Init(n.Layers)
+	s2.Init(n.Layers)
 
 	tmpfile, err := ioutil.TempFile("", "test_load_save")
 	assert.Nil(t, err)

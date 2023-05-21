@@ -32,7 +32,8 @@ func Benchmark_xor(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		const iterations = 20
-		solver := NewAdam(0.001, 0.9, 0.999, 1e-8)
+		//solver := NewAdam(0.001, 0.9, 0.999, 1e-8)
+		solver := NewSGD(0.001)
 		trainer := NewBatchTrainer(solver, iterations, len(dupExs)/2, runtime.NumCPU())
 		trainer.Train(n, dupExs, dupExs, iterations)
 	}

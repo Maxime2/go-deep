@@ -73,17 +73,18 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 
 	t.printer.Init(n)
 	numWeights := n.NumWeights()
-	t.solver.Init(numWeights)
+	t.solver.Init(n.Layers)
 
 	ts := time.Now()
 	for i := 1; i <= iterations; /*min(iterations, n.Config.N_iterations)*/ i++ {
+		var completed int
 		//examples.Shuffle()
-		t.solver.InitGradients()
+		//t.solver.InitGradients()
 		t.E_1 = t.E
 		t.E = newE(n.Layers)
 		n.Config.N_iterations = deep.MinIterations
 		for j := 0; j < len(examples); j++ {
-			t.learn(n, examples[j], i)
+			completed = t.learn(n, examples[j], i)
 		}
 		for i := range t.E {
 			for _, x := range t.E[i] {
@@ -91,7 +92,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			}
 		}
 		//t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
-		completed := t.adjust(n, i)
+		//completed = t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			t.printer.PrintProgress(n, t.E[len(n.Layers)-1], validation, time.Since(ts), i, rCompleted)
@@ -102,10 +103,10 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	}
 }
 
-func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) {
+func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) int {
 	n.Forward(e.Input)
 	t.calculateDeltas(n, e.Response)
-	t.update(n, it)
+	return t.update(n, it)
 }
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
@@ -114,15 +115,15 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
 		t.E[len(n.Layers)-1][i] += loss.F(neuron.Value, ideal[i])
 		neuron.Ideal = activation.If(ideal[i])
-		//fmt.Printf(" oo i:%v; ideal: %v; neuron.ideal: %v\n", i, ideal[i], neuron.Ideal)
-		y := neuron.DActivate(neuron.Value)
+		//fmt.Printf(" oo i:%v; ideal: %v; neuron.Ideal: %v; neuron.Sum: %v\n", i, ideal[i], neuron.Ideal, neuron.Sum)
+		//y := neuron.DActivate(neuron.Value)
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
 		//	ideal[i]) * y
 		t.D_E_y[len(n.Layers)-1][i] = loss.Df(
 			neuron.Value,
 			ideal[i])
-		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * y
+		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
 	}
 
 	for i := len(n.Layers) - 2; i >= 0; i-- {
@@ -132,11 +133,11 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
 			for _ /*k*/, s := range neuron.Out {
-				//fmt.Printf("\t oo i:%v; j:%v; k:%v;; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
+				//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
 				//if math.Signbit(float64(s.Up.Ideal)) != math.Signbit(float64(s.Out)) {
 				//	n_ideal += s.Up.Ideal * s.Up.Sum
 				//} else {
-					n_ideal += s.Up.Ideal / s.Up.Sum
+				n_ideal += s.In * s.Up.Ideal / s.Up.Sum
 				//}
 				//fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
@@ -147,13 +148,16 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//	t.deltas[i][j] = sum
 			//}
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
-			n_ideal = activation.Idomain(/*neuron.Value * */ n_ideal * deep.Deepfloat64(len(neuron.Out)))
+			n_ideal = n_ideal / deep.Deepfloat64(len(neuron.Out)*len(neuron.Out))
+			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
+			n_ideal = activation.Idomain(neuron.Value, n_ideal)
+			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain\n", i, j, n_ideal)
 			t.E[i][j] += loss.F(neuron.Value, n_ideal)
 			neuron.Ideal = activation.If(n_ideal)
 			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
 			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
 
-			//fmt.Printf(" __ i:%v; j:%v; ideal: %v; neuron.ideal: %v\n", i, j, n_ideal, neuron.Ideal)
+			//fmt.Printf("\t __ i:%v; j:%v; n_ideal: %v; neuron.Ideal: %v\n", i, j, n_ideal, neuron.Ideal)
 			//if !math.IsNaN(float64(sum_y)) {
 			//	t.D_E_y[i][j] = sum_y
 			//	t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
@@ -162,39 +166,18 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	}
 }
 
-func (t *OnlineTrainer) update(n *deep.Neural, it int) {
-	var idx int
-	for i, l := range n.Layers {
-		for j := range l.Neurons {
-			for _, synapse := range l.Neurons[j].In {
-				for k := 0; k < len(synapse.Weights); k++ {
-					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
-					t.solver.Update(synapse.Weights[k],
-						gradient,
-						synapse.In,
-						it,
-						idx)
-					idx++
-				}
-			}
-		}
-	}
-}
-
-func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
-	var idx int
+func (t *OnlineTrainer) update(n *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
-	minLayerFakeRoot := len(n.Layers)
 	for i, l := range n.Layers {
-		for j, neuron := range l.Neurons {
-			for _, synapse := range l.Neurons[j].In {
+		for j := range l.Neurons {
+			for s, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
-					if l.Number > minLayerFakeRoot {
-						synapse.ClearFakeRoots(k)
-					}
+					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
+					//t.solver.SetGradient(i, j, s, k, gradient)
+
 					if !synapse.IsComplete[k] {
-						delta, fakeRoot, itsdone := t.solver.Adjust(synapse, k, it, idx, neuron.Ideal /*t.E[i][j]*/, t.E_1[i][j])
+						delta, itsdone := t.solver.Adjust(i, j, s, k, gradient, it)
 						if itsdone {
 							completed++
 							synapse.IsComplete[k] = true
@@ -202,47 +185,32 @@ func (t *OnlineTrainer) adjust(n *deep.Neural, it int) int {
 
 							update = (synapse.Weights[k] + delta)
 
-							//if idx >= 0 {
-							//	fmt.Printf("  Trainer: update: %v\n", update)
-							//}
 							if !math.IsNaN(float64(update)) {
 								if it > 2 {
 									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 										//synapse.IsComplete[k] = true
-										if fakeRoot && l.Number <= minLayerFakeRoot {
-											synapse.AddFakeRoot(k, update)
-											update = n.Config.Weight()
-											minLayerFakeRoot = l.Number
-										} else {
-											//completed++
-											if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-												if update > synapse.Weights[k] {
-													update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-												} else {
-													update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-												}
+										completed++
+										if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+											if update > synapse.Weights[k] {
+												update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+											} else {
+												update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
 											}
 										}
 									}
 								}
-								//if idx == 0 {
-								//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; update: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], update)
-								//}
 								synapse.Weights_1[k] = synapse.Weights[k]
 								synapse.Weights[k] = update
-								//if idx == 0 {
-								//	fmt.Printf("  Trainer:: idx: %d; weight: %v; weight_1: %v; delta: %v\n", idx, synapse.Weights[k], synapse.Weights_1[k], delta)
-								//}
 							}
 						}
 					} else {
 						completed++
 					}
-					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(t.solver.Gradient(idx))))
+					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(float64(gradient))))
 					if n.Config.N_iterations < iterations {
 						n.Config.N_iterations = iterations
 					}
-					idx++
+
 				}
 			}
 		}
