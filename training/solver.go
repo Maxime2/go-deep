@@ -72,13 +72,13 @@ func (o *SGD) SetGradient(i, j, s, k int, gradient deep.Deepfloat64) {
 func (o *SGD) Adjust(i, j, s, k int, gradient deep.Deepfloat64, iteration int) (deep.Deepfloat64, bool) {
 	var newValue deep.Deepfloat64
 	completed := false
-	fx := o.Gradients[i][j][s][k]
+	//fx := o.Gradients[i][j][s][k]
 
-	if math.Signbit(float64(gradient)) != math.Signbit(float64(fx)) {
-		o.Lrs[i][j][s][k] *= 0.95
-	} else {
-		o.Lrs[i][j][s][k] *= 1 / 0.95
-	}
+	//if math.Signbit(float64(gradient)) != math.Signbit(float64(fx)) {
+	//	o.Lrs[i][j][s][k] *= 0.95
+	//} else {
+	//	o.Lrs[i][j][s][k] *= 1 / 0.95
+	//}
 
 	if iteration > 2 {
 
@@ -93,6 +93,10 @@ func (o *SGD) Adjust(i, j, s, k int, gradient deep.Deepfloat64, iteration int) (
 	}
 	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		o.Moments[i][j][s][k] = newValue
+	} else if math.IsInf(float64(newValue), -1) {
+		o.Lrs[i][j][s][k] *= 1 / 0.1
+	} else if math.IsInf(float64(newValue), 1) {
+		o.Lrs[i][j][s][k] *= 0.1
 	}
 	o.Gradients[i][j][s][k] = gradient
 
