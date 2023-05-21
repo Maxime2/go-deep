@@ -91,7 +91,7 @@ func (o *SGD) Adjust(i, j, s, k int, gradient deep.Deepfloat64, iteration int) (
 	} else {
 		newValue = -o.Lrs[i][j][s][k] * gradient
 	}
-	if !math.IsNaN(float64(newValue)) {
+	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		o.Moments[i][j][s][k] = newValue
 	}
 	o.Gradients[i][j][s][k] = gradient

@@ -185,17 +185,17 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) int {
 
 							update = (synapse.Weights[k] + delta)
 
-							if !math.IsNaN(float64(update)) {
+							if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
 								if it > 2 {
 									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 										//synapse.IsComplete[k] = true
 										completed++
-										if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-											if update > synapse.Weights[k] {
-												update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-											} else {
-												update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-											}
+									}
+									if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+										if update > synapse.Weights[k] {
+											update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+										} else {
+											update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
 										}
 									}
 								}
