@@ -6,12 +6,11 @@ import (
 
 // Neuron is a neural network node
 type Neuron struct {
-	A     ActivationType
-	In    []*Synapse
-	Out   []*Synapse
-	Value Deepfloat64
-	Ideal Deepfloat64
-	Sum   Deepfloat64
+	A              ActivationType
+	In             []*Synapse
+	Out            []*Synapse
+	Ideal, Desired Deepfloat64
+	Sum, Value     Deepfloat64
 }
 
 // NewNeuron returns a neuron with the given activation

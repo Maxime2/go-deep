@@ -114,6 +114,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	activation := deep.GetActivation(n.Layers[len(n.Layers)-1].A)
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
 		t.E[len(n.Layers)-1][i] += loss.F(neuron.Value, ideal[i])
+		neuron.Desired = ideal[i]
 		neuron.Ideal = activation.If(ideal[i])
 		//fmt.Printf(" oo i:%v; ideal: %v; neuron.Ideal: %v; neuron.Sum: %v\n", i, ideal[i], neuron.Ideal, neuron.Sum)
 		//y := neuron.DActivate(neuron.Value)
@@ -154,6 +155,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain\n", i, j, n_ideal)
 			t.E[i][j] += loss.F(neuron.Value, n_ideal)
 			neuron.Ideal = activation.If(n_ideal)
+			neuron.Desired = n_ideal
 			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
 			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
 
@@ -166,18 +168,18 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	}
 }
 
-func (t *OnlineTrainer) update(n *deep.Neural, it int) int {
+func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
-	for i, l := range n.Layers {
-		for j := range l.Neurons {
+	for i, l := range neural.Layers {
+		for j, n := range l.Neurons {
 			for s, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 					//t.solver.SetGradient(i, j, s, k, gradient)
 
 					if !synapse.IsComplete[k] {
-						delta, itsdone := t.solver.Adjust(i, j, s, k, gradient, it)
+						delta, itsdone := t.solver.Adjust(n, synapse, i, j, s, k, gradient, it)
 						if itsdone {
 							completed++
 							synapse.IsComplete[k] = true
@@ -206,9 +208,9 @@ func (t *OnlineTrainer) update(n *deep.Neural, it int) int {
 					} else {
 						completed++
 					}
-					iterations := int(n.Config.Numerator / math.Log(1.0/math.Abs(float64(gradient))))
-					if n.Config.N_iterations < iterations {
-						n.Config.N_iterations = iterations
+					iterations := int(neural.Config.Numerator / math.Log(1.0/math.Abs(float64(gradient))))
+					if neural.Config.N_iterations < iterations {
+						neural.Config.N_iterations = iterations
 					}
 
 				}

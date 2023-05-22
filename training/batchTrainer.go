@@ -179,7 +179,7 @@ func (t *BatchTrainer) update(n *deep.Neural, it int) {
 			jAD := iAD[j]
 			for k, s := range n.In {
 				// jAD[k]
-				delta, _ /*itsdone*/ := t.solver.Adjust(i, j, k, 1, 0, it)
+				delta, _ /*itsdone*/ := t.solver.Adjust(n, s, i, j, k, 1, 0, it)
 				update := s.Weights[1] + delta
 				if !math.IsNaN(float64(update)) {
 					s.Weights[1] = update
