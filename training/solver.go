@@ -76,14 +76,16 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 
 	lr := float64((synapse.Weights[k] + deep.Deepfloat64(math.Log(float64((1-neuron.Desired)/neuron.Desired)))/synapse.In) / gradient)
 
-	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 {
-		if deep.Deepfloat64(lr) > o.Lrs[i][j][s][k] {
-			o.Lrs[i][j][s][k] *= 1 / 0.95
+	if !math.IsInf(lr, 0) && !math.IsNaN(lr) {
+		if lr > 0 {
+			if deep.Deepfloat64(lr) > o.Lrs[i][j][s][k] {
+				o.Lrs[i][j][s][k] *= 1 / 0.95
+			} else {
+				o.Lrs[i][j][s][k] *= 0.95
+			}
 		} else {
-			o.Lrs[i][j][s][k] *= 0.95
+			o.Lrs[i][j][s][k] = deep.Deepfloat64(o.Lr)
 		}
-	} else {
-		o.Lrs[i][j][s][k] = deep.Deepfloat64(o.Lr)
 	}
 
 	//fmt.Printf("\t** %v:%v:%v k:%v; Desired: %v; y_i:%v; gradient: %v; lr: %v (%v)\n", i, j, s, k,
