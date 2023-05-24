@@ -92,9 +92,9 @@ func (a Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(math.Log(flo
 // Idomain() ensures the value is in the domain of activation inverse function, (0,1)
 func (a Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 	if ideal < Eps {
-		ideal = 0.1*Eps + 0.9*y
+		ideal = 0.2*Eps + 0.8*y
 	} else if ideal > 1-Eps {
-		ideal = .01*(1-Eps) + 0.9*y
+		ideal = 0.2*(1-Eps) + 0.8*y
 	}
 	return ideal
 }
