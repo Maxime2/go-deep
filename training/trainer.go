@@ -78,7 +78,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	ts := time.Now()
 	for i := 1; i <= iterations; /*min(iterations, n.Config.N_iterations)*/ i++ {
 		var completed int
-		//examples.Shuffle()
+		examples.Shuffle()
 		//t.solver.InitGradients()
 		t.E_1 = t.E
 		t.E = newE(n.Layers)
@@ -192,8 +192,7 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 										//synapse.IsComplete[k] = true
 										completed++
-									}
-									if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+									} else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
 										if update > synapse.Weights[k] {
 											update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
 										} else {
