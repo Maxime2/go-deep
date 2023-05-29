@@ -24,6 +24,6 @@ func Test_Synapse_Fire(t *testing.T) {
 		IsBias:     false,
 		Tag:        "test",
 	}
-	s.fire(7.9556310898783e-14)
+	s.Fire(7.9556310898783e-14)
 	assert.InEpsilon(t, float64(s.Out), 277.984890374598, 0.0000001)
 }

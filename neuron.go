@@ -32,7 +32,7 @@ func (n *Neuron) fire() {
 
 	nVal := n.Value
 	for _, s := range n.Out {
-		s.fire(nVal)
+		s.Fire(nVal)
 	}
 }
 
@@ -98,7 +98,7 @@ func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag str
 	}
 }
 
-func (s *Synapse) fire(value Deepfloat64) {
+func (s *Synapse) Fire(value Deepfloat64) {
 	s.In = value
 	mul := Deepfloat64(1)
 	s.Out = 0

@@ -27,7 +27,7 @@ func NewLayer(l, n int, activation ActivationType) *Layer {
 	}
 }
 
-func (l *Layer) fire() {
+func (l *Layer) Fire() {
 	for _, n := range l.Neurons {
 		n.fire()
 	}

@@ -207,6 +207,8 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 								}
 								synapse.Weights_1[k] = synapse.Weights[k]
 								synapse.Weights[k] = update
+								// re-fire synapse with updated weights
+								synapse.Fire(synapse.In)
 							}
 						}
 					} else {
@@ -219,6 +221,7 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 
 				}
 			}
+			l.Fire()
 		}
 	}
 	return completed

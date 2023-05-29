@@ -143,11 +143,11 @@ func initializeLayers(c *Config) []*Layer {
 func (n *Neural) fire() {
 	for _, b := range n.Biases {
 		for _, s := range b {
-			s.fire(1)
+			s.Fire(1)
 		}
 	}
 	for _, l := range n.Layers {
-		l.fire()
+		l.Fire()
 	}
 }
 
@@ -158,7 +158,7 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 	}
 	for _, n := range n.Layers[0].Neurons {
 		for i := 0; i < len(input); i++ {
-			n.In[i].fire(input[i])
+			n.In[i].Fire(input[i])
 		}
 	}
 	n.fire()
