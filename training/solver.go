@@ -111,8 +111,10 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		if math.Abs(float64(newValue)) < deep.Leps {
 			lr = math.Abs(float64(deep.Eps/gradient))
-			o.Lrs[i][j][s][k] = deep.Deepfloat64(lr)
-			newValue = -o.Lrs[i][j][s][k] * gradient
+			if !math.IsNaN(lr) && !math.IsInf(lr, 0) {
+				o.Lrs[i][j][s][k] = deep.Deepfloat64(lr)
+				newValue = -o.Lrs[i][j][s][k] * gradient
+			}
 		}
 		o.Moments[i][j][s][k] = newValue
 	} else if math.IsInf(float64(newValue), -1) {
