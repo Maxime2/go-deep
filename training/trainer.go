@@ -82,7 +82,6 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		//t.solver.InitGradients()
 		t.E_1 = t.E
 		t.E = newE(n.Layers)
-		n.Config.N_iterations = deep.MinIterations
 		for j := 0; j < len(examples); j++ {
 			completed = t.learn(n, examples[j], i)
 		}
@@ -214,11 +213,6 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 					} else {
 						completed++
 					}
-					iterations := int(neural.Config.Numerator / math.Log(1.0/math.Abs(float64(gradient))))
-					if neural.Config.N_iterations < iterations {
-						neural.Config.N_iterations = iterations
-					}
-
 				}
 			}
 			l.Fire()

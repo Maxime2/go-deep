@@ -74,20 +74,6 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 	completed := false
 	//fx := o.Gradients[i][j][s][k]
 
-	lr := float64((synapse.Weights[k] + deep.Deepfloat64(math.Log(float64((1-neuron.Desired)/neuron.Desired)))/synapse.In) / gradient)
-
-	if !math.IsInf(lr, 0) && !math.IsNaN(lr) {
-		if lr > 0 {
-			if deep.Deepfloat64(lr) > o.Lrs[i][j][s][k] {
-				o.Lrs[i][j][s][k] *= 1 / 0.95
-			} else {
-				o.Lrs[i][j][s][k] *= 0.95
-			}
-		} else {
-			o.Lrs[i][j][s][k] = deep.Deepfloat64(o.Lr)
-		}
-	}
-
 	//fmt.Printf("\t** %v:%v:%v k:%v; Desired: %v; y_i:%v; gradient: %v; lr: %v (%v)\n", i, j, s, k,
 	//	neuron.Desired, synapse.In, gradient, o.Lrs[i][j][s][k], lr)
 
@@ -110,13 +96,13 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 	}
 	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		if math.Abs(float64(newValue)) < deep.Leps {
-			lr = math.Abs(float64(deep.Eps/gradient))
+			lr := math.Abs(float64(deep.Eps/gradient))
 			if !math.IsNaN(lr) && !math.IsInf(lr, 0) {
 				o.Lrs[i][j][s][k] = deep.Deepfloat64(lr)
 				newValue = -o.Lrs[i][j][s][k] * gradient
 			}
 		} else if math.Abs(float64(newValue)) > 0.1 {
-			lr = math.Abs(float64(0.1/gradient))
+			lr := math.Abs(float64(0.1/gradient))
 			if !math.IsNaN(lr) && !math.IsInf(lr, 0) {
 				o.Lrs[i][j][s][k] = deep.Deepfloat64(lr)
 				newValue = -o.Lrs[i][j][s][k] * gradient

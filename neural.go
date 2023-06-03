@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"os"
 
 	"github.com/theothertomelliott/acyclic"
@@ -50,12 +49,6 @@ type Config struct {
 	Degree int
 	// Specify Synap Tags for the input layer
 	InputTags []string
-	// Estimate for number of iterations needed
-	// for internal use
-	N_iterations int
-	// Precision for weights calculation
-	// for internal use
-	Numerator float64
 }
 
 // NewNeural returns a new neural network
@@ -84,12 +77,6 @@ func NewNeural(c *Config) *Neural {
 	if c.Degree == 0 {
 		c.Degree = 2
 	}
-
-	if c.Numerator == 0 {
-		c.Numerator = math.Log(math.Pow10(c.LossPrecision))
-	}
-
-	c.N_iterations = MinIterations // int(c.Numerator)
 
 	layers := initializeLayers(c)
 
