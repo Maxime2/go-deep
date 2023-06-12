@@ -45,10 +45,12 @@ func (l *Layer) Fire() {
 
 // Connect fully connects layer l to next, and initializes each
 // synapse with the given weight function
-func (l *Layer) Connect(next *Layer, degree int, weight WeightInitializer) {
+func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
+	A := 1.0 / (float64(degree) * float64(len(l.Neurons)) * float64(len(next.Neurons)+1))
 	for i := range l.Neurons {
 		for j, neuron := range next.Neurons {
-			syn := NewSynapseWithTag(neuron, degree, weight, fmt.Sprintf("L:%d N:%d", l.Number, i))
+			wi := GetWeightFunction(weight, A/2.0, float64(j)*A)
+			syn := NewSynapseWithTag(neuron, degree, wi, fmt.Sprintf("L:%d N:%d", l.Number, i))
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}

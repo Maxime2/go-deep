@@ -15,8 +15,7 @@ func Benchmark_xor(b *testing.B) {
 		Layout:     []int{32, 32, 1},
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
-		Weight:     deep.NewUniform(.25, 0),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 	exs := Examples{
 		{[]deep.Deepfloat64{0, 0}, []deep.Deepfloat64{0}},

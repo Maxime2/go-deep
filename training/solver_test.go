@@ -14,7 +14,6 @@ func Test_Save_Load(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs: 3,
 		Layout: []int{4, 4, 2},
-		Bias:   false,
 	})
 	s := NewSGD(0.1)
 	s2 := NewSGD(0.2)

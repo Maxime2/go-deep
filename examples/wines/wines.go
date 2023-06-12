@@ -35,8 +35,7 @@ func main() {
 		Layout:     []int{8, 3},
 		Activation: deep.ActivationTanh,
 		Mode:       deep.ModeMultiClass,
-		Weight:     deep.NewNormal(1, 0),
-		Bias:       true,
+		Weight:     deep.WeightNormal,
 	})
 
 	trainer := training.NewTrainer(training.NewSGD(0.005), 50)

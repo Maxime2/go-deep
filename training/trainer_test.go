@@ -19,7 +19,7 @@ func Test_BoundedRegression(t *testing.T) {
 		func(x deep.Deepfloat64) deep.Deepfloat64 { return deep.Deepfloat64(math.Sqrt(float64(x))) },
 	}
 
-	for _, f := range funcs {
+	for z, f := range funcs {
 
 		data := Examples{}
 		for i := 0.0; i < 1; i += 0.01 {
@@ -30,8 +30,7 @@ func Test_BoundedRegression(t *testing.T) {
 			Layout:     []int{4, 4, 1},
 			Activation: deep.ActivationSigmoid,
 			Mode:       deep.ModeRegression,
-			Weight:     deep.NewUniform(0.5, 0),
-			Bias:       true,
+			Weight:     deep.WeightUniform,
 		})
 
 		trainer := NewTrainer(NewSGD(0.25), 100)
@@ -39,7 +38,8 @@ func Test_BoundedRegression(t *testing.T) {
 
 		tests := []deep.Deepfloat64{0.0, 0.1, 0.25, 0.5, 0.75, 0.9}
 		for _, x := range tests {
-			assert.InEpsilon(t, float64(f(x)+1), float64(n.Predict([]deep.Deepfloat64{deep.Deepfloat64(x)})[0]+1), 0.1)
+			predict := float64(n.Predict([]deep.Deepfloat64{deep.Deepfloat64(x)})[0])
+			assert.InEpsilon(t, float64(f(x)+1), predict+1, 0.1, "Response: %v; Predict: %v | %v; %v", f(x), predict, x, z)
 		}
 	}
 }
@@ -57,8 +57,7 @@ func Test_RegressionLinearOuts(t *testing.T) {
 		//Activation: deep.ActivationReLU,
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeRegression,
-		Weight:     deep.NewNormal(0.1/9, 0.3/9),
-		Bias:       false,
+		Weight:     deep.WeightNormal,
 	})
 
 	//	trainer := NewBatchTrainer(NewAdam(0.01, 0, 0, 0), 0, 25, 2)
@@ -87,8 +86,7 @@ func Test_Training(t *testing.T) {
 		Inputs:     1,
 		Layout:     []int{5, 1},
 		Activation: deep.ActivationSigmoid,
-		Weight:     deep.NewUniform(0.5, 0),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 
 	trainer := NewTrainer(NewSGD(0.5), 0)
@@ -120,8 +118,7 @@ func Test_Prediction(t *testing.T) {
 		Inputs:     2,
 		Layout:     []int{2, 2, 1},
 		Activation: deep.ActivationSigmoid,
-		Weight:     deep.NewUniform(0.5, 0),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 	trainer := NewTrainer(NewSGD(0.5), 0)
 
@@ -138,8 +135,7 @@ func Test_CrossVal(t *testing.T) {
 		Layout:     []int{1, 1},
 		Activation: deep.ActivationTanh,
 		Loss:       deep.LossMeanSquared,
-		Weight:     deep.NewUniform(0.5, 0),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 
 	trainer := NewTrainer(NewSGD(0.5), 0)
@@ -171,8 +167,7 @@ func Test_MultiClass(t *testing.T) {
 		Activation: deep.ActivationReLU,
 		Mode:       deep.ModeMultiClass,
 		Loss:       deep.LossMeanSquared,
-		Weight:     deep.NewUniform(0.1, 0.2),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 
 	trainer := NewTrainer(NewSGD(0.01), 100)
@@ -198,8 +193,7 @@ func Test_or(t *testing.T) {
 		Layout:     []int{1, 1},
 		Activation: deep.ActivationTanh,
 		Mode:       deep.ModeBinary,
-		Weight:     deep.NewUniform(0.5, 0),
-		Bias:       true,
+		Weight:     deep.WeightUniform,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0, 0}, []deep.Deepfloat64{0}},
@@ -224,8 +218,7 @@ func Test_xor(t *testing.T) {
 		Layout:     []int{3, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
-		Weight:     deep.NewUniform(.25, 0),
-		Bias:       false,
+		Weight:     deep.WeightUniform,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0, 0}, []deep.Deepfloat64{0}},
@@ -242,20 +235,48 @@ func Test_xor(t *testing.T) {
 	}
 }
 
+func Test_essential(t *testing.T) {
+	rand.Seed(0)
+	n := deep.NewNeural(&deep.Config{
+		Inputs:     2,
+		Layout:     []int{3, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		Activation: deep.ActivationSigmoid,
+		Mode:       deep.ModeBinary,
+		Weight:     deep.WeightUniform,
+	})
+	permutations := Examples{
+		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1}, []deep.Deepfloat64{0.5}},
+		{[]deep.Deepfloat64{0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5}, []deep.Deepfloat64{0.5}},
+	}
+
+	trainer := NewTrainer(NewSGD(0.01), 50)
+	trainer.Train(n, permutations, permutations, 500)
+
+	n.Dot("essential-test.dot")
+	n.SaveReadable("essential-test.neural")
+	trainer.SolverSave("essential-test.sgd")
+	trainer.Save("essential-test.trainer")
+
+	for _, perm := range permutations {
+		assert.InEpsilon(t, float64(n.Predict(perm.Input)[0]+1), float64(perm.Response[0]+1), 0.2, "input: %+v; want: %+v have: %+v\n", perm.Input, n.Predict(perm.Input)[0]+1, perm.Response[0]+1)
+	}
+}
+
 func printResult(ideal, actual []float64) {
 	fmt.Printf("want: %+v have: %+v\n", ideal, actual)
 }
 
 func Test_RHW(t *testing.T) {
 	c := deep.Config{
-		Degree:        1,
+		Degree:        3,
 		Inputs:        6,
-		Layout:        []int{2, 1},
+		Layout:        []int{36, 2*6 + 1, 1},
 		Activation:    deep.ActivationSigmoid,
 		Mode:          deep.ModeBinary,
-		Bias:          false,
 		LossPrecision: 12,
-		Weight:        deep.NewUniform(0.6, 0.0),
+		Weight:        deep.WeightUniform,
 	}
 	n := deep.NewNeural(&c)
 	nn, _ := deep.Load("rhw-test.init")
@@ -339,7 +360,7 @@ func Test_RHW(t *testing.T) {
 
 	n.SaveReadable("rhw-test-pre.neural")
 	n.Save("rhw-test.dump")
-	trainer := NewTrainer(NewSGD(0.06), 1)
+	trainer := NewTrainer(NewSGD(0.1), 1)
 	trainer.Train(n, permutations, permutations, 1425)
 	trainer.SolverSave("rhw-test.sgd")
 	trainer.Save("rhw-test.trainer")
@@ -369,6 +390,6 @@ func Test_RHW(t *testing.T) {
 
 	for x := -10; x > -24; x-- {
 		y := math.Pow(10, float64(x))
-		fmt.Printf(" dd %v :: %v  %v\n", x, y, 1.0 - y);
+		fmt.Printf(" dd %v :: %v  %v\n", x, y, 1.0-y)
 	}
 }

@@ -5,8 +5,29 @@ import (
 	"time"
 )
 
+type WeightType int
+
+const (
+	// WeightDefault is unspecified weight function type
+	WeightDefault WeightType = 0
+	// WeightUniform is uniform weight function type
+	WeightUniform WeightType = 1
+	// WeightNormal is normal weight function type
+	WeightNormal WeightType = 2
+)
+
 // A WeightInitializer returns a (random) weight
 type WeightInitializer func() Deepfloat64
+
+func GetWeightFunction(wt WeightType, stdDev, mean float64) WeightInitializer {
+	switch wt {
+	case WeightUniform:
+		return NewUniform(stdDev, mean)
+	case WeightNormal:
+		return NewNormal(stdDev, mean)
+	}
+	return NewNormal(0.999, 0)
+}
 
 // NewUniform returns a uniform weight generator
 func NewUniform(stdDev, mean float64) WeightInitializer {

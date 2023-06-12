@@ -15,8 +15,7 @@ func Test_Init(t *testing.T) {
 		Layout:     []int{4, 4, 2},
 		Activation: ActivationTanh,
 		Mode:       ModeBinary,
-		Weight:     NewUniform(0.5, 0),
-		Bias:       true,
+		Weight:     WeightUniform,
 	})
 
 	assert.Len(t, n.Layers, len(n.Config.Layout))
@@ -32,8 +31,7 @@ func Test_Forward(t *testing.T) {
 		Layout:     []int{3, 3, 3},
 		Activation: ActivationReLU,
 		Mode:       ModeMultiClass,
-		Weight:     NewNormal(1.0, 0),
-		Bias:       true,
+		Weight:     WeightNormal,
 	}
 	n := NewNeural(&c)
 	weights := [][][]Deepfloat64{
@@ -64,12 +62,6 @@ func Test_Forward(t *testing.T) {
 			}
 		}
 	}
-	for _, biases := range n.Biases {
-		for _, bias := range biases {
-			bias.Weights[0] = 0
-			bias.Weights[1] = 1
-		}
-	}
 
 	err := n.Forward([]Deepfloat64{0.1, 0.2, 0.7})
 	assert.Nil(t, err)
@@ -96,7 +88,6 @@ func Test_Save_Load(t *testing.T) {
 		Layout:     []int{3, 3, 3},
 		Activation: ActivationReLU,
 		Mode:       ModeMultiClass,
-		Bias:       true,
 	}
 	n := NewNeural(&c)
 	weights := [][][]Deepfloat64{
@@ -124,34 +115,28 @@ func Test_Save_Load(t *testing.T) {
 			}
 		}
 	}
-	for _, biases := range n.Biases {
-		for _, bias := range biases {
-			bias.Weights[0] = 0
-			bias.Weights[1] = 1
-		}
-	}
 
 	tmpfile, err := ioutil.TempFile("", "test_load_save")
 	assert.Nil(t, err)
 	defer os.Remove(tmpfile.Name()) // clean up
 
-	t.Log("Doing SaveReadable");
+	t.Log("Doing SaveReadable")
 	err = n.SaveReadable(tmpfile.Name())
 	assert.Nil(t, err)
 
-	t.Log("Doing Save");
+	t.Log("Doing Save")
 	err = n.Save(tmpfile.Name())
 	assert.Nil(t, err)
 
-	t.Log("Doing Load");
+	t.Log("Doing Load")
 	n2, err := Load(tmpfile.Name())
 	assert.Nil(t, err)
 
-	t.Log("Doing Compare");
+	t.Log("Doing Compare")
 	if diff := pretty.Compare(n, n2); diff != "" {
 		t.Errorf("n and n2 diff: (-got +want)\n%s", diff)
 	}
-	t.Log("Doing test.dot");
+	t.Log("Doing test.dot")
 	n.Dot("test.dot")
 }
 

@@ -51,8 +51,7 @@ func main() {
 		Layout:     []int{50, 10},
 		Activation: deep.ActivationReLU,
 		Mode:       deep.ModeMultiClass,
-		Weight:     deep.NewNormal(0.6, 0.1), // slight positive bias helps ReLU
-		Bias:       true,
+		Weight:     deep.WeightNormal, // slight positive bias helps ReLU
 	})
 
 	trainer := training.NewTrainer(training.NewSGD(0.01), 1)

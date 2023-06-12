@@ -20,7 +20,6 @@ const MinIterations = 5
 // Neural is a neural network
 type Neural struct {
 	Layers []*Layer
-	Biases [][]*Synapse
 	Config *Config
 }
 
@@ -37,12 +36,10 @@ type Config struct {
 	Activation ActivationType
 	// Solver modes: {ModeRegression, ModeBinary, ModeMultiClass, ModeMultiLabel}
 	Mode Mode
-	// Initializer for weights: {NewNormal(σ, μ), NewUniform(σ, μ)}
-	Weight WeightInitializer `json:"-"`
+	// Weight Initialiser type: {NewNormal(σ, μ), NewUniform(σ, μ)}
+	Weight WeightType
 	// Loss functions: {LossCrossEntropy, LossBinaryCrossEntropy, LossMeanSquared}
 	Loss LossType
-	// Apply bias nodes
-	Bias bool
 	// Error/Loss precision
 	LossPrecision int
 	// Specifies basis size
@@ -54,9 +51,6 @@ type Config struct {
 // NewNeural returns a new neural network
 func NewNeural(c *Config) *Neural {
 
-	if c.Weight == nil {
-		c.Weight = NewUniform(0.5, 0)
-	}
 	if c.Activation == ActivationNone {
 		c.Activation = ActivationSigmoid
 	}
@@ -80,20 +74,8 @@ func NewNeural(c *Config) *Neural {
 
 	layers := initializeLayers(c)
 
-	var biases [][]*Synapse
-	if c.Bias {
-		biases = make([][]*Synapse, len(layers))
-		for i := 0; i < len(layers); i++ {
-			if c.Mode == ModeRegression && i == len(layers)-1 {
-				continue
-			}
-			biases[i] = layers[i].ApplyBias(c.Degree, c.Weight)
-		}
-	}
-
 	return &Neural{
 		Layers: layers,
-		Biases: biases,
 		Config: c,
 	}
 }
@@ -108,15 +90,17 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(i, c.Layout[i], act)
 	}
 
-	for _, neuron := range layers[0].Neurons {
+	A := 1.0 / (float64(c.Degree) * float64(c.Inputs) * float64(len(layers[0].Neurons)+1))
+	for n, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
+		wi := GetWeightFunction(c.Weight, A/2.0, float64(n)*A)
 		if c.InputTags == nil {
 			for i := range neuron.In {
-				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, c.Weight, fmt.Sprintf("In:%d", i))
+				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
 			}
 		} else {
 			for i := range neuron.In {
-				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, c.Weight, c.InputTags[i])
+				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
 			}
 		}
 	}
@@ -129,11 +113,6 @@ func initializeLayers(c *Config) []*Layer {
 }
 
 func (n *Neural) fire() {
-	for _, b := range n.Biases {
-		for _, s := range b {
-			s.Fire(1)
-		}
-	}
 	for _, l := range n.Layers {
 		l.Fire()
 	}
