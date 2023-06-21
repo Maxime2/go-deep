@@ -138,11 +138,15 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				//	n_ideal += s.Up.Ideal * s.Up.Sum
 				//} else {
 				//n_ideal += s.In * s.Up.Ideal / s.Up.Sum
-				if s.Out < 0 {
-					n_ideal += s.In * s.Up.Sum / s.Up.Ideal
-				} else {
-					n_ideal += s.In * s.Up.Ideal / s.Up.Sum
-				}
+
+				//if s.Out < 0 {
+				//	n_ideal += s.In * s.Up.Sum / s.Up.Ideal
+				//} else {
+				//	n_ideal += s.In * s.Up.Ideal / s.Up.Sum
+				//}
+
+				n_ideal += (s.Up.Ideal - s.Weights[0]) / s.Weights[1]
+
 				//}
 				//fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
