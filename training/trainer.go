@@ -179,6 +179,56 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
+	for i := len(neural.Layers) - 1; i >= 0; i-- {
+		var Lcompleted int
+		l := neural.Layers[i]
+
+		for j, n := range l.Neurons {
+			for s, synapse := range l.Neurons[j].In {
+				for k := 0; k < len(synapse.Weights); k++ {
+					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
+
+					if !synapse.IsComplete[k] {
+						delta := t.solver.Adjust(n, synapse, i, j, s, k, gradient, it)
+
+						update = (synapse.Weights[k] + delta)
+
+						if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
+							if it > 2 {
+								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+									//synapse.IsComplete[k] = true
+									Lcompleted++
+								} //else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+								//	if update > synapse.Weights[k] {
+								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+								//	} else {
+								//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
+								//	}
+								//}
+							}
+							synapse.Weights_1[k] = synapse.Weights[k]
+							synapse.Weights[k] = update
+							// re-fire synapse with updated weights
+							synapse.Fire(synapse.In)
+						}
+
+					} else {
+						Lcompleted++
+					}
+				}
+			}
+		}
+		completed += Lcompleted
+		if Lcompleted < l.NumIns() * (neural.Config.Degree + 1) {
+			break
+		}
+	}
+	return completed
+}
+
+func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
+	var completed int
+	var update deep.Deepfloat64
 	for i, l := range neural.Layers {
 		for j, n := range l.Neurons {
 			for s, synapse := range l.Neurons[j].In {
@@ -215,8 +265,8 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 					}
 				}
 			}
-			l.Fire()
 		}
+		l.Fire()
 	}
 	return completed
 }

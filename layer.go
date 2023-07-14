@@ -78,3 +78,10 @@ func (l Layer) String() string {
 	}
 	return fmt.Sprintf("%+v", weights)
 }
+
+func (l Layer) NumIns() (num int) {
+	for _, neuron := range l.Neurons {
+		num += len(neuron.In)
+	}
+	return
+}
