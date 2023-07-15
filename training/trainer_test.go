@@ -252,6 +252,7 @@ func Test_essential(t *testing.T) {
 	}
 
 	trainer := NewTrainer(NewSGD(0.01), 50)
+	trainer.SetPrefix("essential ")
 	trainer.Train(n, permutations, permutations, 500)
 
 	n.Dot("essential-test.dot")
@@ -361,6 +362,7 @@ func Test_RHW(t *testing.T) {
 	n.SaveReadable("rhw-test-pre.neural")
 	n.Save("rhw-test.dump")
 	trainer := NewTrainer(NewSGD(0.1), 1)
+	trainer.SetPrefix("RHW ")
 	trainer.Train(n, permutations, permutations, 1425)
 	trainer.SolverSave("rhw-test.sgd")
 	trainer.Save("rhw-test.trainer")

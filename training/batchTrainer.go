@@ -61,6 +61,11 @@ func NewBatchTrainer(solver Solver, verbosity, batchSize, parallelism int) *Batc
 	}
 }
 
+// Set new output prtefix
+func (t *BatchTrainer) SetPrefix (prefix string) {
+	t.printer.SetPrefix(prefix)
+}
+
 // Train trains n
 func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iterations int) {
 	t.internalb = newBatchTraining(n.Layers, t.parallelism)

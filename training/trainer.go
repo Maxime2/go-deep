@@ -12,6 +12,7 @@ import (
 // Trainer is a neural network trainer
 type Trainer interface {
 	Train(n *deep.Neural, examples, validation Examples, iterations int)
+	SetPrefix(prefix string)
 }
 
 // OnlineTrainer is a basic, online network trainer
@@ -62,6 +63,11 @@ func newTraining(layers []*deep.Layer) *internal {
 		E:     newE(layers),
 		E_1:   newE(layers),
 	}
+}
+
+// Set new output prtefix
+func (t *OnlineTrainer) SetPrefix (prefix string) {
+	t.printer.SetPrefix(prefix)
 }
 
 // Train trains n

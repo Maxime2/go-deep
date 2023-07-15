@@ -11,28 +11,34 @@ import (
 
 // StatsPrinter prints training progress
 type StatsPrinter struct {
-	w *tabwriter.Writer
+	w      *tabwriter.Writer
+	prefix string
 }
 
 // NewStatsPrinter creates a StatsPrinter
 func NewStatsPrinter() *StatsPrinter {
-	return &StatsPrinter{tabwriter.NewWriter(log.Writer(), 16, 0, 3, ' ', 0)}
+	return &StatsPrinter{tabwriter.NewWriter(log.Writer(), 16, 0, 3, ' ', 0), ""}
+}
+
+// SetPrefix set new prefix
+func (p *StatsPrinter) SetPrefix( prefix string) {
+	p.prefix = prefix
 }
 
 // Init initializes printer
 func (p *StatsPrinter) Init(n *deep.Neural) {
-	fmt.Fprintf(p.w, "Epochs\tElapsed\tError\tLoss (%s)\t", n.Config.Loss)
+	fmt.Fprintf(p.w, "%sEpochs\tElapsed\tError\tLoss (%s)\t", p.prefix, n.Config.Loss)
 	if n.Config.Mode == deep.ModeMultiClass {
-		fmt.Fprintf(p.w, "Accuracy\t\n---\t---\t---\t---\t---\t\n")
+		fmt.Fprintf(p.w, "Accuracy\t\n%s---\t---\t---\t---\t---\t\n", p.prefix)
 	} else {
-		fmt.Fprintf(p.w, "\n---\t---\t---\t---\t\n")
+		fmt.Fprintf(p.w, "\n%s---\t---\t---\t---\t\n", p.prefix)
 	}
 	p.w.Flush()
 }
 
 // PrintProgress prints the current state of training
 func (p *StatsPrinter) PrintProgress(n *deep.Neural, E []deep.Deepfloat64, validation Examples, elapsed time.Duration, iteration int, completed float64) {
-	fmt.Fprintf(p.w, "%d (%.2f%%)\t%s\t%.*e\t%.*e\t%s\n",
+	fmt.Fprintf(p.w, "%s%d (%.2f%%)\t%s\t%.*e\t%.*e\t%s\n", p.prefix,
 		iteration, completed,
 		elapsed.String(),
 		n.Config.LossPrecision, totalError(E),
