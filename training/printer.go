@@ -27,6 +27,7 @@ func (p *StatsPrinter) Init(n *deep.Neural) {
 	} else {
 		fmt.Fprintf(p.w, "\n---\t---\t---\t---\t\n")
 	}
+	p.w.Flush()
 }
 
 // PrintProgress prints the current state of training
