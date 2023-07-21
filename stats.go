@@ -10,6 +10,7 @@ import (
 type InputStats struct {
 	Min, Avg, Max []Deepfloat64
 	count         []int
+	totalAvg      Deepfloat64
 }
 
 func NewInputStats(degree int) *InputStats {
@@ -45,9 +46,14 @@ func (s *InputStats) isNew(k int) bool {
 }
 
 func (s *InputStats) Finalise() {
+	s.totalAvg = 0
 	for i := 0; i < len(s.count); i++ {
 		s.Avg[i] /= Deepfloat64(s.count[i])
+		if i > 0 {
+			s.totalAvg += s.Avg[i]
+		}
 	}
+	s.totalAvg /= Deepfloat64(len(s.count) - 1)
 }
 
 func (n *Neural) InputStats(path string) error {
@@ -84,11 +90,14 @@ func (n *Neural) InputStats(path string) error {
 	}
 
 	sort.SliceStable(keys, func(i, j int) bool {
-		return stats[keys[i]].Avg[1] < stats[keys[j]].Avg[1]
+		return stats[keys[i]].totalAvg < stats[keys[j]].totalAvg
 	})
 
 	for _, key := range keys {
-		fmt.Fprintf(f, "%s : Avg: %v;  Min %v; Max: %v\n", key, stats[key].Avg[1], stats[key].Min[1], stats[key].Max[1])
+		fmt.Fprintf(f, "%s : totalAvg: %v\n", key, stats[key].totalAvg)
+		for k := 0; k <= n.Config.Degree; k++ {
+			fmt.Fprintf(f, "\tk=%d : Avg: %v;  Min %v; Max: %v\n", k, stats[key].Avg[k], stats[key].Min[k], stats[key].Max[k])
+		}
 	}
 
 	return nil

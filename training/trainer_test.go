@@ -239,10 +239,11 @@ func Test_essential(t *testing.T) {
 	rand.Seed(0)
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
-		Layout:     []int{3, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
+		Degree:     1,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
@@ -251,9 +252,9 @@ func Test_essential(t *testing.T) {
 		{[]deep.Deepfloat64{0.5, 0.5}, []deep.Deepfloat64{0.5}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), 50)
+	trainer := NewTrainer(NewSGD(0.01), 500)
 	trainer.SetPrefix("essential ")
-	trainer.Train(n, permutations, permutations, 500)
+	trainer.Train(n, permutations, permutations, 5000)
 
 	n.Dot("essential-test.dot")
 	n.InputStats("essential-test.stats")
