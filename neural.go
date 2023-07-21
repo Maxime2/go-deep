@@ -23,6 +23,17 @@ type Neural struct {
 	Config *Config
 }
 
+// Trainer update mode
+type UpdateMode int
+const (
+	// UpdateBottomUp is classic schema updating each
+	// layer from the bottom up
+	UpdateBottomUp UpdateMode = 0
+	// UpdateTopDown is new schema making updates to
+	// the top layer until it converge then move to the bottom
+	UpdateTopDown UpdateMode = 1
+)
+
 // Config defines the network topology, activations, losses etc
 type Config struct {
 	// Number of inputs
@@ -44,6 +55,8 @@ type Config struct {
 	LossPrecision int
 	// Specifies basis size
 	Degree int
+	// Specify trainer update mode
+	TrainerMode UpdateMode
 	// Specify Synap Tags for the input layer
 	InputTags []string
 }

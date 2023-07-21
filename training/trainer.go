@@ -183,6 +183,14 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 }
 
 func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
+	if neural.Config.TrainerMode == deep.UpdateTopDown {
+		return t.update2(neural, it)
+	}
+	return t.update0(neural, it)
+}
+
+// Update from top down
+func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
 	for i := len(neural.Layers) - 1; i >= 0; i-- {
@@ -232,6 +240,7 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 	return completed
 }
 
+// Update from bootom up
 func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
