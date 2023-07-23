@@ -281,7 +281,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 				}
 			}
 		}
-		l.Fire()
+		l.Refire()
 	}
 	return completed
 }

@@ -37,6 +37,23 @@ func (n *Neuron) fire() {
 	}
 }
 
+func (n *Neuron) refire() {
+	n.Sum = 0
+	for _, s := range n.In {
+		s.Refire()
+		preliminarySum := n.Sum + s.Out
+		if !math.IsNaN(float64(preliminarySum)) {
+			n.Sum = preliminarySum
+		}
+	}
+	n.Value = n.Activate(n.Sum)
+
+	nVal := n.Value
+	for _, s := range n.Out {
+		s.Fire(nVal)
+	}
+}
+
 // Activate applies the neurons activation
 func (n *Neuron) Activate(x Deepfloat64) Deepfloat64 {
 	return GetActivation(n.A).F(x)
@@ -107,14 +124,18 @@ func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag str
 	}
 }
 
-func (s *Synapse) Fire(value Deepfloat64) {
-	s.In = value
+func (s *Synapse) Refire() {
 	mul := Deepfloat64(1)
 	s.Out = 0
 	for k := 0; k < len(s.Weights); k++ {
 		s.Out += s.Weights[k] * mul
 		mul *= s.In
 	}
+}
+
+func (s *Synapse) Fire(value Deepfloat64) {
+	s.In = value
+	s.Refire()
 }
 
 func (s *Synapse) FireDerivative() Deepfloat64 {

@@ -43,6 +43,22 @@ func (l *Layer) Fire() {
 	}
 }
 
+func (l *Layer) Refire() {
+	for _, n := range l.Neurons {
+		n.refire()
+	}
+	if l.A == ActivationSoftmax {
+		outs := make([]Deepfloat64, len(l.Neurons))
+		for i, neuron := range l.Neurons {
+			outs[i] = neuron.Value
+		}
+		sm := Softmax(outs)
+		for i, neuron := range l.Neurons {
+			neuron.Value = Deepfloat64(sm[i])
+		}
+	}
+}
+
 // Connect fully connects layer l to next, and initializes each
 // synapse with the given weight function
 func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
