@@ -85,7 +85,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	t.solver.Init(n.Layers)
 
 	ts := time.Now()
-	for i := 1; i <= iterations; /*min(iterations, n.Config.N_iterations)*/ i++ {
+	for i := 1; i <= iterations; i++ {
 		var completed int
 		examples.Shuffle()
 		//t.solver.InitGradients()
@@ -105,6 +105,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			t.printer.PrintProgress(n, t.E[len(n.Layers)-1], validation, time.Since(ts), i, rCompleted)
 		}
+		n.Config.Epoch++
 		if completed == numWeights {
 			break
 		}

@@ -59,6 +59,8 @@ type Config struct {
 	TrainerMode UpdateMode
 	// Specify Synap Tags for the input layer
 	InputTags []string
+	// Number of training iterations
+	Epoch int
 }
 
 // NewNeural returns a new neural network
