@@ -51,18 +51,21 @@ func newBatchTraining(layers []*deep.Layer, parallelism int) *internalb {
 }
 
 // NewBatchTrainer returns a BatchTrainer
-func NewBatchTrainer(solver Solver, verbosity, batchSize, parallelism int) *BatchTrainer {
+func NewBatchTrainer(solver Solver, precision, verbosity, batchSize, parallelism int) *BatchTrainer {
+	if precision == 0 {
+		precision = 4
+	}
 	return &BatchTrainer{
 		solver:      solver,
 		verbosity:   verbosity,
 		batchSize:   iparam(batchSize, 1),
 		parallelism: iparam(parallelism, 1),
-		printer:     NewStatsPrinter(),
+		printer:     NewStatsPrinter(precision),
 	}
 }
 
 // Set new output prtefix
-func (t *BatchTrainer) SetPrefix (prefix string) {
+func (t *BatchTrainer) SetPrefix(prefix string) {
 	t.printer.SetPrefix(prefix)
 }
 

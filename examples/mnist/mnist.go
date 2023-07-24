@@ -54,7 +54,7 @@ func main() {
 		Weight:     deep.WeightNormal, // slight positive bias helps ReLU
 	})
 
-	trainer := training.NewTrainer(training.NewSGD(0.01), 1)
+	trainer := training.NewTrainer(training.NewSGD(0.01), neural.Config.LossPrecision, 1)
 	//trainer := training.NewBatchTrainer(training.NewAdam(0.02, 0.9, 0.999, 1e-8), 1, 200, 8)
 
 	fmt.Printf("training: %d, val: %d, test: %d\n", len(train), len(test), len(test))

@@ -24,10 +24,13 @@ type OnlineTrainer struct {
 }
 
 // NewTrainer creates a new trainer
-func NewTrainer(solver Solver, verbosity int) *OnlineTrainer {
+func NewTrainer(solver Solver, precision, verbosity int) *OnlineTrainer {
+	if precision == 0 {
+		precision = 4
+	}
 	return &OnlineTrainer{
 		solver:    solver,
-		printer:   NewStatsPrinter(),
+		printer:   NewStatsPrinter(precision),
 		verbosity: verbosity,
 	}
 }
@@ -66,7 +69,7 @@ func newTraining(layers []*deep.Layer) *internal {
 }
 
 // Set new output prtefix
-func (t *OnlineTrainer) SetPrefix (prefix string) {
+func (t *OnlineTrainer) SetPrefix(prefix string) {
 	t.printer.SetPrefix(prefix)
 }
 
@@ -233,7 +236,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 			}
 		}
 		completed += Lcompleted
-		if Lcompleted < l.NumIns() * (neural.Config.Degree + 1) {
+		if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
 			break
 		}
 	}
