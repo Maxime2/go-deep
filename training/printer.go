@@ -17,11 +17,11 @@ type StatsPrinter struct {
 
 // NewStatsPrinter creates a StatsPrinter
 func NewStatsPrinter(precision int) *StatsPrinter {
-	width := precision + 8
+	width := precision + 10
 	if width < 16 {
 		width = 16
 	}
-	return &StatsPrinter{tabwriter.NewWriter(log.Writer(), width, 0, 3, ' ', 0), ""}
+	return &StatsPrinter{tabwriter.NewWriter(log.Writer(), width, 0, 2, ' ', 0), ""}
 }
 
 // SetPrefix set new prefix
