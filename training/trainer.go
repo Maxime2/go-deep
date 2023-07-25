@@ -237,9 +237,9 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 			}
 		}
 		completed += Lcompleted
-		if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
-			break
-		}
+		//if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
+		//	break
+		//}
 	}
 	return completed
 }
@@ -287,9 +287,9 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 			}
 		}
 		completed += Lcompleted
-		if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
-			break
-		}
+		//if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
+		//	break
+		//}
 		l.Refire()
 	}
 	return completed
