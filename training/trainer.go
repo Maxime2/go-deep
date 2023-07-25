@@ -249,6 +249,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
 	for i, l := range neural.Layers {
+		var Lcompleted int
 		for j, n := range l.Neurons {
 			for s, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
@@ -264,7 +265,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 							if it > 2 {
 								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
 									//synapse.IsComplete[k] = true
-									completed++
+									Lcompleted++
 								} //else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
 								//	if update > synapse.Weights[k] {
 								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
@@ -280,10 +281,14 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 						}
 
 					} else {
-						completed++
+						Lcompleted++
 					}
 				}
 			}
+		}
+		completed += Lcompleted
+		if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
+			break
 		}
 		l.Refire()
 	}

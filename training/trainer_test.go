@@ -252,9 +252,9 @@ func Test_essential(t *testing.T) {
 		{[]deep.Deepfloat64{0.5, 0.5}, []deep.Deepfloat64{0.5}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 500)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 5000)
 	trainer.SetPrefix("essential ")
-	trainer.Train(n, permutations, permutations, 5000)
+	trainer.Train(n, permutations, permutations, 50000)
 
 	n.Dot("essential-test.dot")
 	n.InputStats("essential-test.stats")
