@@ -80,7 +80,7 @@ func (s *InputStats) Finalise() {
 	s.totalAvgPl /= Deepfloat64(len(s.count) - 1)
 }
 
-func (n *Neural) InputStats(path string) error {
+func (n *Neural) InputStats(detail bool, path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -120,8 +120,10 @@ func (n *Neural) InputStats(path string) error {
 	for i, key := range keys {
 		fmt.Fprintf(f, "%d. %s : Avg: %v; Mi: %v; Pl: %v\n", i, key,
 			stats[key].totalAvg, stats[key].totalAvgMi, stats[key].totalAvgPl)
-		for k := 0; k <= n.Config.Degree; k++ {
-			fmt.Fprintf(f, "\tk=%d : Avg: %v;  Mi %v; Pl: %v\n", k, stats[key].Avg[k], stats[key].AvgMi[k], stats[key].AvgPl[k])
+		if detail {
+			for k := 0; k <= n.Config.Degree; k++ {
+				fmt.Fprintf(f, "\tk=%d : Avg: %v;  Mi %v; Pl: %v\n", k, stats[key].Avg[k], stats[key].AvgMi[k], stats[key].AvgPl[k])
+			}
 		}
 	}
 
