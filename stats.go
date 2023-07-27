@@ -8,35 +8,48 @@ import (
 )
 
 type InputStats struct {
-	Min, Avg, Max []Deepfloat64
-	count         []int
-	totalAvg      Deepfloat64
+	Avg          []Deepfloat64
+	AvgMi, AvgPl []Deepfloat64
+	count        []int
+	countPl      []int
+	totalAvg     Deepfloat64
+	totalAvgMi   Deepfloat64
+	totalAvgPl   Deepfloat64
 }
 
 func NewInputStats(degree int) *InputStats {
 	return &InputStats{
-		Min:   make([]Deepfloat64, degree+1),
-		Max:   make([]Deepfloat64, degree+1),
-		Avg:   make([]Deepfloat64, degree+1),
-		count: make([]int, degree+1),
+		Avg:     make([]Deepfloat64, degree+1),
+		AvgMi:   make([]Deepfloat64, degree+1),
+		AvgPl:   make([]Deepfloat64, degree+1),
+		count:   make([]int, degree+1),
+		countPl: make([]int, degree+1),
 	}
 }
 
 func (s *InputStats) Init(k int, in Deepfloat64) {
+	if in < 0 {
+		s.AvgMi[k] = in
+		s.AvgPl[k] = 0
+		s.countPl[k] = 0
+	} else {
+		s.AvgPl[k] = in
+		s.AvgMi[k] = 0
+		s.countPl[k] = 1
+	}
 	in = Deepfloat64(math.Abs(float64(in)))
-	s.Min[k] = in
-	s.Max[k] = in
 	s.Avg[k] = in
 	s.count[k] = 1
 }
 
 func (s *InputStats) Update(k int, in Deepfloat64) {
-	in = Deepfloat64(math.Abs(float64(in)))
-	if in < s.Min[k] {
-		s.Min[k] = in
-	} else if in > s.Max[k] {
-		s.Max[k] = in
+	if in < 0 {
+		s.AvgMi[k] += in
+	} else {
+		s.AvgPl[k] += in
+		s.countPl[k]++
 	}
+	in = Deepfloat64(math.Abs(float64(in)))
 	s.Avg[k] += in
 	s.count[k]++
 }
@@ -47,13 +60,24 @@ func (s *InputStats) isNew(k int) bool {
 
 func (s *InputStats) Finalise() {
 	s.totalAvg = 0
+	s.totalAvgPl, s.totalAvgMi = 0, 0
 	for i := 0; i < len(s.count); i++ {
 		s.Avg[i] /= Deepfloat64(s.count[i])
+		if s.countPl[i] > 0 {
+			s.AvgPl[i] /= Deepfloat64(s.countPl[i])
+		}
+		if s.countPl[i] != s.count[i] {
+			s.AvgMi[i] /= Deepfloat64(s.count[i] - s.countPl[i])
+		}
 		if i > 0 {
 			s.totalAvg += s.Avg[i]
+			s.totalAvgMi += s.AvgMi[i]
+			s.totalAvgPl += s.AvgPl[i]
 		}
 	}
 	s.totalAvg /= Deepfloat64(len(s.count) - 1)
+	s.totalAvgMi /= Deepfloat64(len(s.count) - 1)
+	s.totalAvgPl /= Deepfloat64(len(s.count) - 1)
 }
 
 func (n *Neural) InputStats(path string) error {
@@ -93,10 +117,11 @@ func (n *Neural) InputStats(path string) error {
 		return stats[keys[i]].totalAvg < stats[keys[j]].totalAvg
 	})
 
-	for _, key := range keys {
-		fmt.Fprintf(f, "%s : totalAvg: %v\n", key, stats[key].totalAvg)
+	for i, key := range keys {
+		fmt.Fprintf(f, "%d. %s : Avg: %v; Mi: %v; Pl: %v\n", i, key,
+			stats[key].totalAvg, stats[key].totalAvgMi, stats[key].totalAvgPl)
 		for k := 0; k <= n.Config.Degree; k++ {
-			fmt.Fprintf(f, "\tk=%d : Avg: %v;  Min %v; Max: %v\n", k, stats[key].Avg[k], stats[key].Min[k], stats[key].Max[k])
+			fmt.Fprintf(f, "\tk=%d : Avg: %v;  Mi %v; Pl: %v\n", k, stats[key].Avg[k], stats[key].AvgMi[k], stats[key].AvgPl[k])
 		}
 	}
 
