@@ -81,13 +81,13 @@ func (s *InputStats) Finalise() {
 	s.totalAvgPl /= Deepfloat64(len(s.count) - 1)
 }
 
-func (n *Neural) InputStats(detail bool, precision int, path string) error {
+func (n *Neural) InputStats(detail bool, path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	width := precision + 10
+	width := n.Config.LossPrecision + 10
 	if width < 16 {
 		width = 16
 	}
@@ -127,16 +127,16 @@ func (n *Neural) InputStats(detail bool, precision int, path string) error {
 	fmt.Fprintf(w, "---\t---\t---\t---\t---\n");
 	for i, key := range keys {
 		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\n", key,
-			precision, stats[key].totalAvg,
-			precision, stats[key].totalAvgMi,
-			precision, stats[key].totalAvgPl,
+			n.Config.LossPrecision, stats[key].totalAvg,
+			n.Config.LossPrecision, stats[key].totalAvgMi,
+			n.Config.LossPrecision, stats[key].totalAvgPl,
 			i)
 		if detail {
 			for k := 0; k <= n.Config.Degree; k++ {
 				fmt.Fprintf(w, "      %d\t%.*e\t%.*e\t%.*e\n", k,
-					precision, stats[key].Avg[k],
-					precision, stats[key].AvgMi[k],
-					precision, stats[key].AvgPl[k])
+					n.Config.LossPrecision, stats[key].Avg[k],
+					n.Config.LossPrecision, stats[key].AvgMi[k],
+					n.Config.LossPrecision, stats[key].AvgPl[k])
 			}
 		}
 	}
