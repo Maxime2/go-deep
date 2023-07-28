@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"sort"
+	"text/tabwriter"
 )
 
 type InputStats struct {
@@ -80,12 +81,17 @@ func (s *InputStats) Finalise() {
 	s.totalAvgPl /= Deepfloat64(len(s.count) - 1)
 }
 
-func (n *Neural) InputStats(detail bool, path string) error {
+func (n *Neural) InputStats(detail bool, precision int, path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
+	width := precision + 10
+	if width < 16 {
+		width = 16
+	}
+	w := tabwriter.NewWriter(f, width, 0, 2, ' ', 0)
 	stats := map[string]*InputStats{}
 	Layer := n.Layers[0]
 	for _, neuron := range Layer.Neurons {
@@ -117,15 +123,23 @@ func (n *Neural) InputStats(detail bool, path string) error {
 		return stats[keys[i]].totalAvg < stats[keys[j]].totalAvg
 	})
 
+	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\n");
 	for i, key := range keys {
-		fmt.Fprintf(f, "%s : Avg: %v; Mi: %v; Pl: %v -- %d\n", key,
-			stats[key].totalAvg, stats[key].totalAvgMi, stats[key].totalAvgPl, i)
+		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\n", key,
+			precision, stats[key].totalAvg,
+			precision, stats[key].totalAvgMi,
+			precision, stats[key].totalAvgPl,
+			i)
 		if detail {
 			for k := 0; k <= n.Config.Degree; k++ {
-				fmt.Fprintf(f, "\tk=%d : Avg: %v;  Mi %v; Pl: %v\n", k, stats[key].Avg[k], stats[key].AvgMi[k], stats[key].AvgPl[k])
+				fmt.Fprintf(w, "      %d\t%.*e\t%.*e\t%.*e\n", k,
+					precision, stats[key].Avg[k],
+					precision, stats[key].AvgMi[k],
+					precision, stats[key].AvgPl[k])
 			}
 		}
 	}
+	w.Flush()
 
 	return nil
 }
