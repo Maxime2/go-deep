@@ -118,8 +118,8 @@ func (n *Neural) InputStats(detail bool, path string) error {
 	})
 
 	for i, key := range keys {
-		fmt.Fprintf(f, "%d. %s : Avg: %v; Mi: %v; Pl: %v\n", i, key,
-			stats[key].totalAvg, stats[key].totalAvgMi, stats[key].totalAvgPl)
+		fmt.Fprintf(f, "%s : Avg: %v; Mi: %v; Pl: %v -- %d\n", key,
+			stats[key].totalAvg, stats[key].totalAvgMi, stats[key].totalAvgPl, i)
 		if detail {
 			for k := 0; k <= n.Config.Degree; k++ {
 				fmt.Fprintf(f, "\tk=%d : Avg: %v;  Mi %v; Pl: %v\n", k, stats[key].Avg[k], stats[key].AvgMi[k], stats[key].AvgPl[k])
