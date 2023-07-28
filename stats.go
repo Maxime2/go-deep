@@ -124,6 +124,7 @@ func (n *Neural) InputStats(detail bool, precision int, path string) error {
 	})
 
 	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\n");
+	fmt.Fprintf(w, "---\t---\t---\t---\t---\n");
 	for i, key := range keys {
 		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\n", key,
 			precision, stats[key].totalAvg,
