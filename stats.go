@@ -123,6 +123,7 @@ func (n *Neural) InputStats(detail bool, path string) error {
 		return stats[keys[i]].totalAvg < stats[keys[j]].totalAvg
 	})
 
+	fmt.Fprintf(w, "Epoch: %d\n", n.Config.Epoch);
 	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\n");
 	fmt.Fprintf(w, "---\t---\t---\t---\t---\n");
 	for i, key := range keys {
