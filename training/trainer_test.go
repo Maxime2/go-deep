@@ -256,8 +256,15 @@ func Test_essential(t *testing.T) {
 	trainer.SetPrefix("essential ")
 	trainer.Train(n, permutations, permutations, 50000)
 
+	stats := n.InputStats()
+	stats.Save(n, true, "essential-test.stats")
+	n.SignOnStats(stats)
+
+	trainer.Train(n, permutations, permutations, 50000)
+	stats = n.InputStats()
+	stats.Save(n, true, "essential-test-2.stats")
+
 	n.Dot("essential-test.dot")
-	n.InputStats(true, "essential-test.stats")
 	n.SaveReadable("essential-test.neural")
 	trainer.SolverSave("essential-test.sgd")
 	trainer.Save("essential-test.trainer")
@@ -370,7 +377,8 @@ func Test_RHW(t *testing.T) {
 	trainer.Save("rhw-test.trainer")
 
 	n.Dot("rhw-test.dot")
-	n.InputStats(true, "rhw-test.stats")
+	stats := n.InputStats()
+	stats.Save(n, true, "rhw-test.stats")
 	for _, p := range permutations {
 		predict := float64(n.Predict(p.Input)[0])
 		assert.InEpsilon(t, 1+float64(p.Response[0]), 1+predict, 0.0005, "Response: %v; Predict: %v | %v", p.Response[0], predict, p.Input)
