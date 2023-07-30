@@ -153,14 +153,21 @@ func (stats *InputStats) Save(n *Neural, detail bool, path string) error {
 	})
 
 	fmt.Fprintf(w, "Epoch: %d\n", n.Config.Epoch)
-	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\n")
-	fmt.Fprintf(w, "---\t---\t---\t---\t---\n")
+	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\tDis\n")
+	fmt.Fprintf(w, "---\t---\t---\t---\t---\t---\n")
 	for i, key := range keys {
-		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\n", key,
+		Dis := ""
+		if (*stats)[key].totalAvgPl != 0 && (*stats)[key].totalAvgMi != 0 {
+			ratio := (*stats)[key].totalAvgPl / (*stats)[key].totalAvgMi
+			if ratio <  -4 || ratio > -.25 {
+				Dis = "!"
+			}
+		}
+		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\t%s\n", key,
 			n.Config.LossPrecision, (*stats)[key].totalAvg,
 			n.Config.LossPrecision, (*stats)[key].totalAvgMi,
 			n.Config.LossPrecision, (*stats)[key].totalAvgPl,
-			i)
+			i, Dis)
 		if detail {
 			for k := 0; k <= n.Config.Degree; k++ {
 				fmt.Fprintf(w, "      %d\t%.*e\t%.*e\t%.*e\n", k,
