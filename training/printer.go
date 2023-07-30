@@ -41,11 +41,11 @@ func (p *StatsPrinter) Init(n *deep.Neural) {
 }
 
 // PrintProgress prints the current state of training
-func (p *StatsPrinter) PrintProgress(n *deep.Neural, E []deep.Deepfloat64, validation Examples, elapsed time.Duration, iteration int, completed float64) {
+func (p *StatsPrinter) PrintProgress(n *deep.Neural, validation Examples, elapsed time.Duration, iteration int, completed float64) {
 	fmt.Fprintf(p.w, "%s\t%d (%d)\t%s\t%.*e\t%.*e\t%s\n", p.prefix,
-		iteration, n.Config.Epoch + 1, //completed,
+		iteration, n.Config.Epoch+1, //completed,
 		elapsed.String(),
-		n.Config.LossPrecision, totalError(E),
+		n.Config.LossPrecision, n.TotalError,
 		n.Config.LossPrecision, crossValidate(n, validation),
 		formatAccuracy(n, validation))
 	p.w.Flush()
@@ -77,12 +77,4 @@ func crossValidate(n *deep.Neural, validation Examples) deep.Deepfloat64 {
 	}
 
 	return deep.GetLoss(n.Config.Loss).Cf(predictions, responses)
-}
-
-func totalError(E []deep.Deepfloat64) deep.Deepfloat64 {
-	var r deep.Deepfloat64
-	for _, x := range E {
-		r += x
-	}
-	return r
 }

@@ -130,9 +130,11 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 		}
 
 		if t.verbosity > 0 && it%t.verbosity == 0 && len(validation) > 0 {
-			t.printer.PrintProgress(n, []deep.Deepfloat64{0.0}, validation, time.Since(ts), it, 0.0)
+			n.TotalError = 0.0 //deep.TotalError(t.E[len(n.Layers)-1])
+			t.printer.PrintProgress(n, validation, time.Since(ts), it, 0.0)
 		}
 	}
+	//deep.TotalError(t.E[len(n.Layers)-1])
 }
 
 func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64, wid int) {

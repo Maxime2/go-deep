@@ -103,13 +103,15 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		//completed = t.adjust(n, i)
 		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
-			t.printer.PrintProgress(n, t.E[len(n.Layers)-1], validation, time.Since(ts), i, rCompleted)
+			n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
+			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
 		}
 		n.Config.Epoch++
 		if completed == numWeights {
 			break
 		}
 	}
+	n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
 }
 
 func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) int {
@@ -262,18 +264,18 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 						update = (synapse.Weights[k] + delta)
 
 						if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
-//							if it > 2 {
-//								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-//									//synapse.IsComplete[k] = true
-//									Lcompleted++
-//								} //else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-//								//	if update > synapse.Weights[k] {
-//								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-//								//	} else {
-//								//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-//								//	}
-//								//}
-//							}
+							//							if it > 2 {
+							//								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
+							//									//synapse.IsComplete[k] = true
+							//									Lcompleted++
+							//								} //else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
+							//								//	if update > synapse.Weights[k] {
+							//								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
+							//								//	} else {
+							//								//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
+							//								//	}
+							//								//}
+							//							}
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
 							// re-fire synapse with updated weights

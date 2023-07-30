@@ -114,12 +114,12 @@ func (n *Neural) SignOnStats(stats InputStats) {
 		for k := 0; k <= n.Config.Degree; k++ {
 			if stats[key].AvgMi[k] != 0 {
 				ratio := stats[key].AvgPl[k] / stats[key].AvgMi[k]
-				if ratio <  -4 || ratio > -.25 {
+				if ratio < -4 || ratio > -.25 {
 					for _, neuron := range Layer.Neurons {
 						for _, syn := range neuron.In {
 							if syn.Tag == key &&
 								((syn.Weights[k] < 0 && ratio < -4) ||
-								(syn.Weights[k] > 0 && ratio > -.25)) {
+									(syn.Weights[k] > 0 && ratio > -.25)) {
 								syn.Weights[k] *= -1
 							}
 						}
@@ -153,13 +153,14 @@ func (stats *InputStats) Save(n *Neural, detail bool, path string) error {
 	})
 
 	fmt.Fprintf(w, "Epoch: %d\n", n.Config.Epoch)
+	fmt.Fprintf(w, "Total Error: %.*e\n", n.Config.LossPrecision, n.TotalError)
 	fmt.Fprintf(w, "Key\tAvg\tAvg minus\tAvg plus\tindex\tDis\n")
 	fmt.Fprintf(w, "---\t---\t---\t---\t---\t---\n")
 	for i, key := range keys {
 		Dis := ""
 		if (*stats)[key].totalAvgPl != 0 && (*stats)[key].totalAvgMi != 0 {
 			ratio := (*stats)[key].totalAvgPl / (*stats)[key].totalAvgMi
-			if ratio <  -4 || ratio > -.25 {
+			if ratio < -4 || ratio > -.25 {
 				Dis = "!"
 			}
 		}

@@ -19,12 +19,14 @@ const MinIterations = 5
 
 // Neural is a neural network
 type Neural struct {
-	Layers []*Layer
-	Config *Config
+	Layers     []*Layer
+	Config     *Config
+	TotalError Deepfloat64
 }
 
 // Trainer update mode
 type UpdateMode int
+
 const (
 	// UpdateBottomUp is classic schema updating each
 	// layer from the bottom up
@@ -235,4 +237,12 @@ func (n *Neural) Dot(path string) error {
 	fmt.Fprintf(f, "}\n")
 
 	return nil
+}
+
+func TotalError(E []Deepfloat64) Deepfloat64 {
+	var r Deepfloat64
+	for _, x := range E {
+		r += x
+	}
+	return r
 }
