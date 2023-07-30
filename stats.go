@@ -20,6 +20,8 @@ type InputStatsBase struct {
 
 type InputStats map[string]*InputStatsBase
 
+const Bar Deepfloat64 = 5
+
 func NewInputStatsBase(degree int) *InputStatsBase {
 	return &InputStatsBase{
 		Avg:     make([]Deepfloat64, degree+1),
@@ -114,12 +116,12 @@ func (n *Neural) SignOnStats(stats InputStats) {
 		for k := 0; k <= n.Config.Degree; k++ {
 			if stats[key].AvgMi[k] != 0 {
 				ratio := stats[key].AvgPl[k] / stats[key].AvgMi[k]
-				if ratio < -4 || ratio > -.25 {
+				if ratio < -Bar || ratio > -1/Bar {
 					for _, neuron := range Layer.Neurons {
 						for _, syn := range neuron.In {
 							if syn.Tag == key &&
-								((syn.Weights[k] < 0 && ratio < -4) ||
-									(syn.Weights[k] > 0 && ratio > -.25)) {
+								((syn.Weights[k] < 0 && ratio < -Bar) ||
+									(syn.Weights[k] > 0 && ratio > -1/Bar)) {
 								syn.Weights[k] *= -1
 							}
 						}
@@ -160,7 +162,7 @@ func (stats *InputStats) Save(n *Neural, detail bool, path string) error {
 		Dis := ""
 		if (*stats)[key].totalAvgPl != 0 && (*stats)[key].totalAvgMi != 0 {
 			ratio := (*stats)[key].totalAvgPl / (*stats)[key].totalAvgMi
-			if ratio < -4 || ratio > -.25 {
+			if ratio < -Bar || ratio > -1/Bar {
 				Dis = "!"
 			}
 		}
