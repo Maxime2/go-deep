@@ -89,7 +89,7 @@ func NewSynapse(up *Neuron, degree int, weight WeightInitializer) *Synapse {
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
 	for i := 0; i <= degree; i++ {
-		weights[i] = randomSign() * weight()
+		weights[i] = weight()
 	}
 	return &Synapse{
 		Weights:    weights,
@@ -110,7 +110,7 @@ func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag str
 	var weights_1 = make([]Deepfloat64, degree+1)
 	var isComplete = make([]bool, degree+1)
 	for i := 0; i <= degree; i++ {
-		weights[i] = randomSign() * weight()
+		weights[i] = weight()
 	}
 	return &Synapse{
 		Weights:    weights,
