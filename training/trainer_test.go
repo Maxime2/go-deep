@@ -254,9 +254,12 @@ func Test_essential(t *testing.T) {
 
 	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 5000)
 	trainer.SetPrefix("essential ")
+	n.Dot("essential-test-0.dot")
+	stats := n.InputStats()
+	stats.Save(n, true, "essential-test-0.stats")
 	trainer.Train(n, permutations, permutations, 50000)
 
-	stats := n.InputStats()
+	stats = n.InputStats()
 	stats.Save(n, true, "essential-test.stats")
 	n.SignOnStats(stats)
 
