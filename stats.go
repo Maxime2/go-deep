@@ -166,7 +166,8 @@ func (stats *InputStats) Save(n *Neural, detail bool, path string) error {
 				Dis = "!"
 			}
 		}
-		fmt.Fprintf(w, "%s\t%.*e\t%.*e\t%.*e\t%d\t%s\n", key,
+		fmt.Fprintf(w, "%s\n", key);
+		fmt.Fprintf(w, "\t%.*e\t%.*e\t%.*e\t%d\t%s\n",
 			n.Config.LossPrecision, (*stats)[key].totalAvg,
 			n.Config.LossPrecision, (*stats)[key].totalAvgMi,
 			n.Config.LossPrecision, (*stats)[key].totalAvgPl,
