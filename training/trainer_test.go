@@ -239,31 +239,32 @@ func Test_essential(t *testing.T) {
 	rand.Seed(0)
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
-		Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		Layout:     []int{6, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
 		Degree:     1,
+		LossPrecision: 12,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
-		{[]deep.Deepfloat64{0.5, 0.1}, []deep.Deepfloat64{0.5}},
-		{[]deep.Deepfloat64{0.1, 0.5}, []deep.Deepfloat64{0.1}},
-		{[]deep.Deepfloat64{0.5, 0.5}, []deep.Deepfloat64{0.5}},
+		{[]deep.Deepfloat64{0.9, 0.1}, []deep.Deepfloat64{0.9}},
+		{[]deep.Deepfloat64{0.1, 0.9}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.9, 0.9}, []deep.Deepfloat64{0.9}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 5000)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision,  500)
 	trainer.SetPrefix("essential ")
 	n.Dot("essential-test-0.dot")
 	stats := n.InputStats()
 	stats.Save(n, true, "essential-test-0.stats")
-	trainer.Train(n, permutations, permutations, 50000)
+	trainer.Train(n, permutations, permutations, 5000)
 
 	stats = n.InputStats()
 	stats.Save(n, true, "essential-test.stats")
 	n.SignOnStats(stats)
 
-	trainer.Train(n, permutations, permutations, 50000)
+	trainer.Train(n, permutations, permutations, 5000)
 	stats = n.InputStats()
 	stats.Save(n, true, "essential-test-2.stats")
 

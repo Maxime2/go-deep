@@ -132,9 +132,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
 		//	ideal[i]) * y
-		t.D_E_y[len(n.Layers)-1][i] = loss.Df(
-			neuron.Value,
-			ideal[i])
+		t.D_E_y[len(n.Layers)-1][i] = loss.Df(neuron.Value, ideal[i])
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
 	}
 
@@ -142,9 +140,9 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		activation = deep.GetActivation(n.Layers[i].A)
 		for j, neuron := range n.Layers[i].Neurons {
 			//var sum deep.Deepfloat64
-			//var sum_y deep.Deepfloat64
+			var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
-			for _ /*k*/, s := range neuron.Out {
+			for k, s := range neuron.Out {
 				//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
 				//if math.Signbit(float64(s.Up.Ideal)) != math.Signbit(float64(s.Out)) {
 				//	n_ideal += s.Up.Ideal * s.Up.Sum
@@ -157,12 +155,18 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				//	n_ideal += s.In * s.Up.Ideal / s.Up.Sum
 				//}
 
-				n_ideal += (s.Up.Ideal - s.Weights[0]) / s.Weights[1]
+				var gap deep.Deepfloat64
+				if math.Abs(float64(s.Weights[1])) > deep.Eps {
+					gap = (s.Up.Sum - s.Up.Ideal) / deep.Deepfloat64(len(s.Up.In))
+					n_ideal += s.In + (gap /*s.Up.Ideal*/ -s.Weights[0])/s.Weights[1]
+				}
+				//fmt.Printf("\t\tn_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n", n_ideal,
+				//	s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
 
 				//}
-				//fd := s.FireDerivative()
+				fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
-				//sum_y += fd * t.D_E_x[i+1][k]
+				sum_y += fd * t.D_E_x[i+1][k]
 			}
 			//sum *= neuron.DActivate(neuron.Value)
 			//if !math.IsNaN(float64(sum)) {
@@ -172,18 +176,20 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			n_ideal = n_ideal / deep.Deepfloat64(len(neuron.Out))
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
 			n_ideal = activation.Idomain(neuron.Value, n_ideal)
-			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain\n", i, j, n_ideal)
+			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain; value: %v\n", i, j, n_ideal, neuron.Value)
 			t.E[i][j] += loss.F(neuron.Value, n_ideal)
 			neuron.Ideal = activation.If(n_ideal)
 			neuron.Desired = n_ideal
-			t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
-			t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
+			//t.D_E_y[i][j] = loss.Df(neuron.Value, n_ideal)
+			//t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
 
 			//fmt.Printf("\t __ i:%v; j:%v; n.Value: %v; n_ideal: %v; E: %v; neuron.Ideal: %v\n", i, j, neuron.Value, n_ideal, t.E[i][j], neuron.Ideal)
-			//if !math.IsNaN(float64(sum_y)) {
-			//	t.D_E_y[i][j] = sum_y
-			//	t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
-			//}
+			if !math.IsNaN(float64(sum_y)) {
+				t.D_E_y[i][j] = sum_y
+				t.D_E_x[i][j] = t.D_E_y[i][j] * neuron.DActivate(neuron.Value)
+			} else {
+				t.D_E_y[i][j], t.D_E_x[i][j] = 0, 0
+			}
 		}
 	}
 }
@@ -204,6 +210,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 		l := neural.Layers[i]
 
 		for j, n := range l.Neurons {
+			t.solver.Tune(neural.Config, n)
 			for s, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
@@ -229,7 +236,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
 							// re-fire synapse with updated weights
-							synapse.Fire(synapse.In)
+							//synapse.Fire(synapse.In)
 						}
 
 					} else {
@@ -253,6 +260,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 	for i, l := range neural.Layers {
 		var Lcompleted int
 		for j, n := range l.Neurons {
+			t.solver.Tune(neural.Config, n)
 			for s, synapse := range l.Neurons[j].In {
 				for k := 0; k < len(synapse.Weights); k++ {
 					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
@@ -264,22 +272,10 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 						update = (synapse.Weights[k] + delta)
 
 						if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
-							//							if it > 2 {
-							//								if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-							//									//synapse.IsComplete[k] = true
-							//									Lcompleted++
-							//								} //else if math.Abs(float64(update-synapse.Weights[k]))/math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])) > 1 {
-							//								//	if update > synapse.Weights[k] {
-							//								//		update = deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k]))) - deep.Eps + synapse.Weights[k]
-							//								//	} else {
-							//								//		update = synapse.Weights[k] + deep.Eps - deep.Deepfloat64(math.Abs(float64(synapse.Weights[k]-synapse.Weights_1[k])))
-							//								//	}
-							//								//}
-							//							}
 							synapse.Weights_1[k] = synapse.Weights[k]
 							synapse.Weights[k] = update
 							// re-fire synapse with updated weights
-							synapse.Fire(synapse.In)
+							//synapse.Fire(synapse.In)
 						}
 
 					} else {
@@ -292,7 +288,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 		//if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
 		//	break
 		//}
-		l.Refire()
+		//l.Refire()
 	}
 	return completed
 }
