@@ -20,7 +20,7 @@ type InputStatsBase struct {
 
 type InputStats map[string]*InputStatsBase
 
-const Bar Deepfloat64 = 5
+const Bar Deepfloat64 = 100
 
 func NewInputStatsBase(degree int) *InputStatsBase {
 	return &InputStatsBase{
@@ -166,7 +166,7 @@ func (stats *InputStats) Save(n *Neural, detail bool, path string) error {
 				Dis = "!"
 			}
 		}
-		fmt.Fprintf(w, "%s\n", key);
+		fmt.Fprintf(w, "%s\n", key)
 		fmt.Fprintf(w, "\t%.*e\t%.*e\t%.*e\t%d\t%s\n",
 			n.Config.LossPrecision, (*stats)[key].totalAvg,
 			n.Config.LossPrecision, (*stats)[key].totalAvgMi,
