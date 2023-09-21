@@ -26,6 +26,7 @@ type Neural struct {
 
 // Trainer update mode
 type UpdateMode int
+type NeuralType int
 
 const (
 	// UpdateBottomUp is classic schema updating each
@@ -34,6 +35,11 @@ const (
 	// UpdateTopDown is new schema making updates to
 	// the top layer until it converge then move to the bottom
 	UpdateTopDown UpdateMode = 1
+
+	// Rumelhart type of Network
+	RumelhartTye NeuralType = 0
+	// Kolmogorov type of Network
+	KolmogorovType NeuralType = 1
 )
 
 // Config defines the network topology, activations, losses etc
@@ -59,6 +65,8 @@ type Config struct {
 	Degree int
 	// Specify trainer update mode
 	TrainerMode UpdateMode
+	// Specify network type
+	Type NeuralType
 	// Specify Synap Tags for the input layer
 	InputTags []string
 	// Number of training iterations
@@ -98,19 +106,26 @@ func NewNeural(c *Config) *Neural {
 }
 
 func initializeLayers(c *Config) []*Layer {
-	layers := make([]*Layer, len(c.Layout))
+	var layout []int
+	if c.Type == KolmogorovType {
+		layout = append([]int{2 * c.Inputs + 1}, c.Layout...)
+	} else {
+		layout = append(layout, c.Layout...)
+	}
+
+	layers := make([]*Layer, len(layout))
 	for i := range layers {
 		act := c.Activation
 		if i == (len(layers)-1) && c.Mode != ModeDefault {
 			act = OutputActivation(c.Mode)
 		}
-		layers[i] = NewLayer(i, c.Layout[i], act)
+		layers[i] = NewLayer(i, layout[i], act)
 	}
 
-	A := 1.0 / (float64(c.Degree) * float64(c.Inputs) * float64(len(layers[0].Neurons)+1))
+	A := 1.0 / (float64(c.Degree + 1) * float64(c.Inputs) * float64(len(layers[0].Neurons)+1))
 	for n, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
-		wi := GetWeightFunction(c.Weight, A/2.0, (float64(n+1)-float64(len(layers[0].Neurons))/2.0)*A)
+		wi := GetWeightFunction(c.Weight, A/2.0, float64(n+1)*A)
 		if c.InputTags == nil {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))

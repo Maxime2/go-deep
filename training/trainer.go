@@ -135,8 +135,12 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		t.D_E_y[len(n.Layers)-1][i] = loss.Df(neuron.Value, ideal[i])
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
 	}
+	bottom := 0
+	if n.Config.Type == deep.KolmogorovType {
+		bottom = 1
+	}
 
-	for i := len(n.Layers) - 2; i >= 0; i-- {
+	for i := len(n.Layers) - 2; i >= bottom; i-- {
 		activation = deep.GetActivation(n.Layers[i].A)
 		for j, neuron := range n.Layers[i].Neurons {
 			//var sum deep.Deepfloat64
@@ -205,7 +209,11 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
-	for i := len(neural.Layers) - 1; i >= 0; i-- {
+	bottom := 0
+	if neural.Config.Type == deep.KolmogorovType {
+		bottom = 1
+	}
+	for i := len(neural.Layers) - 1; i >= bottom; i-- {
 		var Lcompleted int
 		l := neural.Layers[i]
 
@@ -258,6 +266,9 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 	var completed int
 	var update deep.Deepfloat64
 	for i, l := range neural.Layers {
+		if neural.Config.Type == deep.KolmogorovType && i == 0 {
+			continue
+		}
 		var Lcompleted int
 		for j, n := range l.Neurons {
 			t.solver.Tune(neural.Config, n)
