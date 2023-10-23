@@ -74,15 +74,13 @@ func (s *InputStatsBase) Finalise() {
 		if s.countPl[i] != s.count[i] {
 			s.AvgMi[i] /= Deepfloat64(s.count[i] - s.countPl[i])
 		}
-		if i > 0 {
-			s.totalAvg += s.Avg[i]
-			s.totalAvgMi += s.AvgMi[i]
-			s.totalAvgPl += s.AvgPl[i]
-		}
+		s.totalAvg += s.Avg[i]
+		s.totalAvgMi += s.AvgMi[i]
+		s.totalAvgPl += s.AvgPl[i]
 	}
-	s.totalAvg /= Deepfloat64(len(s.count) - 1)
-	s.totalAvgMi /= Deepfloat64(len(s.count) - 1)
-	s.totalAvgPl /= Deepfloat64(len(s.count) - 1)
+	s.totalAvg /= Deepfloat64(len(s.count))
+	s.totalAvgMi /= Deepfloat64(len(s.count))
+	s.totalAvgPl /= Deepfloat64(len(s.count))
 }
 
 func (n *Neural) InputStats() InputStats {
