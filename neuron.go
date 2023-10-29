@@ -12,6 +12,7 @@ type Neuron struct {
 	Out            []*Synapse
 	Ideal, Desired Deepfloat64
 	Sum, Value     Deepfloat64
+	Ln             Deepfloat64
 }
 
 // NewNeuron returns a neuron with the given activation

@@ -17,10 +17,11 @@ import (
 type Solver interface {
 	Init(layers []*deep.Layer)
 	SetGradient(i, j, s, k int, gradient deep.Deepfloat64)
-	Tune(config *deep.Config, neuron *deep.Neuron)
 	Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration int) deep.Deepfloat64
 	Save(path string) error
 	Load(path string) error
+	SetLr(lr float64)
+	ResetLr()
 	//Gradient(idx int) float64
 }
 
@@ -70,45 +71,40 @@ func (o *SGD) SetGradient(i, j, s, k int, gradient deep.Deepfloat64) {
 	o.Gradients[i][j][s][k] = gradient
 }
 
-func (o *SGD) Tune(config *deep.Config, neuron *deep.Neuron) {
-	o.NeuronLn = deep.Deepfloat64(math.Log(float64((1-neuron.Desired)/neuron.Desired)) / float64(len(neuron.In)*(1+config.Degree)) * o.Lr)
+func (o *SGD) SetLr(lr float64) {
+	if lr < o.Lr {
+		o.Lr = lr
+	}
 }
 
-// Adjust returns the update for a given weight and adjusts learnig rate based on gradint signs
+func (o *SGD) ResetLr() {
+	o.Lr = math.Inf(1)
+}
+
+// Adjust() returns the update for a given weight and adjusts learnig rate based on gradint signs
 func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration int) deep.Deepfloat64 {
 	var newValue deep.Deepfloat64
 	//var lr float64
 	//fx := o.Gradients[i][j][s][k]
 	o.Gradients[i][j][s][k] = gradient
 
-//	if iteration < 3 {
-//		if gradient > 0 {
-//			if synapse.Weights[k] < -o.NeuronLn/synapse.In {
-//				synapse.Weights[k] = -o.NeuronLn / synapse.In
-//				o.Moments[i][j][s][k] = 0
-//
-//				return o.Moments[i][j][s][k]
-//			}
-//		} else {
-//			if synapse.Weights[k] > -o.NeuronLn/synapse.In {
-//				synapse.Weights[k] = -o.NeuronLn / synapse.In
-//				o.Moments[i][j][s][k] = 0
-//
-//				return o.Moments[i][j][s][k]
-//			}
-//		}
-//	}
-
-	//if math.Abs(float64(gradient)) > deep.Eps {
-	//	lr = float64((synapse.Weights[k] + o.NeuronLn/synapse.In) / gradient)
-	//}
-	// if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 {
-	// 	o.Lrs[i][j][s][k] = deep.Deepfloat64(lr)
-	// } else {
-	// 	o.Lrs[i][j][s][k] = deep.Deepfloat64(o.Lr)
-	//}
-	//fmt.Printf("\t** %v:%v:%v k:%v; Desired: %v; y_i:%v; gradient: %v; lr: %v (%v); NeuronLn: %v\n", i, j, s, k,
-	//	neuron.Desired, synapse.In, gradient, o.Lrs[i][j][s][k], lr, o.NeuronLn)
+	//	if iteration < 3 {
+	//		if gradient > 0 {
+	//			if synapse.Weights[k] < -o.NeuronLn/synapse.In {
+	//				synapse.Weights[k] = -o.NeuronLn / synapse.In
+	//				o.Moments[i][j][s][k] = 0
+	//
+	//				return o.Moments[i][j][s][k]
+	//			}
+	//		} else {
+	//			if synapse.Weights[k] > -o.NeuronLn/synapse.In {
+	//				synapse.Weights[k] = -o.NeuronLn / synapse.In
+	//				o.Moments[i][j][s][k] = 0
+	//
+	//				return o.Moments[i][j][s][k]
+	//			}
+	//		}
+	//	}
 
 	//if math.Signbit(float64(gradient)) != math.Signbit(float64(fx)) {
 	//	o.Lrs[i][j][s][k] *= 0.95
