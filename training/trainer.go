@@ -226,7 +226,7 @@ func (t *OnlineTrainer) lring(neural *deep.Neural) {
 
 		}
 	}
-
+	t.solver.ConcludeLr()
 }
 
 func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {

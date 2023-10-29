@@ -22,12 +22,14 @@ type Solver interface {
 	Load(path string) error
 	SetLr(lr float64)
 	ResetLr()
+	ConcludeLr()
 	//Gradient(idx int) float64
 }
 
 // SGD is stochastic gradient descent with nesterov/momentum
 type SGD struct {
 	Lr        float64
+	DefaultLr float64
 	NeuronLn  deep.Deepfloat64
 	Moments   [][][][]deep.Deepfloat64
 	Lrs       [][][][]deep.Deepfloat64
@@ -38,7 +40,7 @@ type SGD struct {
 // NewSGD returns a new SGD solver
 func NewSGD(lr float64) *SGD {
 	return &SGD{
-		Lr: fparam(lr, 0.01),
+		DefaultLr: fparam(lr, 0.01),
 	}
 }
 
@@ -79,6 +81,12 @@ func (o *SGD) SetLr(lr float64) {
 
 func (o *SGD) ResetLr() {
 	o.Lr = math.Inf(1)
+}
+
+func (o *SGD) ConcludeLr() {
+	if math.IsInf(o.Lr, 0) {
+		o.Lr = o.DefaultLr
+	}
 }
 
 // Adjust() returns the update for a given weight and adjusts learnig rate based on gradint signs
