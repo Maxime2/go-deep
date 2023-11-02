@@ -148,6 +148,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum deep.Deepfloat64
 			var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
+			var cnt int
 			for k, s := range neuron.Out {
 				//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
 				//if math.Signbit(float64(s.Up.Ideal)) != math.Signbit(float64(s.Out)) {
@@ -161,13 +162,13 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				//	n_ideal += s.In * s.Up.Ideal / s.Up.Sum
 				//}
 
-				var gap deep.Deepfloat64
 				if math.Abs(float64(s.Weights[1])) > deep.Eps {
-					gap = (s.Up.Sum - s.Up.Ideal) / deep.Deepfloat64(len(s.Up.In))
-					n_ideal += s.In + (gap /*s.Up.Ideal*/ -s.Weights[0])/s.Weights[1]
+					cnt++
+					gap := (s.Up.Ideal - s.Up.Sum) / deep.Deepfloat64(len(s.Up.In))
+					n_ideal += (gap + s.Out - s.Weights[0]) / s.Weights[1]
+					//fmt.Printf("\t\tcnt:%v; gap: %v == n_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n",
+					//	cnt, gap, n_ideal, s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
 				}
-				//fmt.Printf("\t\tn_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n", n_ideal,
-				//	s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
 
 				//}
 				fd := s.FireDerivative()
@@ -179,7 +180,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//	t.deltas[i][j] = sum
 			//}
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
-			n_ideal = n_ideal / deep.Deepfloat64(len(neuron.Out))
+			n_ideal = n_ideal / deep.Deepfloat64(cnt)
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
 			n_ideal = activation.Idomain(neuron.Value, n_ideal)
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain; value: %v\n", i, j, n_ideal, neuron.Value)
