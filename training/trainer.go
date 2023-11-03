@@ -212,12 +212,9 @@ func (t *OnlineTrainer) lring(neural *deep.Neural) {
 			var den deep.Deepfloat64
 
 			for _, synapse := range n.In {
-				for k := 0; k < len(synapse.Weights); k++ {
-					gradient := synapse.GetGradient(t.D_E_x[i][j], k)
-					den += synapse.In * gradient
-				}
+				den += synapse.FireDelta(t.D_E_x[i][j])
 			}
-			lr := float64((n.Ln - n.Sum) * den)
+			lr := float64((n.Ln + n.Sum) / den)
 
 			if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 {
 				t.solver.SetLr(lr)
