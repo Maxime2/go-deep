@@ -125,7 +125,7 @@ func initializeLayers(c *Config) []*Layer {
 	A := 1.0 / (float64(c.Degree + 1) * float64(c.Inputs) * float64(len(layers[0].Neurons)+1))
 	for n, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
-		wi := GetWeightFunction(c.Weight, 1.0 - A/2.0, float64(n+1)*A)
+		wi := GetWeightFunction(c.Weight, A/2.0, 1.0 - float64(n+1)*A)
 		if c.InputTags == nil {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
