@@ -160,8 +160,8 @@ func (s *Synapse) GetGradient(D_E_x Deepfloat64, k int) Deepfloat64 {
 func (s *Synapse) FireDelta(D_E_x Deepfloat64) Deepfloat64 {
 	mul := Deepfloat64(1)
 	var res Deepfloat64
-	for k := 1; k < len(s.Weights); k++ {
-		res += Deepfloat64(k) * mul * s.GetGradient(D_E_x, k)
+	for k := 0; k < len(s.Weights); k++ {
+		res += mul * s.GetGradient(D_E_x, k)
 		mul *= s.In
 	}
 	return res
