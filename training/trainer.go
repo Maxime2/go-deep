@@ -216,9 +216,7 @@ func (t *OnlineTrainer) lring(neural *deep.Neural) {
 			}
 			lr := float64((n.Ln + n.Sum) / den)
 
-			if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 {
-				t.solver.SetLr(lr)
-			}
+			t.solver.SetLr(i, j, lr)
 			//fmt.Printf("\t** i:%v; j:%v;  Desired: %v; neuron.Sum:%v; lr: %v; NeuronLn: %v\n", i, j,
 			//	n.Desired, n.Sum, lr, n.Ln)
 

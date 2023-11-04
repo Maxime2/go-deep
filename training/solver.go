@@ -20,7 +20,7 @@ type Solver interface {
 	Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration int) deep.Deepfloat64
 	Save(path string) error
 	Load(path string) error
-	SetLr(lr float64)
+	SetLr(i, j int, lr float64)
 	ResetLr()
 	ConcludeLr()
 	//Gradient(idx int) float64
@@ -32,7 +32,7 @@ type SGD struct {
 	DefaultLr float64
 	NeuronLn  deep.Deepfloat64
 	Moments   [][][][]deep.Deepfloat64
-	Lrs       [][][][]deep.Deepfloat64
+	Lrs       [][]deep.Deepfloat64
 	Gradients [][][][]deep.Deepfloat64
 	//Gradients_1 []deep.Deepfloat64
 }
@@ -48,22 +48,17 @@ func NewSGD(lr float64) *SGD {
 func (o *SGD) Init(layers []*deep.Layer) {
 	o.Moments = make([][][][]deep.Deepfloat64, len(layers))
 	o.Gradients = make([][][][]deep.Deepfloat64, len(layers))
-	o.Lrs = make([][][][]deep.Deepfloat64, len(layers))
+	o.Lrs = make([][]deep.Deepfloat64, len(layers))
 	for i, l := range layers {
 		o.Moments[i] = make([][][]deep.Deepfloat64, len(l.Neurons))
 		o.Gradients[i] = make([][][]deep.Deepfloat64, len(l.Neurons))
-		o.Lrs[i] = make([][][]deep.Deepfloat64, len(l.Neurons))
+		o.Lrs[i] = make([]deep.Deepfloat64, len(l.Neurons))
 		for j, n := range l.Neurons {
 			o.Moments[i][j] = make([][]deep.Deepfloat64, len(n.In))
 			o.Gradients[i][j] = make([][]deep.Deepfloat64, len(n.In))
-			o.Lrs[i][j] = make([][]deep.Deepfloat64, len(n.In))
 			for k, synapse := range l.Neurons[j].In {
 				o.Moments[i][j][k] = make([]deep.Deepfloat64, len(synapse.Weights))
 				o.Gradients[i][j][k] = make([]deep.Deepfloat64, len(synapse.Weights))
-				o.Lrs[i][j][k] = make([]deep.Deepfloat64, len(synapse.Weights))
-				for y := 0; y < len(synapse.Weights); y++ {
-					o.Lrs[i][j][k][y] = deep.Deepfloat64(o.Lr)
-				}
 			}
 		}
 	}
@@ -73,8 +68,9 @@ func (o *SGD) SetGradient(i, j, s, k int, gradient deep.Deepfloat64) {
 	o.Gradients[i][j][s][k] = gradient
 }
 
-func (o *SGD) SetLr(lr float64) {
-	if lr < o.Lr {
+func (o *SGD) SetLr(i, j int, lr float64) {
+	o.Lrs[i][j] = deep.Deepfloat64(lr)
+	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 && lr < o.Lr {
 		o.Lr = lr
 	}
 }
@@ -130,12 +126,6 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 		//	o.Lrs[i][j][s][k] *= 1 / 0.95
 		//}
 		o.Moments[i][j][s][k] = newValue
-	} else if math.IsInf(float64(newValue), -1) {
-		o.Lrs[i][j][s][k] *= 1 / 0.1
-		o.Moments[i][j][s][k] = 0
-	} else if math.IsInf(float64(newValue), 1) {
-		o.Lrs[i][j][s][k] *= 0.1
-		o.Moments[i][j][s][k] = 0
 	}
 
 	return o.Moments[i][j][s][k]
