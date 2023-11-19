@@ -28,7 +28,7 @@ type Solver interface {
 
 // SGD is stochastic gradient descent with nesterov/momentum
 type SGD struct {
-	Lr        float64
+	Lr        []float64
 	DefaultLr float64
 	NeuronLn  deep.Deepfloat64
 	Moments   [][][][]deep.Deepfloat64
@@ -49,6 +49,7 @@ func (o *SGD) Init(layers []*deep.Layer) {
 	o.Moments = make([][][][]deep.Deepfloat64, len(layers))
 	o.Gradients = make([][][][]deep.Deepfloat64, len(layers))
 	o.Lrs = make([][]deep.Deepfloat64, len(layers))
+	o.Lr = make([]float64, len(layers))
 	for i, l := range layers {
 		o.Moments[i] = make([][][]deep.Deepfloat64, len(l.Neurons))
 		o.Gradients[i] = make([][][]deep.Deepfloat64, len(l.Neurons))
@@ -70,18 +71,22 @@ func (o *SGD) SetGradient(i, j, s, k int, gradient deep.Deepfloat64) {
 
 func (o *SGD) SetLr(i, j int, lr float64) {
 	o.Lrs[i][j] = deep.Deepfloat64(lr)
-	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 && lr < o.Lr {
-		o.Lr = lr
+	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 && lr < o.Lr[i] {
+		o.Lr[i] = lr
 	}
 }
 
 func (o *SGD) ResetLr() {
-	o.Lr = math.Inf(1)
+	for i := range o.Lr {
+		o.Lr[i] = math.Inf(1)
+	}
 }
 
 func (o *SGD) ConcludeLr() {
-	if math.IsInf(o.Lr, 0) {
-		o.Lr = o.DefaultLr
+	for i := range o.Lr {
+		if math.IsInf(o.Lr[i], 0) {
+			o.Lr[i] = o.DefaultLr
+		}
 	}
 }
 
@@ -117,7 +122,7 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 	//}
 
 	//newValue = -o.Lrs[i][j][s][k] * gradient
-	newValue = deep.Deepfloat64(-o.Lr) * gradient
+	newValue = deep.Deepfloat64(-o.Lr[i]) * gradient
 
 	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		//if math.Signbit(float64(newValue)) != math.Signbit(float64(o.Moments[i][j][s][k])) {
