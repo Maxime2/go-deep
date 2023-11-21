@@ -122,7 +122,8 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int,
 	//}
 
 	//newValue = -o.Lrs[i][j][s][k] * gradient
-	newValue = deep.Deepfloat64(-o.Lr[i]) * gradient
+	//newValue = deep.Deepfloat64(-o.Lr[i]) * gradient
+	newValue = deep.Deepfloat64(-o.Lrs[i][j]) * gradient
 
 	if !math.IsNaN(float64(newValue)) && !math.IsInf(float64(newValue), 0) {
 		//if math.Signbit(float64(newValue)) != math.Signbit(float64(o.Moments[i][j][s][k])) {
