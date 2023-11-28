@@ -117,13 +117,13 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) int {
 	n.Forward(e.Input)
 	t.calculateDeltas(n, e.Response)
-	t.lring(n)
 	return t.update(n, it)
 }
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
 	loss := deep.GetLoss(n.Config.Loss)
 	activation := deep.GetActivation(n.Layers[len(n.Layers)-1].A)
+	t.solver.ResetLr()
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
 		t.E[len(n.Layers)-1][i] += loss.F(neuron.Value, ideal[i])
 		neuron.Desired = ideal[i]
@@ -136,6 +136,15 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		//	ideal[i]) * y
 		t.D_E_y[len(n.Layers)-1][i] = loss.Df(neuron.Value, ideal[i])
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
+
+		var den deep.Deepfloat64
+
+		for _, synapse := range neuron.In {
+			den += synapse.FireDelta(t.D_E_x[len(n.Layers)-1][i])
+		}
+		lr := float64((neuron.Ln + neuron.Sum) / den)
+
+		t.solver.SetLr(len(n.Layers)-1, i, lr)
 	}
 	bottom := 0
 	if n.Config.Type == deep.KolmogorovType {
@@ -198,28 +207,15 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			} else {
 				t.D_E_y[i][j], t.D_E_x[i][j] = 0, 0
 			}
-		}
-	}
-}
 
-func (t *OnlineTrainer) lring(neural *deep.Neural) {
-	t.solver.ResetLr()
-	for i, l := range neural.Layers {
-		if neural.Config.Type == deep.KolmogorovType && i == 0 {
-			continue
-		}
-		for j, n := range l.Neurons {
 			var den deep.Deepfloat64
 
-			for _, synapse := range n.In {
+			for _, synapse := range neuron.In {
 				den += synapse.FireDelta(t.D_E_x[i][j])
 			}
-			lr := float64((n.Ln + n.Sum) / den)
+			lr := float64((neuron.Ln + neuron.Sum) / den)
 
 			t.solver.SetLr(i, j, lr)
-			//fmt.Printf("\t** i:%v; j:%v;  Desired: %v; neuron.Sum:%v; lr: %v; NeuronLn: %v\n", i, j,
-			//	n.Desired, n.Sum, lr, n.Ln)
-
 		}
 	}
 	t.solver.ConcludeLr()
