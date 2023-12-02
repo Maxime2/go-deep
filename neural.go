@@ -37,7 +37,7 @@ const (
 	UpdateTopDown UpdateMode = 1
 
 	// Rumelhart type of Network
-	RumelhartTye NeuralType = 0
+	RumelhartType NeuralType = 0
 	// Kolmogorov type of Network
 	KolmogorovType NeuralType = 1
 )
