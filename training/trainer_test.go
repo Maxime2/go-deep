@@ -239,13 +239,15 @@ func Test_essential(t *testing.T) {
 	rand.Seed(0)
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
-		Layout:     []int{1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		//Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		Layout:     []int{1},
 		Activation: deep.ActivationSigmoid,
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
 		Degree:     1,
 		LossPrecision: 12,
 		Type:       deep.KolmogorovType,
+		TrainerMode: deep.UpdateTopDown,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
@@ -285,7 +287,7 @@ func printResult(ideal, actual []float64) {
 
 func Test_RHW(t *testing.T) {
 	c := deep.Config{
-		Degree:        3,
+		Degree:        1,
 		Inputs:        6,
 		Layout:        []int{36, 2*6 + 1, 1},
 		Activation:    deep.ActivationSigmoid,
