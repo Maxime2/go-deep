@@ -153,8 +153,16 @@ func (s *Synapse) SetTag(tag string) {
 	s.Tag = tag
 }
 
+func (s *Synapse) SetWeight(k int, weight Deepfloat64) {
+	s.Weights[k] = weight
+}
+
 func (s *Synapse) GetGradient(D_E_x Deepfloat64, k int) Deepfloat64 {
 	return D_E_x * Deepfloat64(math.Pow(float64(s.In), float64(k)))
+}
+
+func (s *Synapse) GetWeight(k int) Deepfloat64 {
+	return s.Weights[k]
 }
 
 func (s *Synapse) FireDelta(D_E_x Deepfloat64) Deepfloat64 {
