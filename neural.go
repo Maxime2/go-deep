@@ -158,14 +158,63 @@ func (n *Neural) fire() {
 
 // Forward computes a forward pass
 func (n *Neural) Forward(input []Deepfloat64) error {
-	if len(input) != n.Config.Inputs {
-		return fmt.Errorf("Invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
+	l := len(input)
+	if l != n.Config.Inputs {
+		return fmt.Errorf("Invalid input dimension - expected: %d got: %d", n.Config.Inputs, l)
 	}
-	for _, n := range n.Layers[0].Neurons {
-		for i := 0; i < len(input); i++ {
-			n.In[i].Fire(input[i])
+	cl := make(chan struct{})
+	ln := len(n.Layers[0].Neurons)
+
+	go func() {
+		for j := 0; j < ln/2; j++ {
+			neuron := n.Layers[0].Neurons[j]
+			cn := make(chan struct{})
+
+			go func() {
+				for i := 0; i < l/2; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+
+			go func() {
+				for i := l / 2; i < l; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+			<-cn
+			<-cn
 		}
-	}
+		cl <- struct{}{}
+
+	}()
+
+	go func() {
+		for j := ln / 2; j < ln; j++ {
+			neuron := n.Layers[0].Neurons[j]
+			cn := make(chan struct{})
+
+			go func() {
+				for i := 0; i < l/2; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+
+			go func() {
+				for i := l / 2; i < l; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+			<-cn
+			<-cn
+		}
+		cl <- struct{}{}
+	}()
+	<-cl
+	<-cl
 	n.fire()
 	return nil
 }
