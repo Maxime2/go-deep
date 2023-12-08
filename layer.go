@@ -62,11 +62,17 @@ func (l *Layer) Refire() {
 // Connect fully connects layer l to next, and initializes each
 // synapse with the given weight function
 func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
-	A := 1.0 / (float64(degree + 1) * float64(len(l.Neurons)) * float64(len(next.Neurons)+1))
+	A := 1.0 / (float64(degree+1) * float64(len(l.Neurons)) * float64(len(next.Neurons)+1))
 	for i := range l.Neurons {
 		for j, neuron := range next.Neurons {
-			wi := GetWeightFunction(weight, A/2.0, float64(j+1)*A)
+			wi := GetWeightFunction(weight, A/2.0, 24.0*float64(j+1)*A)
 			syn := NewSynapseWithTag(neuron, degree, wi, fmt.Sprintf("L:%d N:%d", l.Number, i))
+			x := len(next.Neurons[j].In)
+			if x > 0 {
+				syn.SetWeight(0, next.Neurons[j].In[x-1].GetWeight(0)+next.Neurons[j].In[x-1].GetWeight(1))
+			} else {
+				syn.SetWeight(0, 0)
+			}
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}
