@@ -14,11 +14,7 @@ func NewLayer(l, n int, activation ActivationType) *Layer {
 	neurons := make([]*Neuron, n)
 
 	for i := 0; i < n; i++ {
-		act := activation
-		if activation == ActivationSoftmax {
-			act = ActivationLinear
-		}
-		neurons[i] = NewNeuron(act)
+		neurons[i] = NewNeuron(activation)
 	}
 	return &Layer{
 		Number:  l,
