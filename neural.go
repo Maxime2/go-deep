@@ -139,6 +139,11 @@ func initializeLayers(c *Config) []*Layer {
 		} else {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
+				if i > 0 {
+					neuron.In[i].SetWeight(0, neuron.In[i-1].GetWeight(0)+neuron.In[i-1].GetWeight(1))
+				} else {
+					neuron.In[i].SetWeight(0, 0)
+				}
 			}
 		}
 	}
