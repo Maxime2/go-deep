@@ -59,11 +59,9 @@ func (l *Layer) Refire() {
 // synapse with the given weight function
 func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
 	num_neurons := len(l.Neurons)
-	A := 1.0 / (float64(degree+1) * float64(num_neurons) * float64(len(next.Neurons)+1))
-	num_neurons = (num_neurons + 1) / 2
-	d := float64(2*24) / float64(num_neurons*(num_neurons-1))
+	A := 24.0 / (float64(degree+1) * float64(num_neurons) * float64(len(next.Neurons)+1))
+	wi := GetWeightFunction(weight, A/2.0, A)
 	for i := range l.Neurons {
-		wi := GetWeightFunction(weight, A/2.0, d*float64(i+1-num_neurons)*A)
 		for j, neuron := range next.Neurons {
 			syn := NewSynapseWithTag(neuron, degree, wi, fmt.Sprintf("L:%d N:%d", l.Number, i))
 			x := len(next.Neurons[j].In)
