@@ -122,7 +122,7 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(i, layout[i], act)
 	}
 
-	A := 24.0 / (float64(c.Degree+1) * float64(c.Inputs) * float64(len(layers[0].Neurons)+1))
+	A := 6.0 / (float64(c.Degree+1) * float64(c.Inputs))
 	wi := GetWeightFunction(c.Weight, A/2.0, A)
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
