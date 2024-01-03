@@ -14,6 +14,8 @@ import (
 const Eps = 1e-16
 const Leps = 1e-20
 
+const Modulus = 4
+
 // Minimal number of iterations
 const MinIterations = 5
 
@@ -122,8 +124,8 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(i, layout[i], act)
 	}
 
-	A := 6.0 / (float64(c.Degree+1) * float64(c.Inputs))
-	wi := GetWeightFunction(c.Weight, A/2.0, A)
+	A := 2 * Modulus / (float64(c.Inputs))
+	wi := GetWeightFunction(c.Weight, Eps, A)
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
@@ -133,7 +135,7 @@ func initializeLayers(c *Config) []*Layer {
 				if i > 0 {
 					neuron.In[i].SetWeight(0, neuron.In[i-1].GetWeight(0)+neuron.In[i-1].GetWeight(1))
 				} else {
-					neuron.In[i].SetWeight(0, 0)
+					neuron.In[i].SetWeight(0, -Modulus)
 				}
 			}
 		} else {
