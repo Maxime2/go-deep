@@ -144,7 +144,7 @@ func initializeLayers(c *Config) []*Layer {
 				if i > 0 {
 					neuron.In[i].SetWeight(0, neuron.In[i-1].GetWeight(0)+neuron.In[i-1].GetWeight(1))
 				} else {
-					neuron.In[i].SetWeight(0, 0)
+					neuron.In[i].SetWeight(0, -Modulus)
 				}
 			}
 		}
