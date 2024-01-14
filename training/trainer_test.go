@@ -149,25 +149,28 @@ func Test_CrossVal(t *testing.T) {
 
 func Test_MultiClass(t *testing.T) {
 	var data = []Example{
-		{[]deep.Deepfloat64{2.7810836, 2.550537003}, []deep.Deepfloat64{1, 0}},
-		{[]deep.Deepfloat64{1.465489372, 2.362125076}, []deep.Deepfloat64{1, 0}},
-		{[]deep.Deepfloat64{3.396561688, 4.400293529}, []deep.Deepfloat64{1, 0}},
-		{[]deep.Deepfloat64{1.38807019, 1.850220317}, []deep.Deepfloat64{1, 0}},
-		{[]deep.Deepfloat64{3.06407232, 3.005305973}, []deep.Deepfloat64{1, 0}},
-		{[]deep.Deepfloat64{7.627531214, 2.759262235}, []deep.Deepfloat64{0, 1}},
-		{[]deep.Deepfloat64{5.332441248, 2.088626775}, []deep.Deepfloat64{0, 1}},
-		{[]deep.Deepfloat64{6.922596716, 1.77106367}, []deep.Deepfloat64{0, 1}},
-		{[]deep.Deepfloat64{8.675418651, -0.242068655}, []deep.Deepfloat64{0, 1}},
-		{[]deep.Deepfloat64{7.673756466, 3.508563011}, []deep.Deepfloat64{0, 1}},
+		{[]deep.Deepfloat64{2.7810836, 2.550537003}, []deep.Deepfloat64{0.9, 0.1}},
+		{[]deep.Deepfloat64{1.465489372, 2.362125076}, []deep.Deepfloat64{.9, 0.1}},
+		{[]deep.Deepfloat64{3.396561688, 4.400293529}, []deep.Deepfloat64{.9, 0.1}},
+		{[]deep.Deepfloat64{1.38807019, 1.850220317}, []deep.Deepfloat64{0.9, 0.1}},
+		{[]deep.Deepfloat64{3.06407232, 3.005305973}, []deep.Deepfloat64{.9, 0.1}},
+		{[]deep.Deepfloat64{7.627531214, 2.759262235}, []deep.Deepfloat64{0.1, .9}},
+		{[]deep.Deepfloat64{5.332441248, 2.088626775}, []deep.Deepfloat64{0.1, .9}},
+		{[]deep.Deepfloat64{6.922596716, 1.77106367}, []deep.Deepfloat64{0.1, .9}},
+		{[]deep.Deepfloat64{8.675418651, -0.242068655}, []deep.Deepfloat64{0.1, .9}},
+		{[]deep.Deepfloat64{7.673756466, 3.508563011}, []deep.Deepfloat64{0.1, .9}},
 	}
 
 	n := deep.NewNeural(&deep.Config{
-		Inputs:     2,
-		Layout:     []int{2, 2},
-		Activation: deep.ActivationReLU,
-		Mode:       deep.ModeMultiClass,
-		Loss:       deep.LossMeanSquared,
-		Weight:     deep.WeightUniform,
+		Inputs: 2,
+		Layout: []int{2, 2},
+		//		Activation: deep.ActivationReLU,
+		Activation:    deep.ActivationSigmoid,
+		Mode:          deep.ModeMultiClass,
+		Loss:          deep.LossMeanSquared,
+		Weight:        deep.WeightUniform,
+		Degree:        1,
+		LossPrecision: 12,
 	})
 
 	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 100)
@@ -238,16 +241,16 @@ func Test_xor(t *testing.T) {
 func Test_essential(t *testing.T) {
 	rand.Seed(0)
 	n := deep.NewNeural(&deep.Config{
-		Inputs:     2,
+		Inputs: 2,
 		//Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
-		Layout:     []int{1},
-		Activation: deep.ActivationSigmoid,
-		Mode:       deep.ModeBinary,
-		Weight:     deep.WeightUniform,
-		Degree:     1,
+		Layout:        []int{1},
+		Activation:    deep.ActivationSigmoid,
+		Mode:          deep.ModeBinary,
+		Weight:        deep.WeightUniform,
+		Degree:        1,
 		LossPrecision: 12,
-		Type:       deep.KolmogorovType,
-		TrainerMode: deep.UpdateTopDown,
+		Type:          deep.KolmogorovType,
+		TrainerMode:   deep.UpdateTopDown,
 	})
 	permutations := Examples{
 		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
@@ -256,7 +259,7 @@ func Test_essential(t *testing.T) {
 		{[]deep.Deepfloat64{0.9, 0.9}, []deep.Deepfloat64{0.9}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision,  50000)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000)
 	trainer.SetPrefix("essential ")
 	n.Dot("essential-test-0.dot")
 	stats := n.InputStats()
