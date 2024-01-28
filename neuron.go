@@ -7,7 +7,7 @@ import (
 
 // Neuron is a neural network node
 type Neuron struct {
-	A              ActivationType
+	A              Activation
 	In             []*Synapse
 	Out            []*Synapse
 	Ideal, Desired Deepfloat64
@@ -18,7 +18,7 @@ type Neuron struct {
 // NewNeuron returns a neuron with the given activation
 func NewNeuron(activation ActivationType) *Neuron {
 	return &Neuron{
-		A: activation,
+		A: GetActivation(activation),
 	}
 }
 
@@ -57,12 +57,12 @@ func (n *Neuron) refire() {
 
 // Activate applies the neurons activation
 func (n *Neuron) Activate(x Deepfloat64) Deepfloat64 {
-	return GetActivation(n.A).F(x)
+	return n.A.F(x)
 }
 
 // DActivate applies the derivative of the neurons activation
 func (n *Neuron) DActivate(x Deepfloat64) Deepfloat64 {
-	return GetActivation(n.A).Df(x)
+	return n.A.Df(x)
 }
 
 // Synapse is an edge between neurons

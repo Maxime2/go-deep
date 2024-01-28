@@ -13,7 +13,7 @@ func Test_Init(t *testing.T) {
 	n := NewNeural(&Config{
 		Inputs:     3,
 		Layout:     []int{4, 4, 2},
-		Activation: ActivationTanh,
+		Activation: []ActivationType{ActivationTanh},
 		Mode:       ModeBinary,
 		Weight:     WeightUniform,
 	})
@@ -29,7 +29,7 @@ func Test_Forward(t *testing.T) {
 		Degree:     1,
 		Inputs:     3,
 		Layout:     []int{3, 3, 3},
-		Activation: ActivationReLU,
+		Activation: []ActivationType{ActivationReLU},
 		Mode:       ModeMultiClass,
 		Weight:     WeightNormal,
 	}
@@ -52,7 +52,7 @@ func Test_Forward(t *testing.T) {
 		},
 	}
 	for _, n := range n.Layers[1].Neurons {
-		n.A = ActivationSigmoid
+		n.A = GetActivation(ActivationSigmoid)
 	}
 	for i, l := range n.Layers {
 		for j, n := range l.Neurons {
@@ -86,7 +86,7 @@ func Test_Save_Load(t *testing.T) {
 		Degree:     1,
 		Inputs:     3,
 		Layout:     []int{3, 3, 3},
-		Activation: ActivationReLU,
+		Activation: []ActivationType{ActivationReLU},
 		Mode:       ModeMultiClass,
 	}
 	n := NewNeural(&c)

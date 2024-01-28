@@ -28,7 +28,7 @@ func Test_BoundedRegression(t *testing.T) {
 		n := deep.NewNeural(&deep.Config{
 			Inputs:     1,
 			Layout:     []int{4, 4, 1},
-			Activation: deep.ActivationSigmoid,
+			Activation: []deep.ActivationType{deep.ActivationSigmoid},
 			Mode:       deep.ModeRegression,
 			Weight:     deep.WeightUniform,
 		})
@@ -55,7 +55,7 @@ func Test_RegressionLinearOuts(t *testing.T) {
 		Inputs: 1,
 		Layout: []int{3, 3, 1},
 		//Activation: deep.ActivationReLU,
-		Activation: deep.ActivationSigmoid,
+		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:       deep.ModeRegression,
 		Weight:     deep.WeightNormal,
 	})
@@ -85,7 +85,7 @@ func Test_Training(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     1,
 		Layout:     []int{5, 1},
-		Activation: deep.ActivationSigmoid,
+		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Weight:     deep.WeightUniform,
 	})
 
@@ -117,7 +117,7 @@ func Test_Prediction(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
 		Layout:     []int{2, 2, 1},
-		Activation: deep.ActivationSigmoid,
+		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Weight:     deep.WeightUniform,
 	})
 	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0)
@@ -133,7 +133,7 @@ func Test_CrossVal(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
 		Layout:     []int{1, 1},
-		Activation: deep.ActivationTanh,
+		Activation: []deep.ActivationType{deep.ActivationTanh},
 		Loss:       deep.LossMeanSquared,
 		Weight:     deep.WeightUniform,
 	})
@@ -165,7 +165,7 @@ func Test_MultiClass(t *testing.T) {
 		Inputs: 2,
 		Layout: []int{2, 2},
 		//		Activation: deep.ActivationReLU,
-		Activation:    deep.ActivationSigmoid,
+		Activation:    []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:          deep.ModeMultiClass,
 		Loss:          deep.LossMeanSquared,
 		Weight:        deep.WeightUniform,
@@ -194,7 +194,7 @@ func Test_or(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
 		Layout:     []int{1, 1},
-		Activation: deep.ActivationTanh,
+		Activation: []deep.ActivationType{deep.ActivationTanh},
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
 	})
@@ -219,7 +219,7 @@ func Test_xor(t *testing.T) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
 		Layout:     []int{3, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
-		Activation: deep.ActivationSigmoid,
+		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
 	})
@@ -244,7 +244,7 @@ func Test_essential(t *testing.T) {
 		Inputs: 2,
 		//Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
 		Layout:        []int{1},
-		Activation:    deep.ActivationSigmoid,
+		Activation:    []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:          deep.ModeBinary,
 		Weight:        deep.WeightUniform,
 		Degree:        1,
@@ -292,14 +292,17 @@ func Test_RHW(t *testing.T) {
 	c := deep.Config{
 		Degree:        1,
 		Inputs:        6,
-		Layout:        []int{36, 2*6 + 1, 1},
-		Activation:    deep.ActivationSigmoid,
+		Layout:        []int{2, 1},
+		Activation:    []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:          deep.ModeBinary,
 		LossPrecision: 12,
 		Weight:        deep.WeightUniform,
 	}
 	n := deep.NewNeural(&c)
-	nn, _ := deep.Load("rhw-test.init")
+	nn, err := deep.Load("rhw-test.init")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
 	permutations := Examples{
 		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.1, 0.1}, []deep.Deepfloat64{.5}},
 		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
@@ -415,4 +418,104 @@ func Test_RHW(t *testing.T) {
 		y := math.Pow(10, float64(x))
 		fmt.Printf(" dd %v :: %v  %v\n", x, y, 1.0-y)
 	}
+}
+
+func Test_RHW_tabulated(t *testing.T) {
+	c := deep.Config{
+		Type:          deep.KolmogorovType,
+		Degree:        1,
+		Inputs:        6,
+		Layout:        []int{1},
+		Activation:    []deep.ActivationType{deep.ActivationTabulated},
+		Mode:          deep.ModeDefault,
+		LossPrecision: 12,
+		Weight:        deep.WeightUniform,
+	}
+	n := deep.NewNeural(&c)
+	permutations := Examples{
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.1, 0.1}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.1, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.5, 0.1, 0.1}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.1, 0.5, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.1, 0.5, 0.1}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.1, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.5, 0.5, 0.1}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.1, 0.5, 0.5, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.1, 0.1, 0.5}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.1, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.5, 0.1, 0.5}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.1, 0.5, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.1, 0.5, 0.5}, []deep.Deepfloat64{.5}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.1, 0.5, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.1, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.1, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.1, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.1, 0.5, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.5, 0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.5, 0.1, 0.5}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.5, 0.5, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.5, 0.5, 0.5, 0.5, 0.5, 0.5}, []deep.Deepfloat64{.5}},
+	}
+
+	n.SaveReadable("rhw-tabled-test-pre.neural")
+	n.Save("rhw-tabled-test.dump")
+	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1)
+	trainer.SetPrefix("RHW ")
+	trainer.Train(n, permutations, permutations, 1)
+	trainer.SolverSave("rhw-tabled-test.sgd")
+	trainer.Save("rhw-tabled-test.trainer")
+
+	n.Net("rhw-tabled-test.net")
+	n.Dot("rhw-tabled-test.dot")
+	stats := n.InputStats()
+	stats.Save(n, true, "rhw-test.stats")
+	for _, p := range permutations {
+		predict := float64(n.Predict(p.Input)[0])
+		assert.InEpsilon(t, 1+float64(p.Response[0]), 1+predict, 0.0005, "Response: %v; Predict: %v | %v", p.Response[0], predict, p.Input)
+	}
+	n.SaveReadable("rhw-tabled-test-post.neural")
+
 }

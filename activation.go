@@ -2,6 +2,8 @@ package deep
 
 import (
 	"math"
+
+	tabulatedfunction "github.com/Maxime2/tabulated-function"
 )
 
 // Mode denotes inference mode
@@ -34,7 +36,7 @@ func OutputActivation(c Mode) ActivationType {
 }
 
 // GetActivation returns the concrete activation given an ActivationType
-func GetActivation(act ActivationType) Differentiable {
+func GetActivation(act ActivationType) Activation {
 	switch act {
 	case ActivationSigmoid:
 		return Sigmoid{}
@@ -46,6 +48,8 @@ func GetActivation(act ActivationType) Differentiable {
 		return Linear{}
 	case ActivationSoftmax:
 		return Linear{}
+	case ActivationTabulated:
+		return newTabulated()
 	}
 	return Linear{}
 }
@@ -66,15 +70,69 @@ const (
 	ActivationLinear ActivationType = 4
 	// ActivationSoftmax is a softmax activation (per layer)
 	ActivationSoftmax ActivationType = 5
+	// ActivationTabulated is a tabled function activation
+	ActivationTabulated ActivationType = 6
 )
 
-// Differentiable is an activation function and its first order derivative,
+// Activation is an activation function and its first order derivative,
 // where the latter is expressed as a function of the former for efficiency
-type Differentiable interface {
+type Activation interface {
 	F(Deepfloat64) Deepfloat64
 	Df(Deepfloat64) Deepfloat64
 	If(Deepfloat64) Deepfloat64
 	Idomain(y, ideal Deepfloat64) Deepfloat64
+	AddPoint(x, y Deepfloat64)
+}
+
+// Tabulated is a tabulated activator
+type Tabulated struct {
+	direct, inverse *tabulatedfunction.TabulatedFunction
+	derivative      *tabulatedfunction.TabulatedFunction
+	changed         bool
+}
+
+func newTabulated() *Tabulated {
+	direct := tabulatedfunction.New()
+	direct.SetOrder(1)
+	inverse := tabulatedfunction.New()
+	inverse.SetOrder(1)
+	derivative := tabulatedfunction.New()
+	return &Tabulated{
+		direct:     direct,
+		inverse:    inverse,
+		derivative: derivative,
+		changed:    false,
+	}
+}
+
+// Tabulated activation function
+func (a Tabulated) F(x Deepfloat64) Deepfloat64 {
+	return Deepfloat64(a.direct.F(float64(x)))
+}
+
+// Inverse of tabulated activation function
+func (a Tabulated) If(x Deepfloat64) Deepfloat64 {
+	return Deepfloat64(a.inverse.F(float64(x)))
+}
+
+// Derivative of tabulated activation function
+func (a Tabulated) Df(x Deepfloat64) Deepfloat64 {
+	if a.changed {
+		a.derivative.Assign(a.direct)
+		a.derivative.Derivative()
+		a.changed = false
+	}
+	return Deepfloat64(a.derivative.F(float64(x)))
+}
+
+// Idomain() ensures the value is in the domain of inverse tabulated activation function
+func (a Tabulated) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
+
+// AddPoint() adds new point into tabulated activation function
+func (a Tabulated) AddPoint(x, y Deepfloat64) {
+	a.direct.AddPoint(float64(x), float64(y))
+	a.inverse.AddPoint(float64(y), float64(x))
+	a.changed = true
 }
 
 // Sigmoid is a logistic activator in the special case of a = 1
@@ -98,6 +156,9 @@ func (a Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 	}
 	return ideal
 }
+
+// AddPoint() do nothing.
+func (a Sigmoid) AddPoint(x, y Deepfloat64) {}
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
@@ -145,6 +206,9 @@ func (a Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 	return ideal
 }
 
+// AddPoint() do nothing.
+func (a Tanh) AddPoint(x, y Deepfloat64) {}
+
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
@@ -165,6 +229,9 @@ func (a ReLU) If(y Deepfloat64) Deepfloat64 { return y }
 // Idomain() ensures the value is in the domain of activation inverse function
 func (a ReLU) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
+// AddPoint() do nothing.
+func (a ReLU) AddPoint(x, y Deepfloat64) {}
+
 // Linear is a linear activator
 type Linear struct{}
 
@@ -179,3 +246,6 @@ func (a Linear) If(y Deepfloat64) Deepfloat64 { return y }
 
 // Idomain() ensures the value is in the domain of activation inverse function
 func (a Linear) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
+
+// AddPoint() do nothing.
+func (a Linear) AddPoint(x, y Deepfloat64) {}

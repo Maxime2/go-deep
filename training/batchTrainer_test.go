@@ -13,7 +13,7 @@ func Benchmark_xor(b *testing.B) {
 	n := deep.NewNeural(&deep.Config{
 		Inputs:     2,
 		Layout:     []int{32, 32, 1},
-		Activation: deep.ActivationSigmoid,
+		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Mode:       deep.ModeBinary,
 		Weight:     deep.WeightUniform,
 	})

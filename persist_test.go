@@ -13,7 +13,7 @@ func Test_RestoreFromDump(t *testing.T) {
 	n := NewNeural(&Config{
 		Inputs:     1,
 		Layout:     []int{5, 3, 1},
-		Activation: ActivationSigmoid,
+		Activation: []ActivationType{ActivationSigmoid},
 		Weight:     WeightUniform,
 	})
 
@@ -30,7 +30,7 @@ func Test_Marshal(t *testing.T) {
 	n := NewNeural(&Config{
 		Inputs:     1,
 		Layout:     []int{3, 3, 1},
-		Activation: ActivationSigmoid,
+		Activation: []ActivationType{ActivationSigmoid},
 		Weight:     WeightUniform,
 	})
 

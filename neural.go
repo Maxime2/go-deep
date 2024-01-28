@@ -14,7 +14,7 @@ import (
 const Eps = 1e-16
 const Leps = 1e-20
 
-const Modulus = 4
+const Modulus = 1
 
 // Minimal number of iterations
 const MinIterations = 5
@@ -53,8 +53,10 @@ type Config struct {
 	// containing 5 and 3 nodes respectively, followed an output layer
 	// containing 3 nodes.
 	Layout []int
-	// Activation functions: {ActivationTanh, ActivationReLU, ActivationSigmoid}
-	Activation ActivationType
+	// Defines activation functions per layer
+	// Activation functions: {ActivationTanh, ActivationReLU, ActivationSigmoid,
+	//	                      ActivationLinear, ActivationSoftmax, ActivationTabulated}
+	Activation []ActivationType
 	// Solver modes: {ModeRegression, ModeBinary, ModeMultiClass, ModeMultiLabel}
 	Mode Mode
 	// Weight Initialiser type: {NewNormal(σ, μ), NewUniform(σ, μ)}
@@ -78,8 +80,11 @@ type Config struct {
 // NewNeural returns a new neural network
 func NewNeural(c *Config) *Neural {
 
-	if c.Activation == ActivationNone {
-		c.Activation = ActivationSigmoid
+	if c.Activation == nil {
+		c.Activation = make([]ActivationType, len(c.Layout))
+		for i := range c.Activation {
+			c.Activation[i] = ActivationSigmoid
+		}
 	}
 	if c.Loss == LossNone {
 		switch c.Mode {
@@ -109,22 +114,28 @@ func NewNeural(c *Config) *Neural {
 
 func initializeLayers(c *Config) []*Layer {
 	var layout []int
+	var act []ActivationType
+	var activation ActivationType
 	if c.Type == KolmogorovType {
 		layout = append([]int{2*c.Inputs + 1}, c.Layout...)
+		act = append([]ActivationType{ActivationSigmoid}, c.Activation...)
 	} else {
 		layout = append(layout, c.Layout...)
+		act = append(act, c.Activation...)
 	}
 
 	layers := make([]*Layer, len(layout))
 	for i := range layers {
-		act := c.Activation
 		if i == (len(layers)-1) && c.Mode != ModeDefault {
-			act = OutputActivation(c.Mode)
+			activation = OutputActivation(c.Mode)
+		} else {
+			activation = act[i%len(act)]
 		}
-		layers[i] = NewLayer(i, layout[i], act)
+		layers[i] = NewLayer(i, layout[i], activation)
 	}
 
-	A := 2 * Modulus / (float64(c.Inputs))
+	A := Modulus / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
+	wA := Deepfloat64(0)
 	wi := GetWeightFunction(c.Weight, Eps, A)
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
@@ -132,20 +143,14 @@ func initializeLayers(c *Config) []*Layer {
 		if c.InputTags == nil {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
-				if i > 0 {
-					neuron.In[i].SetWeight(0, neuron.In[i-1].GetWeight(0)+neuron.In[i-1].GetWeight(1))
-				} else {
-					neuron.In[i].SetWeight(0, -Modulus)
-				}
+				neuron.In[i].SetWeight(0, wA)
+				wA += neuron.In[i].GetWeight(1)
 			}
 		} else {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
-				if i > 0 {
-					neuron.In[i].SetWeight(0, neuron.In[i-1].GetWeight(0)+neuron.In[i-1].GetWeight(1))
-				} else {
-					neuron.In[i].SetWeight(0, -Modulus)
-				}
+				neuron.In[i].SetWeight(0, wA)
+				wA += neuron.In[i].GetWeight(1)
 			}
 		}
 	}
@@ -263,6 +268,30 @@ func (n *Neural) Dot(path string) error {
 	}
 
 	fmt.Fprintf(f, "}\n")
+
+	return nil
+}
+
+// Save the network in NET format
+func (n *Neural) Net(path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	for l, lr := range n.Layers {
+		fmt.Fprintf(f, "L: %d\n", l)
+		for n, nr := range lr.Neurons {
+			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v;\n", n, nr.Sum, nr.Value)
+			for _, in := range nr.In {
+				fmt.Fprintf(f, " [%v %v]", in.In, in.Out)
+			}
+			fmt.Fprintf(f, "\n")
+		}
+	}
+
+	fmt.Fprintf(f, "\n")
 
 	return nil
 }
