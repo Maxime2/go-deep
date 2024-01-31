@@ -136,7 +136,7 @@ func initializeLayers(c *Config) []*Layer {
 
 	A := Modulus / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
 	wA := Deepfloat64(0)
-	wi := GetWeightFunction(c.Weight, Eps, A)
+	wi := GetWeightFunction(c.Weight, A/1.2, A)
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
