@@ -284,6 +284,53 @@ func Test_essential(t *testing.T) {
 	}
 }
 
+func Test_essential_tabulated(t *testing.T) {
+	rand.Seed(0)
+	n := deep.NewNeural(&deep.Config{
+		Inputs: 2,
+		//Layout:     []int{5, 1}, // Sufficient for modeling (AND+OR) - with 5-6 neuron always converges
+		Layout:        []int{1},
+		Activation:    []deep.ActivationType{deep.ActivationTabulated},
+		Mode:          deep.ModeBinary,
+		Weight:        deep.WeightUniform,
+		Degree:        1,
+		LossPrecision: 12,
+		Type:          deep.KolmogorovType,
+		TrainerMode:   deep.UpdateTopDown,
+	})
+	permutations := Examples{
+		{[]deep.Deepfloat64{0.1, 0.1}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.9, 0.1}, []deep.Deepfloat64{0.9}},
+		{[]deep.Deepfloat64{0.1, 0.9}, []deep.Deepfloat64{0.1}},
+		{[]deep.Deepfloat64{0.9, 0.9}, []deep.Deepfloat64{0.9}},
+	}
+
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000)
+	trainer.SetPrefix("essential-tabulated ")
+	n.Dot("essential-tabulated-test-0.dot")
+	stats := n.InputStats()
+	stats.Save(n, true, "essential-tabulated-test-0.stats")
+	trainer.Train(n, permutations, permutations, 500000)
+
+	stats = n.InputStats()
+	stats.Save(n, true, "essential-tabulated-test.stats")
+	//n.SignOnStats(stats)
+
+	trainer.Train(n, permutations, permutations, 500000)
+	stats = n.InputStats()
+	stats.Save(n, true, "essential-tabulated-test-2.stats")
+
+	n.Dot("essential-tabulated-test.dot")
+	n.SaveReadable("essential-tabulated-test.neural")
+	trainer.SolverSave("essential-tabulated-test.sgd")
+	trainer.Save("essential-tabulated-test.trainer")
+
+	for _, perm := range permutations {
+		assert.InEpsilon(t, float64(n.Predict(perm.Input)[0]+1), float64(perm.Response[0]+1), 0.2, "input: %+v; want: %+v have: %+v\n", perm.Input, n.Predict(perm.Input)[0]+1, perm.Response[0]+1)
+	}
+}
+
+
 func printResult(ideal, actual []float64) {
 	fmt.Printf("want: %+v have: %+v\n", ideal, actual)
 }
@@ -504,7 +551,7 @@ func Test_RHW_tabulated(t *testing.T) {
 	n.Save("rhw-tabled-test.dump")
 	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1)
 	trainer.SetPrefix("RHW ")
-	trainer.Train(n, permutations, permutations, 1)
+	trainer.Train(n, permutations, permutations, 5)
 	trainer.SolverSave("rhw-tabled-test.sgd")
 	trainer.Save("rhw-tabled-test.trainer")
 
