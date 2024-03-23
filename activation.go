@@ -39,19 +39,19 @@ func OutputActivation(c Mode) ActivationType {
 func GetActivation(act ActivationType) Activation {
 	switch act {
 	case ActivationSigmoid:
-		return Sigmoid{}
+		return &Sigmoid{}
 	case ActivationTanh:
-		return Tanh{}
+		return &Tanh{}
 	case ActivationReLU:
-		return ReLU{}
+		return &ReLU{}
 	case ActivationLinear:
-		return Linear{}
+		return &Linear{}
 	case ActivationSoftmax:
-		return Linear{}
+		return &Linear{}
 	case ActivationTabulated:
 		return newTabulated()
 	}
-	return Linear{}
+	return &Linear{}
 }
 
 // ActivationType is represents a neuron activation function
@@ -106,17 +106,17 @@ func newTabulated() *Tabulated {
 }
 
 // Tabulated activation function
-func (a Tabulated) F(x Deepfloat64) Deepfloat64 {
+func (a *Tabulated) F(x Deepfloat64) Deepfloat64 {
 	return Deepfloat64(a.direct.F(float64(x)))
 }
 
 // Inverse of tabulated activation function
-func (a Tabulated) If(x Deepfloat64) Deepfloat64 {
+func (a *Tabulated) If(x Deepfloat64) Deepfloat64 {
 	return Deepfloat64(a.inverse.F(float64(x)))
 }
 
 // Derivative of tabulated activation function
-func (a Tabulated) Df(x Deepfloat64) Deepfloat64 {
+func (a *Tabulated) Df(x Deepfloat64) Deepfloat64 {
 	if a.changed {
 		a.derivative.Assign(a.direct)
 		a.derivative.Derivative()
@@ -126,10 +126,10 @@ func (a Tabulated) Df(x Deepfloat64) Deepfloat64 {
 }
 
 // Idomain() ensures the value is in the domain of inverse tabulated activation function
-func (a Tabulated) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
+func (a *Tabulated) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() adds new point into tabulated activation function
-func (a Tabulated) AddPoint(x, y Deepfloat64) {
+func (a *Tabulated) AddPoint(x, y Deepfloat64) {
 	a.direct.AddPoint(float64(x), float64(y))
 	a.inverse.AddPoint(float64(y), float64(x))
 	a.changed = true
@@ -139,16 +139,16 @@ func (a Tabulated) AddPoint(x, y Deepfloat64) {
 type Sigmoid struct{}
 
 // F is Sigmoid(x)
-func (a Sigmoid) F(x Deepfloat64) Deepfloat64 { return Logistic(x, 1) }
+func (a *Sigmoid) F(x Deepfloat64) Deepfloat64 { return Logistic(x, 1) }
 
 // Df is Sigmoid'(y), where y = Sigmoid(x)
-func (a Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
+func (a *Sigmoid) Df(y Deepfloat64) Deepfloat64 { return y * (1 - y) }
 
 // If is inverse to Sigmoid
-func (a Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(math.Log(float64(y / (1 - y)))) }
+func (a *Sigmoid) If(y Deepfloat64) Deepfloat64 { return Deepfloat64(math.Log(float64(y / (1 - y)))) }
 
 // Idomain() ensures the value is in the domain of activation inverse function, (0,1)
-func (a Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
+func (a *Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 	if ideal < Eps {
 		ideal = 0.5*Eps + 0.5*y
 	} else if ideal > 1-Eps {
@@ -158,7 +158,7 @@ func (a Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 }
 
 // AddPoint() do nothing.
-func (a Sigmoid) AddPoint(x, y Deepfloat64) {}
+func (a *Sigmoid) AddPoint(x, y Deepfloat64) {}
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
@@ -183,20 +183,20 @@ func Logistic(x, a Deepfloat64) Deepfloat64 {
 type Tanh struct{}
 
 // F is Tanh(x)
-func (a Tanh) F(x Deepfloat64) Deepfloat64 {
+func (a *Tanh) F(x Deepfloat64) Deepfloat64 {
 	return (1 - Deepfloat64(math.Exp(float64(-2*x)))) / (1 + Deepfloat64(math.Exp(float64(-2*x))))
 }
 
 // Df is Tanh'(y), where y = Tanh(x)
-func (a Tanh) Df(y Deepfloat64) Deepfloat64 { return 1 - Deepfloat64(math.Pow(float64(y), 2)) }
+func (a *Tanh) Df(y Deepfloat64) Deepfloat64 { return 1 - Deepfloat64(math.Pow(float64(y), 2)) }
 
 // If is Artanh(y)
-func (a Tanh) If(y Deepfloat64) Deepfloat64 {
+func (a *Tanh) If(y Deepfloat64) Deepfloat64 {
 	return Deepfloat64(0.5 * math.Log(float64(1+y)/float64(1-y)))
 }
 
 // Idomain() ensures the value is in the domain of activation inverse function
-func (a Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
+func (a *Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 	if ideal < -1+Eps {
 		return 0.1*(-1+Eps) + 0.9*y
 	}
@@ -207,16 +207,16 @@ func (a Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 }
 
 // AddPoint() do nothing.
-func (a Tanh) AddPoint(x, y Deepfloat64) {}
+func (a *Tanh) AddPoint(x, y Deepfloat64) {}
 
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
 // F is ReLU(x)
-func (a ReLU) F(x Deepfloat64) Deepfloat64 { return Deepfloat64(math.Max(float64(x), 0)) }
+func (a *ReLU) F(x Deepfloat64) Deepfloat64 { return Deepfloat64(math.Max(float64(x), 0)) }
 
 // Df is ReLU'(y), where y = ReLU(x)
-func (a ReLU) Df(y Deepfloat64) Deepfloat64 {
+func (a *ReLU) Df(y Deepfloat64) Deepfloat64 {
 	if y > 0 {
 		return 1
 	}
@@ -224,28 +224,28 @@ func (a ReLU) Df(y Deepfloat64) Deepfloat64 {
 }
 
 // If is inverse to ReLU(), to some extent
-func (a ReLU) If(y Deepfloat64) Deepfloat64 { return y }
+func (a *ReLU) If(y Deepfloat64) Deepfloat64 { return y }
 
 // Idomain() ensures the value is in the domain of activation inverse function
-func (a ReLU) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
+func (a *ReLU) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() do nothing.
-func (a ReLU) AddPoint(x, y Deepfloat64) {}
+func (a *ReLU) AddPoint(x, y Deepfloat64) {}
 
 // Linear is a linear activator
 type Linear struct{}
 
 // F is the identity function
-func (a Linear) F(x Deepfloat64) Deepfloat64 { return x }
+func (a *Linear) F(x Deepfloat64) Deepfloat64 { return x }
 
 // Df is constant
-func (a Linear) Df(x Deepfloat64) Deepfloat64 { return 1 }
+func (a *Linear) Df(x Deepfloat64) Deepfloat64 { return 1 }
 
 // If is reverse to identity
-func (a Linear) If(y Deepfloat64) Deepfloat64 { return y }
+func (a *Linear) If(y Deepfloat64) Deepfloat64 { return y }
 
 // Idomain() ensures the value is in the domain of activation inverse function
-func (a Linear) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
+func (a *Linear) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() do nothing.
-func (a Linear) AddPoint(x, y Deepfloat64) {}
+func (a *Linear) AddPoint(x, y Deepfloat64) {}
