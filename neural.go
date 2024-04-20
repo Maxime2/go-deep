@@ -134,7 +134,7 @@ func initializeLayers(c *Config) []*Layer {
 
 	domain_min, domain_max := GetActivation(act[0]).Domain()
 	A := float64((domain_max - domain_min)) / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
-	wA := Deepfloat64(0)
+	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/1.2, A)
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
