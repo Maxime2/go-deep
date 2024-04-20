@@ -82,6 +82,7 @@ type Activation interface {
 	If(Deepfloat64) Deepfloat64
 	Idomain(y, ideal Deepfloat64) Deepfloat64
 	AddPoint(x, y Deepfloat64)
+	Domain() (Deepfloat64, Deepfloat64)
 }
 
 // Tabulated is a tabulated activator
@@ -135,6 +136,11 @@ func (a *Tabulated) AddPoint(x, y Deepfloat64) {
 	a.changed = true
 }
 
+// Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
+func (a *Tabulated) Domain() (Deepfloat64, Deepfloat64) {
+	return -10, 10
+}
+
 // Sigmoid is a logistic activator in the special case of a = 1
 type Sigmoid struct{}
 
@@ -159,6 +165,11 @@ func (a *Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 
 // AddPoint() do nothing.
 func (a *Sigmoid) AddPoint(x, y Deepfloat64) {}
+
+// Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
+func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
+	return -2, 2
+}
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
@@ -209,6 +220,11 @@ func (a *Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 // AddPoint() do nothing.
 func (a *Tanh) AddPoint(x, y Deepfloat64) {}
 
+// Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
+func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
+	return 0, 1
+}
+
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
@@ -232,6 +248,11 @@ func (a *ReLU) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 // AddPoint() do nothing.
 func (a *ReLU) AddPoint(x, y Deepfloat64) {}
 
+// Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
+func (a *ReLU) Domain() (Deepfloat64, Deepfloat64) {
+	return 0, 1
+}
+
 // Linear is a linear activator
 type Linear struct{}
 
@@ -249,3 +270,8 @@ func (a *Linear) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() do nothing.
 func (a *Linear) AddPoint(x, y Deepfloat64) {}
+
+// Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
+func (a *Linear) Domain() (Deepfloat64, Deepfloat64) {
+	return 0, 1
+}

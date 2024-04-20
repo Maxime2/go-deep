@@ -2,7 +2,6 @@ package deep
 
 import (
 	"math"
-	"math/rand"
 )
 
 // Neuron is a neural network node
@@ -74,14 +73,6 @@ type Synapse struct {
 	In, Out    Deepfloat64
 	IsBias     bool
 	Tag        string
-}
-
-// return -1.0 or 1.0
-func randomSign() Deepfloat64 {
-	if rand.Float32() < 0.5 {
-		return -1.0
-	}
-	return 1.0
 }
 
 // NewSynapse returns a synapse with the weigths set with specified initializer

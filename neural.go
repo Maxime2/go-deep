@@ -14,8 +14,6 @@ import (
 const Eps = 1e-16
 const Leps = 1e-20
 
-const Modulus = 1
-
 // Minimal number of iterations
 const MinIterations = 5
 
@@ -134,7 +132,8 @@ func initializeLayers(c *Config) []*Layer {
 		layers[i] = NewLayer(i, layout[i], activation)
 	}
 
-	A := Modulus / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
+	domain_min, domain_max := GetActivation(act[0]).Domain()
+	A := float64((domain_max - domain_min)) / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
 	wA := Deepfloat64(0)
 	wi := GetWeightFunction(c.Weight, A/1.2, A)
 	for _, neuron := range layers[0].Neurons {
@@ -171,7 +170,7 @@ func (n *Neural) fire() {
 // Forward computes a forward pass
 func (n *Neural) Forward(input []Deepfloat64) error {
 	if len(input) != n.Config.Inputs {
-		return fmt.Errorf("Invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
+		return fmt.Errorf("invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
 	}
 	for _, n := range n.Layers[0].Neurons {
 		for i := 0; i < len(input); i++ {
