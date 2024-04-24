@@ -128,13 +128,14 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		neuron.Desired = ideal[i]
 		neuron.Ideal = neuron.A.If(ideal[i])
 		neuron.Ln = deep.Deepfloat64(math.Log(float64((1 - neuron.Desired) / neuron.Desired)))
-		//fmt.Printf(" oo i:%v; ideal: %v; neuron.Ideal: %v; neuron.Sum: %v\n", i, ideal[i], neuron.Ideal, neuron.Sum)
+		//fmt.Printf(" oo i:%v; ideal: %v; neuron.Value: %v; neuron.Ideal: %v; neuron.Sum: %v\n", i, ideal[i], neuron.Value, neuron.Ideal, neuron.Sum)
 		//y := neuron.DActivate(neuron.Value)
 		//t.deltas[len(n.Layers)-1][i] = deep.GetLoss(n.Config.Loss).Df(
 		//	neuron.Value,
 		//	ideal[i]) * y
 		t.D_E_y[len(n.Layers)-1][i] = loss.Df(neuron.Value, ideal[i])
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
+		//fmt.Printf("    i:%v; dE_y: %v; dE_x: %v -- neuron.DActivate: %v\n", i, t.D_E_y[len(n.Layers)-1][i], t.D_E_x[len(n.Layers)-1][i], neuron.DActivate(neuron.Value))
 
 		var den deep.Deepfloat64
 
@@ -242,8 +243,8 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 			switch l.A {
 			case deep.ActivationTabulated:
 				n.A.AddPoint(n.Sum, n.Desired)
-				//Lcompleted++
-				//break
+				Lcompleted++
+				break
 			default:
 				for s, synapse := range l.Neurons[j].In {
 					for k := 0; k < len(synapse.Weights); k++ {
