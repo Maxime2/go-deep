@@ -63,11 +63,12 @@ func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
 	A := float64(domain_max-domain_min) / (float64(num_neurons)) / float64(len(next.Neurons))
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(weight, A/20, A)
+	wEps := Deepfloat64(A/50/float64(num_neurons))
 	for i := range l.Neurons {
 		for j, neuron := range next.Neurons {
 			syn := NewSynapseWithTag(neuron, degree, wi, fmt.Sprintf("L:%d N:%d", l.Number, i))
 			syn.SetWeight(0, wA)
-			wA += syn.GetWeight(1)
+			wA += syn.GetWeight(1) + wEps
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}

@@ -83,6 +83,7 @@ func NewNeural(c *Config) *Neural {
 		for i := range c.Activation {
 			c.Activation[i] = ActivationSigmoid
 		}
+		c.Activation[len(c.Activation) - 1] = OutputActivation(c.Mode)
 	}
 	if c.Loss == LossNone {
 		switch c.Mode {
@@ -124,11 +125,7 @@ func initializeLayers(c *Config) []*Layer {
 
 	layers := make([]*Layer, len(layout))
 	for i := range layers {
-		if i == (len(layers)-1) && c.Mode != ModeDefault {
-			activation = OutputActivation(c.Mode)
-		} else {
-			activation = act[i%len(act)]
-		}
+		activation = act[i%len(act)]
 		layers[i] = NewLayer(i, layout[i], activation)
 	}
 
@@ -136,6 +133,7 @@ func initializeLayers(c *Config) []*Layer {
 	A := float64((domain_max - domain_min)) / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/20, A)
+	wEps := Deepfloat64(A/50/float64(c.Inputs))
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
@@ -143,13 +141,13 @@ func initializeLayers(c *Config) []*Layer {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
 				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1)
+				wA += neuron.In[i].GetWeight(1) + wEps
 			}
 		} else {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
 				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1)
+				wA += neuron.In[i].GetWeight(1) + wEps
 			}
 		}
 	}
