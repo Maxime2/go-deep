@@ -138,7 +138,7 @@ func (a *Tabulated) AddPoint(x, y Deepfloat64) {
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Tabulated) Domain() (Deepfloat64, Deepfloat64) {
-	return -10, 10
+	return 0, 10
 }
 
 // Sigmoid is a logistic activator in the special case of a = 1
@@ -168,7 +168,7 @@ func (a *Sigmoid) AddPoint(x, y Deepfloat64) {}
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
-	return -2, 2
+	return 0, 2
 }
 
 // Logistic is the logistic function
