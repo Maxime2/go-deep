@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"sync"
 
 	"github.com/theothertomelliott/acyclic"
 )
@@ -83,7 +84,7 @@ func NewNeural(c *Config) *Neural {
 		for i := range c.Activation {
 			c.Activation[i] = ActivationSigmoid
 		}
-		c.Activation[len(c.Activation) - 1] = OutputActivation(c.Mode)
+		c.Activation[len(c.Activation)-1] = OutputActivation(c.Mode)
 	}
 	if c.Loss == LossNone {
 		switch c.Mode {
@@ -133,7 +134,7 @@ func initializeLayers(c *Config) []*Layer {
 	A := float64((domain_max - domain_min)) / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/20, A)
-	wEps := Deepfloat64(A/50/float64(c.Inputs))
+	wEps := Deepfloat64(A / 50 / float64(c.Inputs))
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
@@ -170,11 +171,17 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 	if len(input) != n.Config.Inputs {
 		return fmt.Errorf("invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
 	}
+	var wg sync.WaitGroup
 	for _, n := range n.Layers[0].Neurons {
-		for i := 0; i < len(input); i++ {
-			n.In[i].Fire(input[i])
-		}
+		wg.Add(1)
+		go func(wg *sync.WaitGroup, n *Neuron) {
+			for i := 0; i < len(input); i++ {
+				n.In[i].Fire(input[i])
+			}
+			wg.Done()
+		}(&wg, n)
 	}
+	wg.Wait()
 	n.fire()
 	return nil
 }
