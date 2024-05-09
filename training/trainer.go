@@ -243,9 +243,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 			switch l.A {
 			case deep.ActivationTabulated:
 				n.A.AddPoint(n.Sum, n.Desired)
-				//Lcompleted++
-				//break
-				fallthrough
+				Lcompleted++
 			default:
 				for s, synapse := range l.Neurons[j].In {
 					for k := 0; k < len(synapse.Weights); k++ {
@@ -297,9 +295,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 			switch l.A {
 			case deep.ActivationTabulated:
 				n.A.AddPoint(n.Sum, n.Desired)
-				//Lcompleted++
-				//break
-				fallthrough
+				Lcompleted++
 			default:
 				for s, synapse := range l.Neurons[j].In {
 					for k := 0; k < len(synapse.Weights); k++ {
