@@ -6,7 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"sync"
+//	"sync"
 
 	"github.com/theothertomelliott/acyclic"
 )
@@ -168,9 +168,65 @@ func (n *Neural) fire() {
 
 // Forward computes a forward pass
 func (n *Neural) Forward(input []Deepfloat64) error {
-	if len(input) != n.Config.Inputs {
+	l := len(input)
+	if l != n.Config.Inputs {
 		return fmt.Errorf("invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
 	}
+	cl := make(chan struct{})
+	ln := len(n.Layers[0].Neurons)
+
+	go func() {
+		for j := 0; j < ln/2; j++ {
+			neuron := n.Layers[0].Neurons[j]
+			cn := make(chan struct{})
+
+			go func() {
+				for i := 0; i < l/2; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+
+			go func() {
+				for i := l / 2; i < l; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+			<-cn
+			<-cn
+                }
+		cl <- struct{}{}
+
+	}()
+
+	go func() {
+		for j := ln / 2; j < ln; j++ {
+			neuron := n.Layers[0].Neurons[j]
+			cn := make(chan struct{})
+
+			go func() {
+				for i := 0; i < l/2; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+
+			go func() {
+				for i := l / 2; i < l; i++ {
+					neuron.In[i].Fire(input[i])
+				}
+				cn <- struct{}{}
+			}()
+			<-cn
+			<-cn
+		}
+		cl <- struct{}{}
+	}()
+	<-cl
+	<-cl
+
+/*
 	var wg sync.WaitGroup
 	for _, n := range n.Layers[0].Neurons {
 		wg.Add(1)
@@ -182,6 +238,8 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 		}(&wg, n)
 	}
 	wg.Wait()
+*/
+
 	n.fire()
 	return nil
 }
