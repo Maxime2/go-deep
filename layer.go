@@ -24,9 +24,31 @@ func NewLayer(l, n int, activation ActivationType) *Layer {
 }
 
 func (l *Layer) Fire() {
+	ln := len(l.Neurons)
+	cl := make(chan struct{})
+
+	go func() {
+		for j := 0; j < ln/2; j++ {
+			l.Neurons[j].fire()
+		}
+		cl <- struct{}{}
+	}()
+
+	go func() {
+		for j := ln/2; j < ln; j++ {
+			l.Neurons[j].fire()
+		}
+		cl <- struct{}{}
+	}()
+	<-cl
+	<-cl
+
+/*
 	for _, n := range l.Neurons {
 		n.fire()
 	}
+*/
+
 	if l.A == ActivationSoftmax {
 		outs := make([]Deepfloat64, len(l.Neurons))
 		for i, neuron := range l.Neurons {
