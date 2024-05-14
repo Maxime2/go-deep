@@ -6,7 +6,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-//	"sync"
+
+	//	"sync"
 
 	"github.com/theothertomelliott/acyclic"
 )
@@ -195,7 +196,7 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 			}()
 			<-cn
 			<-cn
-                }
+		}
 		cl <- struct{}{}
 
 	}()
@@ -226,19 +227,19 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 	<-cl
 	<-cl
 
-/*
-	var wg sync.WaitGroup
-	for _, n := range n.Layers[0].Neurons {
-		wg.Add(1)
-		go func(wg *sync.WaitGroup, n *Neuron) {
-			for i := 0; i < len(input); i++ {
-				n.In[i].Fire(input[i])
-			}
-			wg.Done()
-		}(&wg, n)
-	}
-	wg.Wait()
-*/
+	/*
+		var wg sync.WaitGroup
+		for _, n := range n.Layers[0].Neurons {
+			wg.Add(1)
+			go func(wg *sync.WaitGroup, n *Neuron) {
+				for i := 0; i < len(input); i++ {
+					n.In[i].Fire(input[i])
+				}
+				wg.Done()
+			}(&wg, n)
+		}
+		wg.Wait()
+	*/
 
 	n.fire()
 	return nil
@@ -346,6 +347,7 @@ func (n *Neural) Net(path string) error {
 		fmt.Fprintf(f, "L: %d\n", l)
 		for n, nr := range lr.Neurons {
 			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v;\n", n, nr.Sum, nr.Value)
+			fmt.Fprintf(f, "        Activation: %v\n", nr.A.String())
 			for _, in := range nr.In {
 				fmt.Fprintf(f, " [%v %v]", in.In, in.Out)
 			}

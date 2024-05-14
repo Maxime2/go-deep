@@ -83,6 +83,7 @@ type Activation interface {
 	Idomain(y, ideal Deepfloat64) Deepfloat64
 	AddPoint(x, y Deepfloat64)
 	Domain() (Deepfloat64, Deepfloat64)
+	String() string
 }
 
 // Tabulated is a tabulated activator
@@ -141,6 +142,11 @@ func (a *Tabulated) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 10
 }
 
+// String() return textual representation of direct function
+func (a *Tabulated) String() string {
+	return a.direct.String()
+}
+
 // Sigmoid is a logistic activator in the special case of a = 1
 type Sigmoid struct{}
 
@@ -169,6 +175,11 @@ func (a *Sigmoid) AddPoint(x, y Deepfloat64) {}
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 2
+}
+
+// String() rreturn "Sigmoid"
+func (a *Sigmoid) String() string {
+	return "Sigmoid"
 }
 
 // Logistic is the logistic function
@@ -225,6 +236,11 @@ func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
 }
 
+// String() return "Tanh"
+func (a *Tanh) String() string {
+	return "Tanh"
+}
+
 // ReLU is a rectified linear unit activator
 type ReLU struct{}
 
@@ -253,6 +269,12 @@ func (a *ReLU) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
 }
 
+// String() return "ReLU"
+func (a *ReLU) String() string {
+	return "ReLU"
+}
+
+
 // Linear is a linear activator
 type Linear struct{}
 
@@ -274,4 +296,9 @@ func (a *Linear) AddPoint(x, y Deepfloat64) {}
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Linear) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
+}
+
+// String() return "Linear"
+func (a *Linear) String() string {
+	return "Linear"
 }
