@@ -132,7 +132,7 @@ func initializeLayers(c *Config) []*Layer {
 	}
 
 	domain_min, domain_max := GetActivation(act[0]).Domain()
-	A := float64((domain_max - domain_min)) / (float64(c.Inputs)) / float64(len(layers[0].Neurons))
+	A := float64(2 * (domain_max - domain_min)) / float64(c.Inputs) / float64(c.Inputs) / float64(len(layers[0].Neurons)) / float64(c.Degree+1)
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/20, A)
 	wEps := Deepfloat64(A / 50 / float64(c.Inputs))

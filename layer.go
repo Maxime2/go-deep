@@ -82,7 +82,7 @@ func (l *Layer) Refire() {
 func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
 	num_neurons := len(l.Neurons)
 	domain_min, domain_max := next.Neurons[0].A.Domain()
-	A := float64(domain_max-domain_min) / (float64(num_neurons)) / float64(len(next.Neurons))
+	A := float64(2 * (domain_max-domain_min)) / float64(num_neurons) / float64(num_neurons) / float64(len(next.Neurons)) / float64(degree + 1)
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(weight, A/20, A)
 	wEps := Deepfloat64(A/50/float64(num_neurons))
