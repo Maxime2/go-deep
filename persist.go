@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 )
 
+// Point is a point in Tabulated activation
+type Point struct {
+	X, Y Deepfloat64
+}
+
 // Dump is a neural network dump
 type Dump struct {
-	Config  *Config
-	Weights [][][][]Deepfloat64
+	Config      *Config
+	Weights     [][][][]Deepfloat64
+	Activations [][]Point
 }
 
 // ApplyWeights sets the weights from a four-dimensional slice
@@ -36,11 +42,46 @@ func (n Neural) Weights() [][][][]Deepfloat64 {
 	return weights
 }
 
+func (n Neural) ApplyActivations(points [][]Point) {
+	current := 0
+	for _, l := range n.Layers {
+		if l.A == ActivationTabulated {
+			for _, n := range l.Neurons {
+				npoints := len(points[current])
+				for i := 0; i < npoints; i++ {
+					n.A.AddPoint(points[current][i].X, points[current][i].Y)
+				}
+				current++
+			}
+		}
+	}
+
+}
+
+// Activations() returns points of all Tabulated activations
+func (n Neural) Activations() [][]Point {
+	var activations [][]Point
+	for _, l := range n.Layers {
+		if l.A == ActivationTabulated {
+			for _, n := range l.Neurons {
+				points := n.A.Points()
+				acts := make([]Point, points)
+				for i := 0; i < points; i++ {
+					acts[i].X, acts[i].Y = n.A.GetPoint(i)
+				}
+				activations = append(activations, acts)
+			}
+		}
+	}
+	return activations
+}
+
 // Dump generates a network dump
 func (n Neural) Dump() *Dump {
 	return &Dump{
-		Config:  n.Config,
-		Weights: n.Weights(),
+		Config:      n.Config,
+		Weights:     n.Weights(),
+		Activations: n.Activations(),
 	}
 }
 
@@ -48,6 +89,7 @@ func (n Neural) Dump() *Dump {
 func FromDump(dump *Dump) *Neural {
 	n := NewNeural(dump.Config)
 	n.ApplyWeights(dump.Weights)
+	n.ApplyActivations(dump.Activations)
 
 	return n
 }
