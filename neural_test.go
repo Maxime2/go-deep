@@ -7,6 +7,7 @@ import (
 
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/stretchr/testify/assert"
+	"github.com/theothertomelliott/acyclic"
 )
 
 func Test_Init(t *testing.T) {
@@ -131,6 +132,15 @@ func Test_Save_Load(t *testing.T) {
 	t.Log("Doing Load")
 	n2, err := Load(tmpfile.Name())
 	assert.Nil(t, err)
+
+	err = acyclic.Check(n)
+	if err != nil {
+		t.Errorf("n has a cycle")
+	}
+	err = acyclic.Check(n2)
+	if err != nil {
+		t.Errorf("n2 has a cycle")
+	}
 
 	t.Log("Doing Compare")
 	if diff := pretty.Compare(n, n2); diff != "" {

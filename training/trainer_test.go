@@ -328,6 +328,7 @@ func Test_essential_tabulated(t *testing.T) {
 	for _, perm := range permutations {
 		assert.InEpsilon(t, float64(n.Predict(perm.Input)[0]+1), float64(perm.Response[0]+1), 0.2, "input: %+v; want: %+v have: %+v\n", perm.Input, n.Predict(perm.Input)[0]+1, perm.Response[0]+1)
 	}
+	fmt.Printf("Activation (direct): %s\n", n.Layers[0].Neurons[0].A)
 }
 
 
