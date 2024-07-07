@@ -1,7 +1,7 @@
 github.com/Maxime2/gonl v0.0.0-20240420080631-23d7a6b4c615 h1:dzRnS1mdugkcNHFggbZflfcPtxGgPKw9vFyL1SnreWM=
 github.com/Maxime2/gonl v0.0.0-20240420080631-23d7a6b4c615/go.mod h1:USzQa1SqTV6BOkWNz3hH827CrOrsCTPFs0RY9udzTEw=
-github.com/Maxime2/tabulated-function v0.0.0-20240323224817-91b2913e025c h1:d57sS7Bq1x93BWKjjRr1mCnD5WCGs8PUmI0sb6jHrqY=
-github.com/Maxime2/tabulated-function v0.0.0-20240323224817-91b2913e025c/go.mod h1:LOU3X2AsJm8/g4n1HI6iHR8kJdXouLiR3JPMkGmtJ/0=
+github.com/Maxime2/tabulated-function v0.0.0-20240707014749-dd97291adb44 h1:BonBPyoeKkorL6Mr88BCzNXq/M+bnXaz8Nerhqkt8is=
+github.com/Maxime2/tabulated-function v0.0.0-20240707014749-dd97291adb44/go.mod h1:LOU3X2AsJm8/g4n1HI6iHR8kJdXouLiR3JPMkGmtJ/0=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
