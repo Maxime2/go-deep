@@ -49,7 +49,7 @@ func main() {
 	neural := deep.NewNeural(&deep.Config{
 		Inputs:     len(train[0].Input),
 		Layout:     []int{50, 10},
-		Activation: deep.ActivationReLU,
+		Activation: []deep.ActivationType{deep.ActivationReLU},
 		Mode:       deep.ModeMultiClass,
 		Weight:     deep.WeightNormal, // slight positive bias helps ReLU
 	})
@@ -57,7 +57,7 @@ func main() {
 	trainer := training.NewTrainer(training.NewSGD(0.01), neural.Config.LossPrecision, 1)
 	//trainer := training.NewBatchTrainer(training.NewAdam(0.02, 0.9, 0.999, 1e-8), 1, 200, 8)
 
-	fmt.Printf("training: %d, val: %d, test: %d\n", len(train), len(test), len(test))
+	fmt.Printf("inputs: %d, training: %d, val: %d, test: %d\n", len(train[0].Input), len(train), len(test), len(test))
 
 	trainer.Train(neural, train, test, 500)
 }

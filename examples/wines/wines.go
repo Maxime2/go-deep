@@ -33,7 +33,7 @@ func main() {
 	neural := deep.NewNeural(&deep.Config{
 		Inputs:     len(data[0].Input),
 		Layout:     []int{8, 3},
-		Activation: deep.ActivationTanh,
+		Activation: []deep.ActivationType{deep.ActivationTanh},
 		Mode:       deep.ModeMultiClass,
 		Weight:     deep.WeightNormal,
 	})
