@@ -119,7 +119,7 @@ func initializeLayers(c *Config) []*Layer {
 	var activation ActivationType
 	if c.Type == KolmogorovType {
 		layout = append([]int{2*c.Inputs + 1}, c.Layout...)
-		act = append([]ActivationType{ActivationSigmoid}, c.Activation...)
+		act = append([]ActivationType{ActivationLinear}, c.Activation...)
 	} else {
 		layout = append(layout, c.Layout...)
 		act = append(act, c.Activation...)
