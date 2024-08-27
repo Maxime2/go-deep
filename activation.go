@@ -134,8 +134,8 @@ func (a *Tabulated) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() adds new point into tabulated activation function
 func (a *Tabulated) AddPoint(x, y Deepfloat64, cnt int64) {
-	a.direct.AddPoint(float64(x), float64(y), cnt)
-	a.inverse.AddPoint(float64(y), float64(x), cnt)
+	y_inserted := a.direct.AddPoint(float64(x), float64(y), cnt)
+	a.inverse.AddPoint(y_inserted, float64(x), cnt)
 	a.changed = true
 }
 
