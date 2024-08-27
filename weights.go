@@ -14,6 +14,8 @@ const (
 	WeightUniform WeightType = 1
 	// WeightNormal is normal weight function type
 	WeightNormal WeightType = 2
+	// WeightIdentity is to generate 0,1,0,1,0,1,...
+	WeightIdentity WeightType = 3
 )
 
 // A WeightInitializer returns a (random) weight
@@ -25,8 +27,17 @@ func GetWeightFunction(wt WeightType, stdDev, mean float64) WeightInitializer {
 		return NewUniform(stdDev, mean)
 	case WeightNormal:
 		return NewNormal(stdDev, mean)
+	case WeightIdentity:
+		return NewIdentity()
 	}
 	return NewNormal(0.999, 0)
+}
+
+var wI Deepfloat64 = 0
+
+// NewIdentity returns a identity weight generator
+func NewIdentity() WeightInitializer {
+	return func() Deepfloat64 { r := wI; wI = 1 - wI; return r }
 }
 
 // NewUniform returns a uniform weight generator

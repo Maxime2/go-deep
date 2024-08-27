@@ -140,20 +140,27 @@ func initializeLayers(c *Config) []*Layer {
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/20, A)
 	wEps := Deepfloat64(A / 50 / float64(c.Inputs))
+	if c.Type == KolmogorovType {
+		wi = GetWeightFunction(WeightIdentity, 0, 1)
+	}
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
 		if c.InputTags == nil {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
-				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1) + wEps
+				if c.Type != KolmogorovType {
+					neuron.In[i].SetWeight(0, wA)
+					wA += neuron.In[i].GetWeight(1) + wEps
+				}
 			}
 		} else {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
-				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1) + wEps
+				if c.Type != KolmogorovType {
+					neuron.In[i].SetWeight(0, wA)
+					wA += neuron.In[i].GetWeight(1) + wEps
+				}
 			}
 		}
 	}
