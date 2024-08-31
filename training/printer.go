@@ -41,7 +41,7 @@ func (p *StatsPrinter) Init(n *deep.Neural) {
 }
 
 // PrintProgress prints the current state of training
-func (p *StatsPrinter) PrintProgress(n *deep.Neural, validation Examples, elapsed time.Duration, iteration int, completed float64) {
+func (p *StatsPrinter) PrintProgress(n *deep.Neural, validation Examples, elapsed time.Duration, iteration uint32, completed float64) {
 	fmt.Fprintf(p.w, "%s\t%d (%d)\t%s\t%.*e\t%.*e\t%s\n", p.prefix,
 		iteration, n.Config.Epoch+1, //completed,
 		elapsed.String(),

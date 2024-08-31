@@ -81,9 +81,9 @@ type Activation interface {
 	Df(Deepfloat64) Deepfloat64
 	If(Deepfloat64) Deepfloat64
 	Idomain(y, ideal Deepfloat64) Deepfloat64
-	AddPoint(x, y Deepfloat64, cnt int64)
+	AddPoint(x, y Deepfloat64, it uint32, cnt uint64)
 	Points() int
-	GetPoint(i int) (Deepfloat64, Deepfloat64, int64)
+	GetPoint(i int) (Deepfloat64, Deepfloat64, uint64)
 	Domain() (Deepfloat64, Deepfloat64)
 	String() string
 }
@@ -133,20 +133,20 @@ func (a *Tabulated) Df(x Deepfloat64) Deepfloat64 {
 func (a *Tabulated) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() adds new point into tabulated activation function
-func (a *Tabulated) AddPoint(x, y Deepfloat64, cnt int64) {
-	y_inserted := a.direct.AddPoint(float64(x), float64(y), cnt)
-	a.inverse.AddPoint(y_inserted, float64(x), cnt)
+func (a *Tabulated) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {
+	y_inserted := a.direct.AddPoint(float64(x), float64(y), it, cnt)
+	a.inverse.AddPoint(y_inserted, float64(x), it, cnt)
 	a.changed = true
 }
 
 // Points() returns the number of poionts in Tabulated activation
 func (a *Tabulated) Points() int {
-	return len(a.direct.X)
+	return len(a.direct.P)
 }
 
 // GetPoint() returns n-th point in Tabulated activation
-func (a *Tabulated) GetPoint(i int) (Deepfloat64, Deepfloat64, int64) {
-	return Deepfloat64(a.direct.X[i]), Deepfloat64(a.direct.Y[i]), a.direct.Cnt[i]
+func (a *Tabulated) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) {
+	return Deepfloat64(a.direct.P[i].X), Deepfloat64(a.direct.P[i].Y), a.direct.P[i].Cnt
 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
@@ -182,13 +182,13 @@ func (a *Sigmoid) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 }
 
 // AddPoint() do nothing.
-func (a *Sigmoid) AddPoint(x, y Deepfloat64, cnt int64) {}
+func (a *Sigmoid) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {}
 
 // Points() returns 0
 func (a *Sigmoid) Points() int { return 0 }
 
 // GetPoint() returns (0,0)
-func (a *Sigmoid) GetPoint(i int) (Deepfloat64, Deepfloat64, int64) { return 0, 0, 1 }
+func (a *Sigmoid) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 0, 1 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
@@ -247,13 +247,13 @@ func (a *Tanh) Idomain(y, ideal Deepfloat64) Deepfloat64 {
 }
 
 // AddPoint() do nothing.
-func (a *Tanh) AddPoint(x, y Deepfloat64, cnt int64) {}
+func (a *Tanh) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {}
 
 // Points() returns 0
 func (a *Tanh) Points() int { return 0 }
 
 // GetPoint() returns (0,0)
-func (a *Tanh) GetPoint(i int) (Deepfloat64, Deepfloat64, int64) { return 0, 0, 1 }
+func (a *Tanh) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 0, 1 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
@@ -286,13 +286,13 @@ func (a *ReLU) If(y Deepfloat64) Deepfloat64 { return y }
 func (a *ReLU) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() do nothing.
-func (a *ReLU) AddPoint(x, y Deepfloat64, cnt int64) {}
+func (a *ReLU) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {}
 
 // Points() returns 0
 func (a *ReLU) Points() int { return 0 }
 
 // GetPoint() returns (0,0)
-func (a *ReLU) GetPoint(i int) (Deepfloat64, Deepfloat64, int64) { return 0, 0, 1 }
+func (a *ReLU) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 0, 1 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *ReLU) Domain() (Deepfloat64, Deepfloat64) {
@@ -320,13 +320,13 @@ func (a *Linear) If(y Deepfloat64) Deepfloat64 { return y }
 func (a *Linear) Idomain(y, ideal Deepfloat64) Deepfloat64 { return ideal }
 
 // AddPoint() do nothing.
-func (a *Linear) AddPoint(x, y Deepfloat64, cnt int64) {}
+func (a *Linear) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {}
 
 // Points() returns 0
 func (a *Linear) Points() int { return 0 }
 
 // GetPoint() returns (0,0)
-func (a *Linear) GetPoint(i int) (Deepfloat64, Deepfloat64, int64) { return 0, 0, 1 }
+func (a *Linear) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 0, 1 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Linear) Domain() (Deepfloat64, Deepfloat64) {

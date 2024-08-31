@@ -70,7 +70,7 @@ func (t *BatchTrainer) SetPrefix(prefix string) {
 }
 
 // Train trains n
-func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iterations int) {
+func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iterations uint32) {
 	t.internalb = newBatchTraining(n.Layers, t.parallelism)
 
 	train := make(Examples, len(examples))
@@ -97,7 +97,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 	t.solver.Init(n.Layers)
 
 	ts := time.Now()
-	for it := 1; it <= iterations; it++ {
+	for it := uint32(1); it <= iterations; it++ {
 		train.Shuffle()
 		batches := train.SplitSize(t.batchSize)
 
@@ -129,7 +129,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 			t.update(n, it)
 		}
 
-		if t.verbosity > 0 && it%t.verbosity == 0 && len(validation) > 0 {
+		if t.verbosity > 0 && it%uint32(t.verbosity) == 0 && len(validation) > 0 {
 			n.TotalError = 0.0 //deep.TotalError(t.E[len(n.Layers)-1])
 			t.printer.PrintProgress(n, validation, time.Since(ts), it, 0.0)
 		}
@@ -181,7 +181,7 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64,
 	}
 }
 
-func (t *BatchTrainer) update(n *deep.Neural, it int) {
+func (t *BatchTrainer) update(n *deep.Neural, it uint32) {
 	var idx int
 	for i, l := range n.Layers {
 		iAD := t.accumulatedDeltas[i]

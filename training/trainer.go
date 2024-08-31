@@ -74,7 +74,7 @@ func (t *OnlineTrainer) SetPrefix(prefix string) {
 }
 
 // Train trains n
-func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, iterations int) {
+func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, iterations uint32) {
 	t.internal = newTraining(n.Layers)
 
 	//train := make(Examples, len(examples))
@@ -85,7 +85,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	t.solver.Init(n.Layers)
 
 	ts := time.Now()
-	for i := 1; i <= iterations; i++ {
+	for i := uint32(1); i <= iterations; i++ {
 		var completed int
 		examples.Shuffle()
 		//t.solver.InitGradients()
@@ -101,7 +101,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		}
 		//t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
 		//completed = t.adjust(n, i)
-		if t.verbosity > 0 && i%t.verbosity == 0 && len(validation) > 0 {
+		if t.verbosity > 0 && i%uint32(t.verbosity) == 0 && len(validation) > 0 {
 			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
 			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
@@ -114,7 +114,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
 }
 
-func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it int) int {
+func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it uint32) int {
 	n.Forward(e.Input)
 	t.calculateDeltas(n, e.Response)
 	return t.update(n, it)
@@ -220,7 +220,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	t.solver.ConcludeLr()
 }
 
-func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
+func (t *OnlineTrainer) update(neural *deep.Neural, it uint32) int {
 	if neural.Config.TrainerMode == deep.UpdateTopDown {
 		return t.update2(neural, it)
 	}
@@ -228,7 +228,7 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it int) int {
 }
 
 // Update from top down
-func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
+func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 	var completed int
 	var update deep.Deepfloat64
 	bottom := 0
@@ -242,7 +242,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 		for j, n := range l.Neurons {
 			switch l.A {
 			case deep.ActivationTabulated:
-				n.A.AddPoint(n.Sum, n.Desired, 1)
+				n.A.AddPoint(n.Sum, n.Desired, it, 1)
 				Lcompleted++
 			default:
 				for s, synapse := range l.Neurons[j].In {
@@ -283,7 +283,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it int) int {
 }
 
 // Update from bootom up
-func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
+func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 	var completed int
 	var update deep.Deepfloat64
 	for i, l := range neural.Layers {
@@ -294,7 +294,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it int) int {
 		for j, n := range l.Neurons {
 			switch l.A {
 			case deep.ActivationTabulated:
-				n.A.AddPoint(n.Sum, n.Desired, 1)
+				n.A.AddPoint(n.Sum, n.Desired, it, 1)
 				Lcompleted++
 			default:
 				for s, synapse := range l.Neurons[j].In {

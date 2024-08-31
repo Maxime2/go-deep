@@ -7,7 +7,7 @@ import (
 // Point is a point in Tabulated activation
 type Point struct {
 	X, Y Deepfloat64
-	Cnt  int64
+	Cnt  uint64
 }
 
 // Dump is a neural network dump
@@ -50,7 +50,7 @@ func (n Neural) ApplyActivations(points [][]Point) {
 			for _, n := range l.Neurons {
 				npoints := len(points[current])
 				for i := 0; i < npoints; i++ {
-					n.A.AddPoint(points[current][i].X, points[current][i].Y, points[current][i].Cnt)
+					n.A.AddPoint(points[current][i].X, points[current][i].Y, 0, points[current][i].Cnt)
 				}
 				current++
 			}
