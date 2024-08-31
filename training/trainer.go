@@ -107,6 +107,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
 		}
 		n.Config.Epoch++
+		t.epoch(n, i)
 		if completed == numWeights {
 			break
 		}
@@ -280,6 +281,23 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 		}
 	}
 	return completed
+}
+
+// Set epoch for Tabulated Activations
+func (t *OnlineTrainer) epoch(neural *deep.Neural, epoch uint32) {
+	if neural.Config.Type != deep.KolmogorovType {
+		return
+	}
+	for i := len(neural.Layers) - 1; i >= 1; i-- {
+		l := neural.Layers[i]
+		if l.A != deep.ActivationTabulated {
+			continue
+		}
+		for _, n := range l.Neurons {
+			n.A.Epoch(epoch)
+		}
+	}
+
 }
 
 // Update from bootom up

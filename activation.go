@@ -85,6 +85,7 @@ type Activation interface {
 	Points() int
 	GetPoint(i int) (Deepfloat64, Deepfloat64, uint64)
 	Domain() (Deepfloat64, Deepfloat64)
+	Epoch(uint32)
 	String() string
 }
 
@@ -159,6 +160,13 @@ func (a *Tabulated) String() string {
 	return a.direct.String()
 }
 
+// Epoch() set epoch for tabulated functions
+func (a *Tabulated) Epoch(epoch uint32) {
+	a.direct.Epoch(epoch)
+	a.inverse.Epoch(epoch)
+	a.derivative.Epoch(epoch)
+}
+
 // Sigmoid is a logistic activator in the special case of a = 1
 type Sigmoid struct{}
 
@@ -198,6 +206,10 @@ func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
 // String() rreturn "Sigmoid"
 func (a *Sigmoid) String() string {
 	return "Sigmoid"
+}
+
+// Epoch() set epoch for tabulated functions
+func (a *Sigmoid) Epoch(epoch uint32) {
 }
 
 // Logistic is the logistic function
@@ -260,6 +272,10 @@ func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
 }
 
+// Epoch() set epoch for tabulated functions
+func (a *Tanh) Epoch(epoch uint32) {
+}
+
 // String() return "Tanh"
 func (a *Tanh) String() string {
 	return "Tanh"
@@ -299,6 +315,10 @@ func (a *ReLU) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
 }
 
+// Epoch() set epoch for tabulated functions
+func (a *ReLU) Epoch(epoch uint32) {
+}
+
 // String() return "ReLU"
 func (a *ReLU) String() string {
 	return "ReLU"
@@ -331,6 +351,10 @@ func (a *Linear) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Linear) Domain() (Deepfloat64, Deepfloat64) {
 	return 0, 1
+}
+
+// Epoch() set epoch for tabulated functions
+func (a *Linear) Epoch(epoch uint32) {
 }
 
 // String() return "Linear"
