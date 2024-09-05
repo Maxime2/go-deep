@@ -138,7 +138,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 		t.D_E_x[len(n.Layers)-1][i] = t.D_E_y[len(n.Layers)-1][i] * neuron.DActivate(neuron.Value)
 		//fmt.Printf("    i:%v; dE_y: %v; dE_x: %v -- neuron.DActivate: %v\n", i, t.D_E_y[len(n.Layers)-1][i], t.D_E_x[len(n.Layers)-1][i], neuron.DActivate(neuron.Value))
 
-		var den deep.Deepfloat64
+		var den deep.Deepfloat64 = 0
 
 		for _, synapse := range neuron.In {
 			den += synapse.FireDelta(t.D_E_x[len(n.Layers)-1][i])
@@ -157,29 +157,14 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//var sum deep.Deepfloat64
 			var sum_y deep.Deepfloat64
 			var n_ideal deep.Deepfloat64
-			var cnt int
 			for k, s := range neuron.Out {
 				//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
-				//if math.Signbit(float64(s.Up.Ideal)) != math.Signbit(float64(s.Out)) {
-				//	n_ideal += s.Up.Ideal * s.Up.Sum
-				//} else {
-				//n_ideal += s.In * s.Up.Ideal / s.Up.Sum
 
-				//if s.Out < 0 {
-				//	n_ideal += s.In * s.Up.Sum / s.Up.Ideal
-				//} else {
-				//	n_ideal += s.In * s.Up.Ideal / s.Up.Sum
-				//}
-
-				if math.Abs(float64(s.Weights[1])) > deep.Eps {
-					cnt++
 					gap := (s.Up.Ideal - s.Up.Sum) / deep.Deepfloat64(len(s.Up.In))
 					n_ideal += (gap + s.Out - s.Weights[0]) / s.Weights[1]
 					//fmt.Printf("\t\tcnt:%v; gap: %v == n_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n",
 					//	cnt, gap, n_ideal, s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
-				}
 
-				//}
 				fd := s.FireDerivative()
 				//sum += fd * t.deltas[i+1][k]
 				sum_y += fd * t.D_E_x[i+1][k]
@@ -189,7 +174,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			//	t.deltas[i][j] = sum
 			//}
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
-			n_ideal = n_ideal / deep.Deepfloat64(cnt)
+			n_ideal = n_ideal / deep.Deepfloat64(len(neuron.Out) + 1)
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v\n", i, j, n_ideal)
 			n_ideal = neuron.A.Idomain(neuron.Value, n_ideal)
 			//fmt.Printf("\t ** i:%v; j:%v; n_ideal: %v - Idomain; value: %v\n", i, j, n_ideal, neuron.Value)
