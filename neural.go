@@ -140,19 +140,14 @@ func initializeLayers(c *Config) []*Layer {
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(c.Weight, A/20, A)
 	wEps := Deepfloat64(A / 50 / float64(c.Inputs))
-	if c.Type == KolmogorovType {
-		wi = GetWeightFunction(WeightIdentity, 0, 1)
-	}
 	for _, neuron := range layers[0].Neurons {
 		neuron.In = make([]*Synapse, c.Inputs)
 
 		if c.InputTags == nil {
 			for i := range neuron.In {
 				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
-				if c.Type != KolmogorovType {
-					neuron.In[i].SetWeight(0, wA)
-					wA += neuron.In[i].GetWeight(1) + wEps
-				}
+				neuron.In[i].SetWeight(0, wA)
+				wA += neuron.In[i].GetWeight(1) + wEps
 			}
 		} else {
 			for i := range neuron.In {
@@ -166,7 +161,11 @@ func initializeLayers(c *Config) []*Layer {
 	}
 
 	for i := 0; i < len(layers)-1; i++ {
-		layers[i].Connect(layers[i+1], c.Degree, c.Weight)
+		weight := c.Weight
+		if c.Type == KolmogorovType {
+			weight = WeightIdentity
+		}
+		layers[i].Connect(layers[i+1], c.Degree, weight)
 	}
 
 	return layers
@@ -357,7 +356,7 @@ func (n *Neural) Net(path string) error {
 	for l, lr := range n.Layers {
 		fmt.Fprintf(f, "L: %d\n", l)
 		for n, nr := range lr.Neurons {
-			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v;\n", n, nr.Sum, nr.Value)
+			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v; Ideal: %v; Desired: %v\n", n, nr.Sum, nr.Value, nr.Ideal, nr.Desired)
 			fmt.Fprintf(f, "        Activation: %v\n", nr.A.String())
 			for _, in := range nr.In {
 				fmt.Fprintf(f, " [%v %v]", in.In, in.Out)

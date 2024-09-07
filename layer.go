@@ -35,7 +35,7 @@ func (l *Layer) Fire() {
 	}()
 
 	go func() {
-		for j := ln/2; j < ln; j++ {
+		for j := ln / 2; j < ln; j++ {
 			l.Neurons[j].fire()
 		}
 		cl <- struct{}{}
@@ -43,11 +43,11 @@ func (l *Layer) Fire() {
 	<-cl
 	<-cl
 
-/*
-	for _, n := range l.Neurons {
-		n.fire()
-	}
-*/
+	/*
+		for _, n := range l.Neurons {
+			n.fire()
+		}
+	*/
 
 	if l.A == ActivationSoftmax {
 		outs := make([]Deepfloat64, len(l.Neurons))
@@ -82,15 +82,17 @@ func (l *Layer) Refire() {
 func (l *Layer) Connect(next *Layer, degree int, weight WeightType) {
 	num_neurons := len(l.Neurons)
 	domain_min, domain_max := next.Neurons[0].A.Domain()
-	A := float64(2 * (domain_max-domain_min)) / float64(num_neurons) / float64(num_neurons) / float64(len(next.Neurons)) / float64(degree + 1)
+	A := float64(2*(domain_max-domain_min)) / float64(num_neurons) / float64(num_neurons) / float64(len(next.Neurons)) / float64(degree+1)
 	wA := Deepfloat64(domain_min)
 	wi := GetWeightFunction(weight, A/20, A)
-	wEps := Deepfloat64(A/50/float64(num_neurons))
+	wEps := Deepfloat64(A / 50 / float64(num_neurons))
 	for j, neuron := range next.Neurons {
 		for i := range l.Neurons {
 			syn := NewSynapseWithTag(neuron, degree, wi, fmt.Sprintf("L:%d N:%d", l.Number, i))
-			syn.SetWeight(0, wA)
-			wA += syn.GetWeight(1) + wEps
+			if weight != WeightIdentity {
+				syn.SetWeight(0, wA)
+				wA += syn.GetWeight(1) + wEps
+			}
 			l.Neurons[i].Out = append(l.Neurons[i].Out, syn)
 			next.Neurons[j].In = append(next.Neurons[j].In, syn)
 		}

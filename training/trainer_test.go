@@ -308,6 +308,7 @@ func Test_essential_tabulated(t *testing.T) {
 	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000)
 	trainer.SetPrefix("essential-tabulated ")
 	n.Dot("essential-tabulated-test-0.dot")
+	n.SaveReadable("essential-tabulated-test-0.neural")
 	stats := n.InputStats()
 	stats.Save(n, true, "essential-tabulated-test-0.stats")
 	trainer.Train(n, permutations, permutations, 500000)
