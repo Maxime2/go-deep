@@ -1,7 +1,6 @@
 package training
 
 import (
-	"fmt"
 	"math"
 	"os"
 	"time"
@@ -229,20 +228,12 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 			switch l.A {
 			case deep.ActivationTabulated:
 				n.A.AddPoint(n.Sum, n.Desired, it, 1)
-				if n.Value != n.Desired {
-					fmt.Printf("* it: %v, L: %v; N: %v; -- Sum: %v; -- Value: %v; Desired: %v;\n",
-						it, i, j, n.Sum, n.Value, n.Desired)
-				}
 				fallthrough
 			default:
 				for s, synapse := range n.In {
 					switch l.S {
 					case deep.SynapseTypeTabulated:
 						synapse.AddPoint(synapse.GetIn(), n.Ideal/deep.Deepfloat64(len(n.In)), it, 1)
-						if j == 0 && s == 0 && n.Value != n.Desired {
-							fmt.Printf("* it: %v, L: %v; N: %v; -- Sum: %v; -- Ideal: %v; Out: %v; -- In: %v\n",
-								it, i, j, n.Sum, n.Ideal, synapse.GetOut(), synapse.GetIn())
-						}
 					case deep.SynapseTypeAnalytic:
 						for k := 0; k < synapse.Len(); k++ {
 							gradient := synapse.GetGradient(t.D_E_x[i][j], k)
