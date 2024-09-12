@@ -58,8 +58,8 @@ func Test_Forward(t *testing.T) {
 	for i, l := range n.Layers {
 		for j, n := range l.Neurons {
 			for k := 0; k < 3; k++ {
-				n.In[k].Weights[0] = 0
-				n.In[k].Weights[1] = weights[i][j][k]
+				n.In[k].SetWeight(0, 0)
+				n.In[k].SetWeight(1, weights[i][j][k])
 			}
 		}
 	}
@@ -111,8 +111,8 @@ func Test_Save_Load(t *testing.T) {
 	for i, l := range n.Layers {
 		for j, n := range l.Neurons {
 			for k := 0; k < 3; k++ {
-				n.In[k].Weights[0] = 0
-				n.In[k].Weights[1] = weights[i][j][k]
+				n.In[k].SetWeight(0, 0)
+				n.In[k].SetWeight(1, weights[i][j][k])
 			}
 		}
 	}

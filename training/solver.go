@@ -17,7 +17,7 @@ import (
 type Solver interface {
 	Init(layers []*deep.Layer)
 	SetGradient(i, j, s, k int, gradient deep.Deepfloat64)
-	Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration uint32) deep.Deepfloat64
+	Adjust(neuron *deep.Neuron, synapse deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration uint32) deep.Deepfloat64
 	Save(path string) error
 	Load(path string) error
 	SetLr(i, j int, lr float64)
@@ -58,8 +58,8 @@ func (o *SGD) Init(layers []*deep.Layer) {
 			o.Moments[i][j] = make([][]deep.Deepfloat64, len(n.In))
 			o.Gradients[i][j] = make([][]deep.Deepfloat64, len(n.In))
 			for k, synapse := range l.Neurons[j].In {
-				o.Moments[i][j][k] = make([]deep.Deepfloat64, len(synapse.Weights))
-				o.Gradients[i][j][k] = make([]deep.Deepfloat64, len(synapse.Weights))
+				o.Moments[i][j][k] = make([]deep.Deepfloat64, synapse.Len())
+				o.Gradients[i][j][k] = make([]deep.Deepfloat64, synapse.Len())
 			}
 		}
 	}
@@ -91,7 +91,7 @@ func (o *SGD) ConcludeLr() {
 }
 
 // Adjust() returns the update for a given weight and adjusts learnig rate based on gradint signs
-func (o *SGD) Adjust(neuron *deep.Neuron, synapse *deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration uint32) deep.Deepfloat64 {
+func (o *SGD) Adjust(neuron *deep.Neuron, synapse deep.Synapse, i, j, s, k int, gradient deep.Deepfloat64, iteration uint32) deep.Deepfloat64 {
 	var newValue deep.Deepfloat64
 	//var lr float64
 	//fx := o.Gradients[i][j][s][k]

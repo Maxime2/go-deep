@@ -88,16 +88,16 @@ func (n *Neural) InputStats() InputStats {
 	Layer := n.Layers[0]
 	for _, neuron := range Layer.Neurons {
 		for _, syn := range neuron.In {
-			s, ok := stats[syn.Tag]
+			s, ok := stats[syn.GetTag()]
 			if !ok {
-				stats[syn.Tag] = NewInputStatsBase(n.Config.Degree)
-				s = stats[syn.Tag]
+				stats[syn.GetTag()] = NewInputStatsBase(n.Config.Degree)
+				s = stats[syn.GetTag()]
 			}
 			for k := 0; k <= n.Config.Degree; k++ {
 				if s.isNew(k) {
-					s.Init(k, syn.Weights[k])
+					s.Init(k, syn.GetWeight(k))
 				} else {
-					s.Update(k, syn.Weights[k])
+					s.Update(k, syn.GetWeight(k))
 				}
 			}
 		}
@@ -117,10 +117,10 @@ func (n *Neural) SignOnStats(stats InputStats) {
 				if ratio < -Bar || ratio > -1/Bar {
 					for _, neuron := range Layer.Neurons {
 						for _, syn := range neuron.In {
-							if syn.Tag == key &&
-								((syn.Weights[k] < 0 && ratio < -Bar) ||
-									(syn.Weights[k] > 0 && ratio > -1/Bar)) {
-								syn.Weights[k] *= -1
+							if syn.GetTag() == key &&
+								((syn.GetWeight(k) < 0 && ratio < -Bar) ||
+									(syn.GetWeight(k) > 0 && ratio > -1/Bar)) {
+								syn.SetWeight(k, syn.GetWeight(k)*-1)
 							}
 						}
 					}

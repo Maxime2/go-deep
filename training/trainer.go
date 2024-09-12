@@ -1,6 +1,7 @@
 package training
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"time"
@@ -160,8 +161,8 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			for k, s := range neuron.Out {
 				//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
 
-				gap := (s.Up.Ideal - s.Up.Sum) / deep.Deepfloat64(len(s.Up.In))
-				n_ideal += (gap + s.Out - s.Weights[0]) / s.Weights[1]
+				gap := (s.GetUp().Ideal - s.GetUp().Sum) / deep.Deepfloat64(len(s.GetUp().In))
+				n_ideal += (gap + s.GetOut() - s.GetWeight(0)) / s.GetWeight(1)
 				//fmt.Printf("\t\tcnt:%v; gap: %v == n_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n",
 				//	cnt, gap, n_ideal, s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
 
@@ -222,51 +223,44 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 		bottom = 1
 	}
 	for i := len(neural.Layers) - 1; i >= bottom; i-- {
-		var Lcompleted int
 		l := neural.Layers[i]
 
 		for j, n := range l.Neurons {
 			switch l.A {
 			case deep.ActivationTabulated:
-				Value := n.Value + (n.Desired-n.Value)/deep.Deepfloat64(len(n.Out)+1)
-				if math.IsNaN(float64(n.Value)) {
-					Value = n.Desired
+				n.A.AddPoint(n.Sum, n.Desired, it, 1)
+				if n.Value != n.Desired {
+					fmt.Printf("* it: %v, L: %v; N: %v; -- Sum: %v; -- Value: %v; Desired: %v;\n",
+						it, i, j, n.Sum, n.Value, n.Desired)
 				}
-				n.A.AddPoint(n.Sum, Value, it, 1)
-				Lcompleted++
+				fallthrough
 			default:
-				for s, synapse := range l.Neurons[j].In {
-					for k := 0; k < len(synapse.Weights); k++ {
-						gradient := synapse.GetGradient(t.D_E_x[i][j], k)
+				for s, synapse := range n.In {
+					switch l.S {
+					case deep.SynapseTypeTabulated:
+						synapse.AddPoint(synapse.GetIn(), n.Ideal/deep.Deepfloat64(len(n.In)), it, 1)
+						if j == 0 && s == 0 && n.Value != n.Desired {
+							fmt.Printf("* it: %v, L: %v; N: %v; -- Sum: %v; -- Ideal: %v; Out: %v; -- In: %v\n",
+								it, i, j, n.Sum, n.Ideal, synapse.GetOut(), synapse.GetIn())
+						}
+					case deep.SynapseTypeAnalytic:
+						for k := 0; k < synapse.Len(); k++ {
+							gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 
-						if !synapse.IsComplete[k] {
 							delta := t.solver.Adjust(n, synapse, i, j, s, k, gradient, it)
 
-							update = (synapse.Weights[k] + delta)
+							update = (synapse.GetWeight(k) + delta)
 
 							if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
-								if it > 2 {
-									if (update-synapse.Weights[k])/(1-(update-synapse.Weights[k])/(synapse.Weights[k]-synapse.Weights_1[k])) < deep.Eps {
-										//synapse.IsComplete[k] = true
-										Lcompleted++
-									}
-								}
-								synapse.Weights_1[k] = synapse.Weights[k]
-								synapse.Weights[k] = update
+								synapse.SetWeight(k, update)
 								// re-fire synapse with updated weights
-								//synapse.Fire(synapse.In)
+								//synapse.Refire()
 							}
 
-						} else {
-							Lcompleted++
 						}
 					}
 				}
 			}
-		}
-		completed += Lcompleted
-		if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
-			break
 		}
 	}
 	return completed
@@ -279,11 +273,15 @@ func (t *OnlineTrainer) epoch(neural *deep.Neural, epoch uint32) {
 	}
 	for i := len(neural.Layers) - 1; i >= 1; i-- {
 		l := neural.Layers[i]
-		if l.A != deep.ActivationTabulated {
-			continue
-		}
 		for _, n := range l.Neurons {
-			n.A.Epoch(epoch)
+			if l.A == deep.ActivationTabulated {
+				n.A.Epoch(epoch)
+			}
+			if l.S == deep.SynapseTypeTabulated {
+				for _, s := range n.In {
+					s.Epoch(epoch)
+				}
+			}
 		}
 	}
 
@@ -297,45 +295,35 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 		if neural.Config.Type == deep.KolmogorovType && i == 0 {
 			continue
 		}
-		var Lcompleted int
 		for j, n := range l.Neurons {
 			switch l.A {
 			case deep.ActivationTabulated:
-				Value := n.Value + (n.Desired-n.Value)/deep.Deepfloat64(len(n.Out)+1)
-				if math.IsNaN(float64(n.Value)) {
-					Value = n.Desired
-				}
-				n.A.AddPoint(n.Sum, Value, it, 1)
-				Lcompleted++
+				n.A.AddPoint(n.Sum, n.Desired, it, 1)
+				fallthrough
 			default:
-				for s, synapse := range l.Neurons[j].In {
-					for k := 0; k < len(synapse.Weights); k++ {
-						gradient := synapse.GetGradient(t.D_E_x[i][j], k)
-						//t.solver.SetGradient(i, j, s, k, gradient)
+				for s, synapse := range n.In {
+					for k := 0; k < synapse.Len(); k++ {
+						switch l.S {
+						case deep.SynapseTypeTabulated:
+							synapse.AddPoint(synapse.GetIn(), n.Ideal/deep.Deepfloat64(len(n.In)), it, 1)
+						case deep.SynapseTypeAnalytic:
+							gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 
-						if !synapse.IsComplete[k] {
 							delta := t.solver.Adjust(n, synapse, i, j, s, k, gradient, it)
 
-							update = (synapse.Weights[k] + delta)
+							update = (synapse.GetWeight(k) + delta)
 
 							if !math.IsNaN(float64(update)) && !math.IsInf(float64(update), 0) {
-								synapse.Weights_1[k] = synapse.Weights[k]
-								synapse.Weights[k] = update
+								//synapse.Weights_1[k] = synapse.Weights[k]
+								synapse.SetWeight(k, update)
 								// re-fire synapse with updated weights
-								//synapse.Fire(synapse.In)
+								//synapse.Refire()
 							}
-
-						} else {
-							Lcompleted++
 						}
 					}
 				}
 			}
 		}
-		completed += Lcompleted
-		//if Lcompleted < l.NumIns()*(neural.Config.Degree+1) {
-		//	break
-		//}
 		//l.Refire()
 	}
 	return completed

@@ -175,7 +175,7 @@ func (t *BatchTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64,
 			jD := iD[j]
 			jPD := iPD[j]
 			for k, s := range n.In {
-				jPD[k] += jD * s.In
+				jPD[k] += jD * s.GetIn()
 			}
 		}
 	}
@@ -190,9 +190,9 @@ func (t *BatchTrainer) update(n *deep.Neural, it uint32) {
 			for k, s := range n.In {
 				// jAD[k]
 				delta := t.solver.Adjust(n, s, i, j, k, 1, 0, it)
-				update := s.Weights[1] + delta
+				update := s.GetWeight(1) + delta
 				if !math.IsNaN(float64(update)) {
-					s.Weights[1] = update
+					s.SetWeight(1, update)
 				}
 				jAD[k] = 0
 				idx++

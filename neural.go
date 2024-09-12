@@ -57,6 +57,8 @@ type Config struct {
 	// Activation functions: {ActivationTanh, ActivationReLU, ActivationSigmoid,
 	//	                      ActivationLinear, ActivationSoftmax, ActivationTabulated}
 	Activation []ActivationType
+	// Defines synapses type per between input and the botton layer and between layers
+	Synapse []SynapseType
 	// Solver modes: {ModeRegression, ModeBinary, ModeMultiClass, ModeMultiLabel}
 	Mode Mode
 	// Weight Initialiser type: {NewNormal(σ, μ), NewUniform(σ, μ)}
@@ -87,6 +89,18 @@ func NewNeural(c *Config) *Neural {
 		}
 		c.Activation[len(c.Activation)-1] = OutputActivation(c.Mode)
 	}
+	if c.Synapse == nil {
+		c.Synapse = make([]SynapseType, len(c.Layout))
+		for i := range c.Synapse {
+			c.Synapse[i] = SynapseTypeAnalytic
+		}
+	}
+	if c.InputTags == nil {
+		c.InputTags = make([]string, c.Inputs)
+		for i := range c.InputTags {
+			c.InputTags[i] = fmt.Sprintf("In:%d", i)
+		}
+	}
 	if c.Loss == LossNone {
 		switch c.Mode {
 		case ModeMultiClass, ModeMultiLabel:
@@ -115,57 +129,27 @@ func NewNeural(c *Config) *Neural {
 
 func initializeLayers(c *Config) []*Layer {
 	var layout []int
-	var act []ActivationType
-	var activation ActivationType
+	var activation []ActivationType
+	var synapse []SynapseType
 	if c.Type == KolmogorovType {
 		layout = append([]int{2*c.Inputs + 1}, c.Layout...)
-		act = append([]ActivationType{ActivationLinear}, c.Activation...)
+		activation = append([]ActivationType{ActivationLinear}, c.Activation...)
+		synapse = append([]SynapseType{SynapseTypeAnalytic}, c.Synapse...)
 	} else {
 		layout = append(layout, c.Layout...)
-		act = append(act, c.Activation...)
+		activation = append(activation, c.Activation...)
+		synapse = append(synapse, c.Synapse...)
 	}
 
 	layers := make([]*Layer, len(layout))
 	for i := range layers {
-		index := i
-		if index > len(act)-1 {
-			index = len(act) - 1
-		}
-		activation = act[index]
-		layers[i] = NewLayer(i, layout[i], activation)
+		layers[i] = NewLayer(i, layout[i], activation[i], synapse[i])
 	}
 
-	domain_min, domain_max := GetActivation(act[0]).Domain()
-	A := float64(2*(domain_max-domain_min)) / float64(c.Inputs) / float64(c.Inputs) / float64(len(layers[0].Neurons)) / float64(c.Degree+1)
-	wA := Deepfloat64(domain_min)
-	wi := GetWeightFunction(c.Weight, A/20, A)
-	wEps := Deepfloat64(A / 50 / float64(c.Inputs))
-	for _, neuron := range layers[0].Neurons {
-		neuron.In = make([]*Synapse, c.Inputs)
-
-		if c.InputTags == nil {
-			for i := range neuron.In {
-				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, fmt.Sprintf("In:%d", i))
-				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1) + wEps
-			}
-		} else {
-			for i := range neuron.In {
-				neuron.In[i] = NewSynapseWithTag(neuron, c.Degree, wi, c.InputTags[i])
-				if c.Type != KolmogorovType {
-					neuron.In[i].SetWeight(0, wA)
-					wA += neuron.In[i].GetWeight(1) + wEps
-				}
-			}
-		}
-	}
+	layers[0].CreateInputSynapses(c)
 
 	for i := 0; i < len(layers)-1; i++ {
-		weight := c.Weight
-		if c.Type == KolmogorovType {
-			weight = WeightIdentity
-		}
-		layers[i].Connect(layers[i+1], c.Degree, weight)
+		layers[i].Connect(layers[i+1], c)
 	}
 
 	return layers
@@ -280,7 +264,7 @@ func (n *Neural) NumWeights() (num int) {
 func (n *Neural) String() string {
 	var s string
 	for _, l := range n.Layers {
-		s = fmt.Sprintf("%s\n%s", s, l)
+		s = fmt.Sprintf("%s\n%v", s, l)
 	}
 	return s
 }
@@ -335,7 +319,8 @@ func (n *Neural) Dot(path string) error {
 	for l, lr := range n.Layers {
 		for n, nr := range lr.Neurons {
 			for _, in := range nr.In {
-				fmt.Fprintf(f, "\"%s\" -> \"L:%d N:%d\"[label=\"%v\"]\n", in.Tag, l, n, in.Weights)
+				fmt.Fprintf(f, "\"%s\" -> \"L:%d N:%d\"[label=\"%v\"]\n",
+					in.GetTag(), l, n, in.WeightsString())
 			}
 		}
 	}
@@ -359,7 +344,7 @@ func (n *Neural) Net(path string) error {
 			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v; Ideal: %v; Desired: %v\n", n, nr.Sum, nr.Value, nr.Ideal, nr.Desired)
 			fmt.Fprintf(f, "        Activation: %v\n", nr.A.String())
 			for _, in := range nr.In {
-				fmt.Fprintf(f, " [%v %v]", in.In, in.Out)
+				fmt.Fprintf(f, " [%v %v]", in.GetIn(), in.GetOut())
 			}
 			fmt.Fprintf(f, "\n")
 		}

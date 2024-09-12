@@ -7,8 +7,8 @@ import (
 // Neuron is a neural network node
 type Neuron struct {
 	A              Activation
-	In             []*Synapse
-	Out            []*Synapse
+	In             []Synapse
+	Out            []Synapse
 	Ideal, Desired Deepfloat64
 	Sum, Value     Deepfloat64
 	Ln             Deepfloat64
@@ -24,7 +24,7 @@ func NewNeuron(activation ActivationType) *Neuron {
 func (n *Neuron) fire() {
 	n.Sum = 0
 	for _, s := range n.In {
-		preliminarySum := n.Sum + s.Out
+		preliminarySum := n.Sum + s.GetOut()
 		if !math.IsNaN(float64(preliminarySum)) {
 			n.Sum = preliminarySum
 		}
@@ -41,7 +41,7 @@ func (n *Neuron) refire() {
 	n.Sum = 0
 	for _, s := range n.In {
 		s.Refire()
-		preliminarySum := n.Sum + s.Out
+		preliminarySum := n.Sum + s.GetOut()
 		if !math.IsNaN(float64(preliminarySum)) {
 			n.Sum = preliminarySum
 		}
@@ -62,106 +62,4 @@ func (n *Neuron) Activate(x Deepfloat64) Deepfloat64 {
 // DActivate applies the derivative of the neurons activation
 func (n *Neuron) DActivate(x Deepfloat64) Deepfloat64 {
 	return n.A.Df(x)
-}
-
-// Synapse is an edge between neurons
-type Synapse struct {
-	Weights    []Deepfloat64
-	Weights_1  []Deepfloat64
-	IsComplete []bool
-	Up         *Neuron
-	In, Out    Deepfloat64
-	IsBias     bool
-	Tag        string
-}
-
-// NewSynapse returns a synapse with the weigths set with specified initializer
-func NewSynapse(up *Neuron, degree int, weight WeightInitializer) *Synapse {
-	var weights = make([]Deepfloat64, degree+1)
-	var weights_1 = make([]Deepfloat64, degree+1)
-	var isComplete = make([]bool, degree+1)
-	for i := 0; i <= degree; i++ {
-		weights[i] = weight()
-	}
-	return &Synapse{
-		Weights:    weights,
-		Weights_1:  weights_1,
-		IsComplete: isComplete,
-		In:         0,
-		Out:        0,
-		IsBias:     false,
-		Tag:        "",
-		Up:         up,
-	}
-}
-
-// NewSynapseWithTag returns a synapse with the weigths preset with specified initializer
-// and marked with specified tag
-func NewSynapseWithTag(up *Neuron, degree int, weight WeightInitializer, tag string) *Synapse {
-	var weights = make([]Deepfloat64, degree+1)
-	var weights_1 = make([]Deepfloat64, degree+1)
-	var isComplete = make([]bool, degree+1)
-	for i := 0; i <= degree; i++ {
-		weights[i] = weight()
-	}
-	return &Synapse{
-		Weights:    weights,
-		Weights_1:  weights_1,
-		IsComplete: isComplete,
-		In:         0,
-		Out:        0,
-		IsBias:     false,
-		Tag:        tag,
-		Up:         up,
-	}
-}
-
-func (s *Synapse) Refire() {
-	mul := Deepfloat64(1)
-	s.Out = 0
-	for k := 0; k < len(s.Weights); k++ {
-		s.Out += s.Weights[k] * mul
-		mul *= s.In
-	}
-}
-
-func (s *Synapse) Fire(value Deepfloat64) {
-	s.In = value
-	s.Refire()
-}
-
-func (s *Synapse) FireDerivative() Deepfloat64 {
-	mul := Deepfloat64(1)
-	var res Deepfloat64
-	for k := 1; k < len(s.Weights); k++ {
-		res += Deepfloat64(k) * mul * s.Weights[k]
-		mul *= s.In
-	}
-	return res
-}
-
-func (s *Synapse) SetTag(tag string) {
-	s.Tag = tag
-}
-
-func (s *Synapse) SetWeight(k int, weight Deepfloat64) {
-	s.Weights[k] = weight
-}
-
-func (s *Synapse) GetGradient(D_E_x Deepfloat64, k int) Deepfloat64 {
-	return D_E_x * Deepfloat64(math.Pow(float64(s.In), float64(k)))
-}
-
-func (s *Synapse) GetWeight(k int) Deepfloat64 {
-	return s.Weights[k]
-}
-
-func (s *Synapse) FireDelta(D_E_x Deepfloat64) Deepfloat64 {
-	mul := Deepfloat64(1)
-	var res Deepfloat64
-	for k := 0; k < len(s.Weights); k++ {
-		res += mul * s.GetGradient(D_E_x, k)
-		mul *= s.In
-	}
-	return res
 }
