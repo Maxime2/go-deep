@@ -1,15 +1,8 @@
 package deep
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-
 	//	"sync"
-
-	"github.com/theothertomelliott/acyclic"
 )
 
 // Smallest number
@@ -267,92 +260,6 @@ func (n *Neural) String() string {
 		s = fmt.Sprintf("%s\n%v", s, l)
 	}
 	return s
-}
-
-// Save saves network in readable JSON into the file specified
-func (n *Neural) SaveReadable(path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	acyclic.Fprint(f, n)
-	return nil
-}
-
-// Save saves network into the file specified to be loaded later
-func (n *Neural) Save(path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	b, err := n.Marshal()
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(f, bytes.NewReader(b))
-	return err
-}
-
-// Load retrieves network from the file specified created using Save method
-func Load(path string) (*Neural, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	b, _ := ioutil.ReadAll(f)
-	return Unmarshal(b)
-}
-
-// Save the network in DOT format for graphviz
-func (n *Neural) Dot(path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "digraph {\n")
-
-	for l, lr := range n.Layers {
-		for n, nr := range lr.Neurons {
-			for _, in := range nr.In {
-				fmt.Fprintf(f, "\"%s\" -> \"L:%d N:%d\"[label=\"%v\"]\n",
-					in.GetTag(), l, n, in.WeightsString())
-			}
-		}
-	}
-
-	fmt.Fprintf(f, "}\n")
-
-	return nil
-}
-
-// Save the network in NET format
-func (n *Neural) Net(path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	for l, lr := range n.Layers {
-		fmt.Fprintf(f, "L: %d\n", l)
-		for n, nr := range lr.Neurons {
-			fmt.Fprintf(f, "  N: %d;  Sum: %v; Value: %v; Ideal: %v; Desired: %v\n", n, nr.Sum, nr.Value, nr.Ideal, nr.Desired)
-			fmt.Fprintf(f, "        Activation: %v\n", nr.A.String())
-			for _, in := range nr.In {
-				fmt.Fprintf(f, " [%v %v]", in.GetIn(), in.GetOut())
-			}
-			fmt.Fprintf(f, "\n")
-		}
-	}
-
-	fmt.Fprintf(f, "\n")
-
-	return nil
 }
 
 func TotalError(E []Deepfloat64) Deepfloat64 {
