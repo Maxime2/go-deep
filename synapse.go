@@ -59,7 +59,7 @@ func NewSynapseTabulated(up *Neuron, tag string) *SynapseTabulated {
 	inverse := tabulatedfunction.New()
 	inverse.SetOrder(1)
 	derivative := tabulatedfunction.New()
-	return &SynapseTabulated{
+	syn := &SynapseTabulated{
 		direct:     direct,
 		inverse:    inverse,
 		derivative: derivative,
@@ -69,7 +69,9 @@ func NewSynapseTabulated(up *Neuron, tag string) *SynapseTabulated {
 		Tag:        tag,
 		Up:         up,
 	}
-
+	syn.direct.LoadConstant(0.5, 0, 1)
+	syn.inverse.LoadConstant(0.5, 0.5, 0.5)
+	return syn
 }
 
 func (s *SynapseTabulated) String() string {
