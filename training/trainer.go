@@ -233,7 +233,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 				for s, synapse := range n.In {
 					switch l.S {
 					case deep.SynapseTypeTabulated:
-						synapse.AddPoint(synapse.GetIn(), n.Ideal/deep.Deepfloat64(len(n.In)), it, 1)
+						synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), it, 1)
 					case deep.SynapseTypeAnalytic:
 						for k := 0; k < synapse.Len(); k++ {
 							gradient := synapse.GetGradient(t.D_E_x[i][j], k)
@@ -296,7 +296,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 					for k := 0; k < synapse.Len(); k++ {
 						switch l.S {
 						case deep.SynapseTypeTabulated:
-							synapse.AddPoint(synapse.GetIn(), n.Ideal/deep.Deepfloat64(len(n.In)), it, 1)
+							synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), it, 1)
 						case deep.SynapseTypeAnalytic:
 							gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 
