@@ -6,7 +6,7 @@ toolchain go1.21.1
 
 require (
 	github.com/Maxime2/gonl v0.0.0-20240420080631-23d7a6b4c615
-	github.com/Maxime2/tabulated-function v0.0.0-20240917203417-c5d386a479ca
+	github.com/Maxime2/tabulated-function v0.0.0-20240918113428-800d4e7d4ef4
 	github.com/kylelemons/godebug v1.1.0
 	github.com/stretchr/testify v1.8.4
 	github.com/theothertomelliott/acyclic v0.0.0-20180926180839-eba177c77c8a
