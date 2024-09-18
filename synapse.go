@@ -37,8 +37,8 @@ type Synapse interface {
 	GetWeights() []Deepfloat64
 	GetUp() *Neuron
 	Epoch(uint32)
-	AddPoint(x, y Deepfloat64, it uint32, cnt uint64)
-	GetPoint(i int) (Deepfloat64, Deepfloat64, uint64)
+	AddPoint(x, y Deepfloat64, it uint32)
+	GetPoint(i int) (Deepfloat64, Deepfloat64)
 }
 
 type SynapseTabulated struct {
@@ -158,15 +158,15 @@ func (s *SynapseTabulated) GetUp() *Neuron {
 	return s.Up
 }
 
-func (s *SynapseTabulated) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {
-	y_inserted := s.direct.AddPoint(float64(x), float64(y), it, cnt)
-	s.inverse.AddPoint(y_inserted, float64(x), it, cnt)
+func (s *SynapseTabulated) AddPoint(x, y Deepfloat64, it uint32) {
+	y_inserted := s.direct.AddPoint(float64(x), float64(y), it)
+	s.inverse.AddPoint(y_inserted, float64(x), it)
 	s.changed = true
 }
 
 // GetPoint() returns n-th point in Tabulated activation
-func (s *SynapseTabulated) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) {
-	return Deepfloat64(s.direct.P[i].X), Deepfloat64(s.direct.P[i].Y), s.direct.P[i].Cnt
+func (s *SynapseTabulated) GetPoint(i int) (Deepfloat64, Deepfloat64) {
+	return Deepfloat64(s.direct.P[i].X), Deepfloat64(s.direct.P[i].Y)
 }
 
 type SynapseAnalytic struct {
@@ -285,7 +285,7 @@ func (s *SynapseAnalytic) GetUp() *Neuron {
 
 func (s *SynapseAnalytic) Epoch(uint32) {}
 
-func (s *SynapseAnalytic) AddPoint(x, y Deepfloat64, it uint32, cnt uint64) {}
+func (s *SynapseAnalytic) AddPoint(x, y Deepfloat64, it uint32) {}
 
 // GetPoint() returns (0,0,1)
-func (s *SynapseAnalytic) GetPoint(i int) (Deepfloat64, Deepfloat64, uint64) { return 0, 0, 1 }
+func (s *SynapseAnalytic) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0, 0 }

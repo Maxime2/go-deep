@@ -13,7 +13,6 @@ import (
 // Point is a point in Tabulated activation
 type Point struct {
 	X, Y Deepfloat64
-	Cnt  uint64
 }
 
 // Dump is a neural network dump
@@ -61,7 +60,7 @@ func (n *Neural) ApplyActivations(points [][]Point) {
 			for _, n := range l.Neurons {
 				npoints := len(points[current])
 				for i := 0; i < npoints; i++ {
-					n.A.AddPoint(points[current][i].X, points[current][i].Y, 0, points[current][i].Cnt)
+					n.A.AddPoint(points[current][i].X, points[current][i].Y, 0)
 				}
 				current++
 			}
@@ -78,7 +77,7 @@ func (n *Neural) Activations() [][]Point {
 				points := n.A.Len()
 				acts := make([]Point, points)
 				for i := 0; i < points; i++ {
-					acts[i].X, acts[i].Y, acts[i].Cnt = n.A.GetPoint(i)
+					acts[i].X, acts[i].Y = n.A.GetPoint(i)
 				}
 				activations = append(activations, acts)
 			}
@@ -95,7 +94,7 @@ func (n *Neural) ApplySynapses(points [][]Point) {
 				for _, s := range n.In {
 					npoints := len(points[current])
 					for i := 0; i < npoints; i++ {
-						s.AddPoint(points[current][i].X, points[current][i].Y, 0, points[current][i].Cnt)
+						s.AddPoint(points[current][i].X, points[current][i].Y, 0)
 					}
 					current++
 				}
@@ -113,7 +112,7 @@ func (n *Neural) Synapses() [][]Point {
 					points := s.Len()
 					acts := make([]Point, points)
 					for i := 0; i < points; i++ {
-						acts[i].X, acts[i].Y, acts[i].Cnt = s.GetPoint(i)
+						acts[i].X, acts[i].Y = s.GetPoint(i)
 					}
 					synapses = append(synapses, acts)
 				}
@@ -203,7 +202,7 @@ func (n *Neural) Save(path string) error {
 				npoints := n.A.Len()
 				enc.Encode(npoints)
 				for i := 0; i < npoints; i++ {
-					p.X, p.Y, p.Cnt = n.A.GetPoint(i)
+					p.X, p.Y = n.A.GetPoint(i)
 					enc.Encode(p)
 				}
 			}
@@ -218,7 +217,7 @@ func (n *Neural) Save(path string) error {
 					npoints := s.Len()
 					enc.Encode(npoints)
 					for i := 0; i < npoints; i++ {
-						p.X, p.Y, p.Cnt = s.GetPoint(i)
+						p.X, p.Y = s.GetPoint(i)
 						enc.Encode(p)
 					}
 				}
@@ -272,7 +271,7 @@ func Load(path string) (*Neural, error) {
 				dec.Decode(&npoints)
 				for i := 0; i < npoints; i++ {
 					dec.Decode(&p)
-					n.A.AddPoint(p.X, p.Y, 0, p.Cnt)
+					n.A.AddPoint(p.X, p.Y, 0)
 				}
 			}
 		}
@@ -286,7 +285,7 @@ func Load(path string) (*Neural, error) {
 					dec.Decode(&npoints)
 					for i := 0; i < npoints; i++ {
 						dec.Decode(&p)
-						s.AddPoint(p.X, p.Y, 0, p.Cnt)
+						s.AddPoint(p.X, p.Y, 0)
 					}
 				}
 			}
