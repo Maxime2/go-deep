@@ -153,6 +153,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			wg.Done()
 		}(&wg, neuron, i)
 	}
+	wg.Wait()
 	bottom := 0
 	if n.Config.Type == deep.KolmogorovType {
 		bottom = 1
@@ -212,6 +213,7 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				wg.Done()
 			}(&wg, neuron, i, j)
 		}
+		wg.Wait()
 	}
 	t.solver.ConcludeLr()
 }
@@ -268,6 +270,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 				wg.Done()
 			}(&wg, n, i, j)
 		}
+		wg.Wait()
 	}
 	return completed
 }
@@ -335,6 +338,7 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 				wg.Done()
 			}(&wg, n, i, j, l)
 		}
+		wg.Wait()
 		//l.Refire()
 	}
 	return completed
