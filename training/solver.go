@@ -3,14 +3,12 @@ package training
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
 	"os"
 
 	deep "github.com/Maxime2/go-deep"
-	"github.com/theothertomelliott/acyclic"
 )
 
 // Solver implements an update rule for training a NN
@@ -144,13 +142,6 @@ func (o *SGD) Adjust(neuron *deep.Neuron, synapse deep.Synapse, i, j, s, k int, 
 
 // Save saves SGD into the file specified to be loaded later
 func (o *SGD) Save(path string) error {
-
-	ff, err := os.Create(fmt.Sprintf("%s.readable", path))
-	if err != nil {
-		return err
-	}
-	defer ff.Close()
-	acyclic.Fprint(ff, o)
 
 	f, err := os.Create(path)
 	if err != nil {
