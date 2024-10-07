@@ -39,6 +39,7 @@ type Synapse interface {
 	Epoch(uint32)
 	AddPoint(x, y Deepfloat64, it uint32)
 	GetPoint(i int) (Deepfloat64, Deepfloat64)
+	DrawPS(path string)
 }
 
 type SynapseTabulated struct {
@@ -169,6 +170,10 @@ func (s *SynapseTabulated) GetPoint(i int) (Deepfloat64, Deepfloat64) {
 	return Deepfloat64(s.direct.P[i].X), Deepfloat64(s.direct.P[i].Y)
 }
 
+func (s *SynapseTabulated) DrawPS(path string) {
+	s.direct.DrawPS(path)
+}
+
 type SynapseAnalytic struct {
 	Weights []Deepfloat64
 	Up      *Neuron
@@ -289,3 +294,5 @@ func (s *SynapseAnalytic) AddPoint(x, y Deepfloat64, it uint32) {}
 
 // GetPoint() returns (0,0,1)
 func (s *SynapseAnalytic) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0, 0 }
+
+func (s *SynapseAnalytic) DrawPS(path string) {}

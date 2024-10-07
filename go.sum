@@ -18,6 +18,10 @@ github.com/Maxime2/tabulated-function v0.0.0-20240917203417-c5d386a479ca h1:L+4c
 github.com/Maxime2/tabulated-function v0.0.0-20240917203417-c5d386a479ca/go.mod h1:O25w2sqqyOt6SgXgi8riFj+qNCUSZ4AeOw4CkHsqHyo=
 github.com/Maxime2/tabulated-function v0.0.0-20240918113428-800d4e7d4ef4 h1:0PRaEM6nrD9LiIsknjXmnSMxhZSzTnxNJL8uYbdbDYI=
 github.com/Maxime2/tabulated-function v0.0.0-20240918113428-800d4e7d4ef4/go.mod h1:O25w2sqqyOt6SgXgi8riFj+qNCUSZ4AeOw4CkHsqHyo=
+github.com/Maxime2/tabulated-function v0.0.0-20241007000846-0d8923115d05 h1:h8LyP0Lsokh3/9UaPzhRC1m6zLXl5mpVohaZ5Q8AkLo=
+github.com/Maxime2/tabulated-function v0.0.0-20241007000846-0d8923115d05/go.mod h1:O25w2sqqyOt6SgXgi8riFj+qNCUSZ4AeOw4CkHsqHyo=
+github.com/Maxime2/tabulated-function v0.0.0-20241007013632-98895ac58b5a h1:givfpRsY3gwoArdCFI4W2T961L0DKvHCueHh16yHLDE=
+github.com/Maxime2/tabulated-function v0.0.0-20241007013632-98895ac58b5a/go.mod h1:O25w2sqqyOt6SgXgi8riFj+qNCUSZ4AeOw4CkHsqHyo=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=

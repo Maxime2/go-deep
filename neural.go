@@ -269,3 +269,17 @@ func TotalError(E []Deepfloat64) Deepfloat64 {
 	}
 	return r
 }
+
+func (n *Neural) DrawPS(path_prefix string) {
+	for _, l := range n.Layers {
+		//if l.S != SynapseTypeTabulated {
+		//	continue
+		//}
+		for y, neuron := range l.Neurons {
+			for x, in := range neuron.In {
+				path := fmt.Sprintf("%sL-%v-N-%v-In-%v.ps", path_prefix, l.Number, y, x)
+				in.DrawPS(path)
+			}
+		}
+	}
+}
