@@ -40,6 +40,7 @@ type Synapse interface {
 	AddPoint(x, y Deepfloat64, it uint32)
 	GetPoint(i int) (Deepfloat64, Deepfloat64)
 	DrawPS(path string)
+	Smooth()
 }
 
 type SynapseTabulated struct {
@@ -174,6 +175,10 @@ func (s *SynapseTabulated) DrawPS(path string) {
 	s.direct.DrawPS(path)
 }
 
+func (s *SynapseTabulated) Smooth() {
+	s.direct.Smooth()
+}
+
 type SynapseAnalytic struct {
 	Weights []Deepfloat64
 	Up      *Neuron
@@ -296,3 +301,5 @@ func (s *SynapseAnalytic) AddPoint(x, y Deepfloat64, it uint32) {}
 func (s *SynapseAnalytic) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0, 0 }
 
 func (s *SynapseAnalytic) DrawPS(path string) {}
+
+func (s *SynapseAnalytic) Smooth() {}

@@ -283,3 +283,16 @@ func (n *Neural) DrawPS(path_prefix string) {
 		}
 	}
 }
+
+func (n *Neural) Smooth() {
+	for _, l := range n.Layers {
+		//if l.S != SynapseTypeTabulated {
+		//	continue
+		//}
+		for _, neuron := range l.Neurons {
+			for _, in := range neuron.In {
+				in.Smooth()
+			}
+		}
+	}
+}
