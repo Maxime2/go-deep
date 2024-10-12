@@ -70,6 +70,8 @@ type Config struct {
 	InputTags []string
 	// Number of training iterations
 	Epoch int
+	// If Smooth() need to be executed before each training iteration
+	Smooth bool
 }
 
 // NewNeural returns a new neural network

@@ -88,6 +88,9 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 	ts := time.Now()
 	for i := uint32(1); i <= iterations; i++ {
 		var completed int
+		if n.Config.Smooth {
+			n.Smooth()
+		}
 		examples.Shuffle()
 		//t.solver.InitGradients()
 		t.E_1 = t.E
