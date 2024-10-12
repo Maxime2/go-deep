@@ -86,6 +86,7 @@ type Activation interface {
 	GetPoint(i int) (Deepfloat64, Deepfloat64)
 	Domain() (Deepfloat64, Deepfloat64)
 	Epoch(uint32)
+	Clear()
 	String() string
 }
 
@@ -167,6 +168,12 @@ func (a *Tabulated) Epoch(epoch uint32) {
 	a.derivative.Epoch(epoch)
 }
 
+func (a *Tabulated) Clear() {
+	a.direct.Clear()
+	a.inverse.Clear()
+	a.derivative.Clear()
+}
+
 // Sigmoid is a logistic activator in the special case of a = 1
 type Sigmoid struct{}
 
@@ -211,6 +218,8 @@ func (a *Sigmoid) String() string {
 // Epoch() set epoch for tabulated functions
 func (a *Sigmoid) Epoch(epoch uint32) {
 }
+
+func (a *Sigmoid) Clear() {}
 
 // Logistic is the logistic function
 func Logistic(x, a Deepfloat64) Deepfloat64 {
@@ -276,6 +285,8 @@ func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
 func (a *Tanh) Epoch(epoch uint32) {
 }
 
+func (a *Tanh) Clear() {}
+
 // String() return "Tanh"
 func (a *Tanh) String() string {
 	return "Tanh"
@@ -319,6 +330,8 @@ func (a *ReLU) Domain() (Deepfloat64, Deepfloat64) {
 func (a *ReLU) Epoch(epoch uint32) {
 }
 
+func (a *ReLU) Clear() {}
+
 // String() return "ReLU"
 func (a *ReLU) String() string {
 	return "ReLU"
@@ -356,6 +369,8 @@ func (a *Linear) Domain() (Deepfloat64, Deepfloat64) {
 // Epoch() set epoch for tabulated functions
 func (a *Linear) Epoch(epoch uint32) {
 }
+
+func (a *Linear) Clear() {}
 
 // String() return "Linear"
 func (a *Linear) String() string {

@@ -41,6 +41,7 @@ type Synapse interface {
 	GetPoint(i int) (Deepfloat64, Deepfloat64)
 	DrawPS(path string)
 	Smooth()
+	Clear()
 }
 
 type SynapseTabulated struct {
@@ -122,6 +123,12 @@ func (s *SynapseTabulated) Epoch(epoch uint32) {
 	s.direct.Epoch(epoch)
 	s.inverse.Epoch(epoch)
 	s.derivative.Epoch(epoch)
+}
+
+func (s *SynapseTabulated) Clear() {
+	s.direct.Clear()
+	s.inverse.Clear()
+	s.derivative.Clear()
 }
 
 func (s *SynapseTabulated) FireDelta(D_E_x Deepfloat64) Deepfloat64 {
@@ -294,6 +301,8 @@ func (s *SynapseAnalytic) GetUp() *Neuron {
 }
 
 func (s *SynapseAnalytic) Epoch(uint32) {}
+
+func (s *SynapseAnalytic) Clear() {}
 
 func (s *SynapseAnalytic) AddPoint(x, y Deepfloat64, it uint32) {}
 

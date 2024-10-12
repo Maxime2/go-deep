@@ -59,6 +59,7 @@ func (n *Neural) ApplyActivations(points [][]Point) {
 		if l.A == ActivationTabulated {
 			for _, n := range l.Neurons {
 				npoints := len(points[current])
+				n.A.Clear()
 				for i := 0; i < npoints; i++ {
 					n.A.AddPoint(points[current][i].X, points[current][i].Y, 0)
 				}
@@ -93,6 +94,7 @@ func (n *Neural) ApplySynapses(points [][]Point) {
 			for _, n := range l.Neurons {
 				for _, s := range n.In {
 					npoints := len(points[current])
+					s.Clear()
 					for i := 0; i < npoints; i++ {
 						s.AddPoint(points[current][i].X, points[current][i].Y, 0)
 					}
