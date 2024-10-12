@@ -271,6 +271,7 @@ func Load(path string) (*Neural, error) {
 		if l.A == ActivationTabulated {
 			for _, n := range l.Neurons {
 				dec.Decode(&npoints)
+				n.A.Clear()
 				for i := 0; i < npoints; i++ {
 					dec.Decode(&p)
 					n.A.AddPoint(p.X, p.Y, 0)
@@ -285,6 +286,7 @@ func Load(path string) (*Neural, error) {
 			for _, n := range l.Neurons {
 				for _, s := range n.In {
 					dec.Decode(&npoints)
+					s.Clear()
 					for i := 0; i < npoints; i++ {
 						dec.Decode(&p)
 						s.AddPoint(p.X, p.Y, 0)
