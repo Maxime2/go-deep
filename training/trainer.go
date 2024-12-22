@@ -92,11 +92,12 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			n.Smooth()
 		}
 		examples.Shuffle()
+		n.Config.Epoch++
 		//t.solver.InitGradients()
 		t.E_1 = t.E
 		t.E = newE(n.Layers)
 		for j := 0; j < len(examples); j++ {
-			completed = t.learn(n, examples[j], i)
+			completed = t.learn(n, examples[j], uint32(n.Config.Epoch))
 		}
 		for e := range t.E {
 			for _, x := range t.E[e] {
@@ -110,8 +111,7 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 			n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
 			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
 		}
-		n.Config.Epoch++
-		t.epoch(n, i)
+		t.epoch(n, uint32(n.Config.Epoch))
 		if completed == numWeights {
 			break
 		}

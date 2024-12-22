@@ -69,7 +69,7 @@ type Config struct {
 	// Specify Synap Tags for the input layer
 	InputTags []string
 	// Number of training iterations
-	Epoch int
+	Epoch uint32
 	// If Smooth() need to be executed before each training iteration
 	Smooth bool
 }
