@@ -245,13 +245,13 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int) {
 				switch l.A {
 				case deep.ActivationTabulated:
-					n.A.AddPoint(n.Sum, n.Desired, it)
+					n.A.AddPoint(n.Sum, n.Desired, neural.Config.Epoch)
 					fallthrough
 				default:
 					for s, synapse := range n.In {
 						switch l.S {
 						case deep.SynapseTypeTabulated:
-							synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), it)
+							synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), neural.Config.Epoch)
 						case deep.SynapseTypeAnalytic:
 							for k := 0; k < synapse.Len(); k++ {
 								gradient := synapse.GetGradient(t.D_E_x[i][j], k)
@@ -313,14 +313,14 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int, l *deep.Layer) {
 				switch l.A {
 				case deep.ActivationTabulated:
-					n.A.AddPoint(n.Sum, n.Desired, it)
+					n.A.AddPoint(n.Sum, n.Desired, neural.Config.Epoch)
 					fallthrough
 				default:
 					for s, synapse := range n.In {
 						for k := 0; k < synapse.Len(); k++ {
 							switch l.S {
 							case deep.SynapseTypeTabulated:
-								synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), it)
+								synapse.AddPoint(synapse.GetIn(), synapse.GetOut()+(n.Ideal-n.Sum)/deep.Deepfloat64(len(n.In)+1), neural.Config.Epoch)
 							case deep.SynapseTypeAnalytic:
 								gradient := synapse.GetGradient(t.D_E_x[i][j], k)
 

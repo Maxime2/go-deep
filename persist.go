@@ -57,11 +57,11 @@ func (n *Neural) ApplyActivations(points [][]Point) {
 	current := 0
 	for _, l := range n.Layers {
 		if l.A == ActivationTabulated {
-			for _, n := range l.Neurons {
+			for _, neuron := range l.Neurons {
 				npoints := len(points[current])
-				n.A.Clear()
+				neuron.A.Clear()
 				for i := 0; i < npoints; i++ {
-					n.A.AddPoint(points[current][i].X, points[current][i].Y, 0)
+					neuron.A.AddPoint(points[current][i].X, points[current][i].Y, n.Config.Epoch)
 				}
 				current++
 			}
@@ -91,12 +91,12 @@ func (n *Neural) ApplySynapses(points [][]Point) {
 	current := 0
 	for _, l := range n.Layers {
 		if l.S == SynapseTypeTabulated {
-			for _, n := range l.Neurons {
-				for _, s := range n.In {
+			for _, neuron := range l.Neurons {
+				for _, s := range neuron.In {
 					npoints := len(points[current])
 					s.Clear()
 					for i := 0; i < npoints; i++ {
-						s.AddPoint(points[current][i].X, points[current][i].Y, 0)
+						s.AddPoint(points[current][i].X, points[current][i].Y, n.Config.Epoch)
 					}
 					current++
 				}
@@ -274,7 +274,7 @@ func Load(path string) (*Neural, error) {
 				n.A.Clear()
 				for i := 0; i < npoints; i++ {
 					dec.Decode(&p)
-					n.A.AddPoint(p.X, p.Y, 0)
+					n.A.AddPoint(p.X, p.Y, config.Epoch)
 				}
 			}
 		}
@@ -289,7 +289,7 @@ func Load(path string) (*Neural, error) {
 					s.Clear()
 					for i := 0; i < npoints; i++ {
 						dec.Decode(&p)
-						s.AddPoint(p.X, p.Y, 0)
+						s.AddPoint(p.X, p.Y, config.Epoch)
 					}
 				}
 			}
