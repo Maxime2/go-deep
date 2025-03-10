@@ -41,6 +41,7 @@ type Synapse interface {
 	GetPoint(i int) (Deepfloat64, Deepfloat64)
 	DrawPS(path string)
 	Smooth()
+	Polinate(Synapse)
 	Clear()
 }
 
@@ -186,6 +187,17 @@ func (s *SynapseTabulated) Smooth() {
 	s.direct.Smooth()
 }
 
+func (s *SynapseTabulated) Polinate(m Synapse) {
+	for i := range m.Len() {
+		X, Y := m.GetPoint(i)
+		s.AddPoint(X, Y, 0 /* epoch */)
+	}
+	for i := range s.Len() {
+		X, Y := s.GetPoint(i)
+		m.AddPoint(X, Y, 0 /* epoch */)
+	}
+}
+
 type SynapseAnalytic struct {
 	Weights []Deepfloat64
 	Up      *Neuron
@@ -312,3 +324,5 @@ func (s *SynapseAnalytic) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0,
 func (s *SynapseAnalytic) DrawPS(path string) {}
 
 func (s *SynapseAnalytic) Smooth() {}
+
+func (s *SynapseAnalytic) Polinate(m Synapse) {}

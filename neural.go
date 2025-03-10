@@ -298,3 +298,22 @@ func (n *Neural) Smooth() {
 		}
 	}
 }
+
+func (n *Neural) Polinate() {
+	for _, l := range n.Layers {
+		//if l.S != SynapseTypeTabulated {
+		//	continue
+		//}
+		for y, neuron := range l.Neurons {
+			for x, in := range neuron.In {
+				for t, p := range l.Neurons {
+					if t <= y {
+						continue
+					}
+					m := p.In[x]
+					in.Polinate(m)
+				}
+			}
+		}
+	}
+}
