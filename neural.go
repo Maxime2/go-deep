@@ -300,7 +300,15 @@ func (n *Neural) Smooth() {
 }
 
 func (n *Neural) Polinate() {
-	for _, l := range n.Layers {
+	bottom := 0
+	if n.Config.Type == KolmogorovType {
+		bottom = 1
+	}
+
+	for a, l := range n.Layers {
+		if a < bottom {
+			continue
+		}
 		//if l.S != SynapseTypeTabulated {
 		//	continue
 		//}
