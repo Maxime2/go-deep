@@ -1,6 +1,9 @@
 package deep
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // Layer is a set of neurons and corresponding activation
 type Layer struct {
@@ -95,17 +98,21 @@ func (l *Layer) CreateInputSynapses(c *Config) {
 			}
 		}
 	case SynapseTypeAnalytic:
-		domain_min, domain_max := GetActivation(l.A).Domain()
-		A := float64(2*(domain_max-domain_min)) / float64(c.Inputs) / float64(c.Inputs) / float64(len(l.Neurons)) / float64(c.Degree+1)
-		wA := Deepfloat64(domain_min)
-		wi := GetWeightFunction(c.Weight, A/20, A)
-		wEps := Deepfloat64(A / 50 / float64(c.Inputs))
-		for _, neuron := range l.Neurons {
+		//domain_min, domain_max := GetActivation(l.A).Domain()
+		//A := float64(2*(domain_max-domain_min)) / float64(c.Inputs) / float64(c.Inputs) / float64(len(l.Neurons)) / float64(c.Degree+1)
+		wA := Deepfloat64(0) //Deepfloat64(domain_min)
+		//wi := GetWeightFunction(c.Weight, A/20, A)
+		//wEps := Deepfloat64(A / 50 / float64(c.Inputs))
+		for n, neuron := range l.Neurons {
 			neuron.In = make([]Synapse, c.Inputs)
+			f := Fibonacci()
 			for i := range neuron.In {
+				A := float64(n+1) * math.Pow(2.0, 1.0/float64(f()))
+				wi := GetWeightFunction(c.Weight, 0, A)
 				neuron.In[i] = NewSynapseAnalytic(neuron, c.Degree, wi, c.InputTags[i])
 				neuron.In[i].SetWeight(0, wA)
-				wA += neuron.In[i].GetWeight(1) + wEps
+				neuron.In[i].SetWeight(1, Deepfloat64(A) /*wA*/)
+				wA += Deepfloat64(A) // neuron.In[i].GetWeight(1) + wEps
 			}
 		}
 	}

@@ -100,8 +100,10 @@ type Tabulated struct {
 func newTabulated() *Tabulated {
 	direct := tabulatedfunction.New()
 	direct.SetOrder(1)
+	direct.SetTrapolation(tabulatedfunction.TrapolationShift)
 	inverse := tabulatedfunction.New()
 	inverse.SetOrder(1)
+	inverse.SetTrapolation(tabulatedfunction.TrapolationShift)
 	derivative := tabulatedfunction.New()
 	return &Tabulated{
 		direct:     direct,

@@ -325,3 +325,27 @@ func (n *Neural) Polinate() {
 		}
 	}
 }
+
+func (n *Neural) Check() string {
+	if n.Config.Type != KolmogorovType {
+		return ""
+	}
+
+	var report string = ""
+
+	Layer := n.Layers[0]
+	for y, neuron := range Layer.Neurons {
+		for t, p := range Layer.Neurons {
+			if t <= y {
+				continue
+			}
+			if neuron.MinSum > p.MinSum && neuron.MinSum < p.MaxSum {
+				report += fmt.Sprintf("Check %d vs %d: [%f:%f] vs [%f:%f]\n",
+					y, t, neuron.MinSum, neuron.MaxSum, p.MinSum, p.MaxSum)
+			}
+		}
+
+	}
+
+	return report
+}

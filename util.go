@@ -133,3 +133,15 @@ func Dot(xx, yy []float64) float64 {
 	}
 	return p
 }
+
+// fibonacci returns a function that returns
+// successive fibonacci numbers from each
+// successive call
+func Fibonacci() func() int {
+	first, second := 1, 2
+	return func() int {
+		ret := first
+		first, second = second, first+second
+		return ret
+	}
+}

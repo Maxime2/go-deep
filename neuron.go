@@ -12,12 +12,15 @@ type Neuron struct {
 	Ideal, Desired Deepfloat64
 	Sum, Value     Deepfloat64
 	Ln             Deepfloat64
+	MinSum, MaxSum Deepfloat64
 }
 
 // NewNeuron returns a neuron with the given activation
 func NewNeuron(activation ActivationType) *Neuron {
 	return &Neuron{
-		A: GetActivation(activation),
+		A:      GetActivation(activation),
+		MinSum: Deepfloat64(math.MaxFloat64),
+		MaxSum: Deepfloat64(math.SmallestNonzeroFloat64),
 	}
 }
 
@@ -30,6 +33,13 @@ func (n *Neuron) fire() {
 		}
 	}
 	n.Value = n.Activate(n.Sum)
+
+	if n.Sum < n.MinSum {
+		n.MinSum = n.Sum
+	}
+	if n.Sum > n.MaxSum {
+		n.MaxSum = n.Sum
+	}
 
 	nVal := n.Value
 	for _, s := range n.Out {
@@ -47,6 +57,13 @@ func (n *Neuron) refire() {
 		}
 	}
 	n.Value = n.Activate(n.Sum)
+
+	if n.Sum < n.MinSum {
+		n.MinSum = n.Sum
+	}
+	if n.Sum > n.MaxSum {
+		n.MaxSum = n.Sum
+	}
 
 	nVal := n.Value
 	for _, s := range n.Out {

@@ -60,8 +60,10 @@ type SynapseTabulated struct {
 func NewSynapseTabulated(up *Neuron, tag string) *SynapseTabulated {
 	direct := tabulatedfunction.New()
 	direct.SetOrder(1)
+	direct.SetTrapolation(tabulatedfunction.TrapolationShift)
 	inverse := tabulatedfunction.New()
 	inverse.SetOrder(1)
+	inverse.SetTrapolation(tabulatedfunction.TrapolationShift)
 	derivative := tabulatedfunction.New()
 	syn := &SynapseTabulated{
 		direct:     direct,
