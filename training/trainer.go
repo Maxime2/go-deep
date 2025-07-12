@@ -231,7 +231,6 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it uint32) int {
 // Update from top down
 func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 	var completed int
-	var update deep.Deepfloat64
 	var wg sync.WaitGroup
 	bottom := 0
 	if neural.Config.Type == deep.KolmogorovType {
@@ -243,6 +242,8 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 		for j, n := range l.Neurons {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int) {
+				var update deep.Deepfloat64
+
 				switch l.A {
 				case deep.ActivationTabulated:
 					n.A.AddPoint(n.Sum, n.Desired, neural.Config.Epoch)
