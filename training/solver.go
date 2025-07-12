@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"sync"
 
 	deep "github.com/Maxime2/go-deep"
 )
@@ -33,6 +34,7 @@ type SGD struct {
 	Lrs       [][]deep.Deepfloat64
 	Gradients [][][][]deep.Deepfloat64
 	//Gradients_1 []deep.Deepfloat64
+	mu sync.Mutex
 }
 
 // NewSGD returns a new SGD solver
@@ -69,8 +71,12 @@ func (o *SGD) SetGradient(i, j, s, k int, gradient deep.Deepfloat64) {
 
 func (o *SGD) SetLr(i, j int, lr float64) {
 	o.Lrs[i][j] = deep.Deepfloat64(lr)
-	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 && lr < o.Lr[i] {
-		o.Lr[i] = lr
+	if !math.IsInf(lr, 0) && !math.IsNaN(lr) && lr > 0 {
+		o.mu.Lock()
+		if lr < o.Lr[i] {
+			o.Lr[i] = lr
+		}
+		o.mu.Unlock()
 	}
 }
 
