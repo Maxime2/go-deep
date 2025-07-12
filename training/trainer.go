@@ -78,51 +78,39 @@ func (t *OnlineTrainer) SetPrefix(prefix string) {
 func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, iterations uint32) {
 	t.internal = newTraining(n.Layers)
 
-	//train := make(Examples, len(examples))
-	//copy(train, examples)
-
 	t.printer.Init(n)
-	numWeights := n.NumWeights()
 	t.solver.Init(n.Layers)
 
 	ts := time.Now()
 	for i := uint32(1); i <= iterations; i++ {
-		var completed int
 		if n.Config.Smooth {
 			n.Smooth()
 		}
 		examples.Shuffle()
 		n.Config.Epoch++
-		//t.solver.InitGradients()
 		t.E_1 = t.E
 		t.E = newE(n.Layers)
 		for j := 0; j < len(examples); j++ {
-			completed = t.learn(n, examples[j], uint32(n.Config.Epoch))
+			t.learn(n, examples[j], uint32(n.Config.Epoch))
 		}
 		for e := range t.E {
 			for _, x := range t.E[e] {
 				x /= deep.Deepfloat64(len(examples))
 			}
 		}
-		//t.E /= deep.Deepfloat64(n.NumWeights()) * deep.Deepfloat64(len(examples))
-		//completed = t.adjust(n, i)
 		if t.verbosity > 0 && i%uint32(t.verbosity) == 0 && len(validation) > 0 {
-			rCompleted := float64(completed) / float64(numWeights) * 100.0
 			n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
-			t.printer.PrintProgress(n, validation, time.Since(ts), i, rCompleted)
+			t.printer.PrintProgress(n, validation, time.Since(ts), i)
 		}
 		t.epoch(n, uint32(n.Config.Epoch))
-		if completed == numWeights {
-			break
-		}
 	}
 	n.TotalError = deep.TotalError(t.E[len(n.Layers)-1])
 }
 
-func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it uint32) int {
+func (t *OnlineTrainer) learn(n *deep.Neural, e Example, it uint32) {
 	n.Forward(e.Input)
 	t.calculateDeltas(n, e.Response)
-	return t.update(n, it)
+	t.update(n, it)
 }
 
 func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64) {
@@ -221,16 +209,16 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	t.solver.ConcludeLr()
 }
 
-func (t *OnlineTrainer) update(neural *deep.Neural, it uint32) int {
+func (t *OnlineTrainer) update(neural *deep.Neural, it uint32) {
 	if neural.Config.TrainerMode == deep.UpdateTopDown {
-		return t.update2(neural, it)
+		t.update2(neural, it)
+		return
 	}
-	return t.update0(neural, it)
+	t.update0(neural, it)
 }
 
 // Update from top down
-func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
-	var completed int
+func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) {
 	var wg sync.WaitGroup
 	bottom := 0
 	if neural.Config.Type == deep.KolmogorovType {
@@ -276,7 +264,6 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) int {
 		}
 		wg.Wait()
 	}
-	return completed
 }
 
 // Set epoch for Tabulated Activations
@@ -301,8 +288,7 @@ func (t *OnlineTrainer) epoch(neural *deep.Neural, epoch uint32) {
 }
 
 // Update from bootom up
-func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
-	var completed int
+func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) {
 	var wg sync.WaitGroup
 	for i, l := range neural.Layers {
 		if neural.Config.Type == deep.KolmogorovType && i == 0 {
@@ -346,7 +332,6 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 		wg.Wait()
 		//l.Refire()
 	}
-	return completed
 }
 
 // Save() saves internal of the trainer in readable JSON into file specified
