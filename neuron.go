@@ -19,56 +19,43 @@ type Neuron struct {
 func NewNeuron(activation ActivationType) *Neuron {
 	return &Neuron{
 		A:      GetActivation(activation),
-		MinSum: Deepfloat64(math.MaxFloat64),
-		MaxSum: Deepfloat64(math.SmallestNonzeroFloat64),
+		MinSum: Deepfloat64(math.MaxFloat64),  // Correct for finding a minimum
+		MaxSum: -Deepfloat64(math.MaxFloat64), // Correct for finding a maximum
+	}
+}
+
+func (n *Neuron) calculateAndFire(refireSynapses bool) {
+	n.Sum = 0
+	for _, s := range n.In {
+		if refireSynapses {
+			s.Refire()
+		}
+		preliminarySum := n.Sum + s.GetOut()
+		if !math.IsNaN(float64(preliminarySum)) {
+			n.Sum = preliminarySum
+		}
+	}
+	n.Value = n.Activate(n.Sum)
+
+	if n.Sum < n.MinSum {
+		n.MinSum = n.Sum
+	}
+	if n.Sum > n.MaxSum {
+		n.MaxSum = n.Sum
+	}
+
+	nVal := n.Value
+	for _, s := range n.Out {
+		s.Fire(nVal)
 	}
 }
 
 func (n *Neuron) fire() {
-	n.Sum = 0
-	for _, s := range n.In {
-		preliminarySum := n.Sum + s.GetOut()
-		if !math.IsNaN(float64(preliminarySum)) {
-			n.Sum = preliminarySum
-		}
-	}
-	n.Value = n.Activate(n.Sum)
-
-	if n.Sum < n.MinSum {
-		n.MinSum = n.Sum
-	}
-	if n.Sum > n.MaxSum {
-		n.MaxSum = n.Sum
-	}
-
-	nVal := n.Value
-	for _, s := range n.Out {
-		s.Fire(nVal)
-	}
+	n.calculateAndFire(false)
 }
 
 func (n *Neuron) refire() {
-	n.Sum = 0
-	for _, s := range n.In {
-		s.Refire()
-		preliminarySum := n.Sum + s.GetOut()
-		if !math.IsNaN(float64(preliminarySum)) {
-			n.Sum = preliminarySum
-		}
-	}
-	n.Value = n.Activate(n.Sum)
-
-	if n.Sum < n.MinSum {
-		n.MinSum = n.Sum
-	}
-	if n.Sum > n.MaxSum {
-		n.MaxSum = n.Sum
-	}
-
-	nVal := n.Value
-	for _, s := range n.Out {
-		s.Fire(nVal)
-	}
+	n.calculateAndFire(true)
 }
 
 // Activate applies the neurons activation

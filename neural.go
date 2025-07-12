@@ -2,7 +2,7 @@ package deep
 
 import (
 	"fmt"
-	//	"sync"
+	"sync"
 )
 
 // Smallest number
@@ -162,73 +162,17 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 	if l != n.Config.Inputs {
 		return fmt.Errorf("invalid input dimension - expected: %d got: %d", n.Config.Inputs, len(input))
 	}
-	cl := make(chan struct{})
-	ln := len(n.Layers[0].Neurons)
-
-	go func() {
-		for j := 0; j < ln/2; j++ {
-			neuron := n.Layers[0].Neurons[j]
-			cn := make(chan struct{})
-
-			go func() {
-				for i := 0; i < l/2; i++ {
-					neuron.In[i].Fire(input[i])
-				}
-				cn <- struct{}{}
-			}()
-
-			go func() {
-				for i := l / 2; i < l; i++ {
-					neuron.In[i].Fire(input[i])
-				}
-				cn <- struct{}{}
-			}()
-			<-cn
-			<-cn
-		}
-		cl <- struct{}{}
-
-	}()
-
-	go func() {
-		for j := ln / 2; j < ln; j++ {
-			neuron := n.Layers[0].Neurons[j]
-			cn := make(chan struct{})
-
-			go func() {
-				for i := 0; i < l/2; i++ {
-					neuron.In[i].Fire(input[i])
-				}
-				cn <- struct{}{}
-			}()
-
-			go func() {
-				for i := l / 2; i < l; i++ {
-					neuron.In[i].Fire(input[i])
-				}
-				cn <- struct{}{}
-			}()
-			<-cn
-			<-cn
-		}
-		cl <- struct{}{}
-	}()
-	<-cl
-	<-cl
-
-	/*
-		var wg sync.WaitGroup
-		for _, n := range n.Layers[0].Neurons {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup, n *Neuron) {
-				for i := 0; i < len(input); i++ {
-					n.In[i].Fire(input[i])
-				}
-				wg.Done()
-			}(&wg, n)
-		}
-		wg.Wait()
-	*/
+	var wg sync.WaitGroup
+	for _, neuron := range n.Layers[0].Neurons {
+		wg.Add(1)
+		go func(neuron *Neuron) {
+			defer wg.Done()
+			for i := range input {
+				neuron.In[i].Fire(input[i])
+			}
+		}(neuron)
+	}
+	wg.Wait()
 
 	n.fire()
 	return nil
@@ -236,8 +180,11 @@ func (n *Neural) Forward(input []Deepfloat64) error {
 
 // Predict computes a forward pass and returns a prediction
 func (n *Neural) Predict(input []Deepfloat64) []Deepfloat64 {
-	n.Forward(input)
-
+	err := n.Forward(input)
+	if err != nil {
+		// A panic is appropriate here because incorrect input dimensions are a programmer error.
+		panic(fmt.Sprintf("prediction failed: %v", err))
+	}
 	outLayer := n.Layers[len(n.Layers)-1]
 	out := make([]Deepfloat64, len(outLayer.Neurons))
 	for i, neuron := range outLayer.Neurons {
@@ -250,7 +197,9 @@ func (n *Neural) Predict(input []Deepfloat64) []Deepfloat64 {
 func (n *Neural) NumWeights() (num int) {
 	for _, l := range n.Layers {
 		for _, neuron := range l.Neurons {
-			num += len(neuron.In) * (n.Config.Degree + 1)
+			for _, synapse := range neuron.In {
+				num += synapse.Len()
+			}
 		}
 	}
 	return

@@ -138,9 +138,11 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 			for _, synapse := range neuron.In {
 				den += synapse.FireDelta(t.D_E_x[len(n.Layers)-1][i])
 			}
-			lr := float64((neuron.Ln + neuron.Sum) / den)
-
-			t.solver.SetLr(len(n.Layers)-1, i, lr)
+			if den != 0 {
+				var lr float64
+				lr = float64((neuron.Ln + neuron.Sum) / den)
+				t.solver.SetLr(len(n.Layers)-1, i, lr) // solver handles lr <= 0
+			}
 			wg.Done()
 		}(&wg, neuron, i)
 	}
@@ -160,8 +162,14 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				for k, s := range neuron.Out {
 					//fmt.Printf("\t oo i:%v; j:%v; k:%v; upIdeal:%v; upSum:%v; s.Out:%v;  s.In: %v\n", i, j, k, s.Up.Ideal, s.Up.Sum, s.Out, s.In)
 
-					gap := (s.GetUp().Ideal - s.GetUp().Sum) / deep.Deepfloat64(len(s.GetUp().In))
-					n_ideal += (gap + s.GetOut() - s.GetWeight(0)) / s.GetWeight(1)
+					var gap deep.Deepfloat64
+					numIn := len(s.GetUp().In)
+					if numIn > 0 {
+						gap = (s.GetUp().Ideal - s.GetUp().Sum) / deep.Deepfloat64(numIn)
+					}
+					if s.Len() > 1 && s.GetWeight(1) != 0 {
+						n_ideal += (gap + s.GetOut() - s.GetWeight(0)) / s.GetWeight(1)
+					}
 					//fmt.Printf("\t\tcnt:%v; gap: %v == n_ideal: %v; s.Up.Ideal: %v; s.Weights[0]: %v; s.Weights[1]: %v;  gap: %v\n",
 					//	cnt, gap, n_ideal, s.Up.Ideal, s.Weights[0], s.Weights[1], gap)
 
@@ -198,9 +206,11 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 				for _, synapse := range neuron.In {
 					den += synapse.FireDelta(t.D_E_x[i][j])
 				}
-				lr := float64((neuron.Ln + neuron.Sum) / den)
-
-				t.solver.SetLr(i, j, lr)
+				var lr float64
+				if den != 0 {
+					lr = float64((neuron.Ln + neuron.Sum) / den)
+				}
+				t.solver.SetLr(i, j, lr) // solver handles lr <= 0
 				wg.Done()
 			}(&wg, neuron, i, j)
 		}
@@ -229,7 +239,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) {
 
 		for j, n := range l.Neurons {
 			wg.Add(1)
-			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int) {
+			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int, l *deep.Layer) {
 				var update deep.Deepfloat64
 
 				switch l.A {
@@ -260,7 +270,7 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) {
 					}
 				}
 				wg.Done()
-			}(&wg, n, i, j)
+			}(&wg, n, i, j, l)
 		}
 		wg.Wait()
 	}

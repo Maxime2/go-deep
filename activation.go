@@ -209,7 +209,7 @@ func (a *Sigmoid) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0, 0 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Sigmoid) Domain() (Deepfloat64, Deepfloat64) {
-	return 0, 2
+	return -2, 2
 }
 
 // String() rreturn "Sigmoid"
@@ -280,7 +280,7 @@ func (a *Tanh) GetPoint(i int) (Deepfloat64, Deepfloat64) { return 0, 0 }
 
 // Domain() return pair of (minimum, maximum) values defining ("meaningful") domain
 func (a *Tanh) Domain() (Deepfloat64, Deepfloat64) {
-	return 0, 1
+	return -1, 1
 }
 
 // Epoch() set epoch for tabulated functions

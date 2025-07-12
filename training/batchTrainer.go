@@ -131,7 +131,7 @@ func (t *BatchTrainer) Train(n *deep.Neural, examples, validation Examples, iter
 
 		if t.verbosity > 0 && it%uint32(t.verbosity) == 0 && len(validation) > 0 {
 			n.TotalError = 0.0 //deep.TotalError(t.E[len(n.Layers)-1])
-			t.printer.PrintProgress(n, validation, time.Since(ts), it, 0.0)
+			t.printer.PrintProgress(n, validation, time.Since(ts), it)
 		}
 	}
 	//deep.TotalError(t.E[len(n.Layers)-1])

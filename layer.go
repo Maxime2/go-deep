@@ -3,6 +3,7 @@ package deep
 import (
 	"fmt"
 	"math"
+	"sync"
 )
 
 // Layer is a set of neurons and corresponding activation
@@ -34,30 +35,15 @@ func NewLayer(l, n int, activation ActivationType, synapse SynapseType) *Layer {
 }
 
 func (l *Layer) Fire() {
-	ln := len(l.Neurons)
-	cl := make(chan struct{})
-
-	go func() {
-		for j := 0; j < ln/2; j++ {
-			l.Neurons[j].fire()
-		}
-		cl <- struct{}{}
-	}()
-
-	go func() {
-		for j := ln / 2; j < ln; j++ {
-			l.Neurons[j].fire()
-		}
-		cl <- struct{}{}
-	}()
-	<-cl
-	<-cl
-
-	/*
-		for _, n := range l.Neurons {
+	var wg sync.WaitGroup
+	for _, neuron := range l.Neurons {
+		wg.Add(1)
+		go func(n *Neuron) {
+			defer wg.Done()
 			n.fire()
-		}
-	*/
+		}(neuron)
+	}
+	wg.Wait()
 
 	if l.A == ActivationSoftmax {
 		outs := make([]Deepfloat64, len(l.Neurons))
