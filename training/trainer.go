@@ -303,7 +303,6 @@ func (t *OnlineTrainer) epoch(neural *deep.Neural, epoch uint32) {
 // Update from bootom up
 func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 	var completed int
-	var update deep.Deepfloat64
 	var wg sync.WaitGroup
 	for i, l := range neural.Layers {
 		if neural.Config.Type == deep.KolmogorovType && i == 0 {
@@ -312,6 +311,8 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) int {
 		for j, n := range l.Neurons {
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int, l *deep.Layer) {
+				var update deep.Deepfloat64
+
 				switch l.A {
 				case deep.ActivationTabulated:
 					n.A.AddPoint(n.Sum, n.Desired, neural.Config.Epoch)
