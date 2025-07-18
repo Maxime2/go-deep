@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"testing"
 
 	deep "github.com/Maxime2/go-deep"
@@ -33,7 +34,7 @@ func Test_BoundedRegression(t *testing.T) {
 			Weight:     deep.WeightUniform,
 		})
 
-		trainer := NewTrainer(NewSGD(0.25), n.Config.LossPrecision, 100)
+		trainer := NewTrainer(NewSGD(0.25), n.Config.LossPrecision, 100, runtime.NumCPU())
 		trainer.Train(n, data, nil, 5000)
 
 		tests := []deep.Deepfloat64{0.0, 0.1, 0.25, 0.5, 0.75, 0.9}
@@ -62,7 +63,7 @@ func Test_RegressionLinearOuts(t *testing.T) {
 
 	//	trainer := NewBatchTrainer(NewAdam(0.01, 0, 0, 0), 0, 25, 2)
 	//rainer := NewTrainer(NewAdam(0.01, 0, 0, 0), 0)
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 10000)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 10000, runtime.NumCPU())
 	trainer.Train(n, squares, squares, 250000)
 
 	for i := 0; i < 100; i++ {
@@ -89,7 +90,7 @@ func Test_Training(t *testing.T) {
 		Weight:     deep.WeightUniform,
 	})
 
-	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0)
+	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0, runtime.NumCPU())
 	trainer.Train(n, data, nil, 1000)
 
 	v := n.Predict([]deep.Deepfloat64{0})
@@ -120,7 +121,7 @@ func Test_Prediction(t *testing.T) {
 		Activation: []deep.ActivationType{deep.ActivationSigmoid},
 		Weight:     deep.WeightUniform,
 	})
-	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0)
+	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0, runtime.NumCPU())
 
 	trainer.Train(n, data, nil, 5000)
 
@@ -138,7 +139,7 @@ func Test_CrossVal(t *testing.T) {
 		Weight:     deep.WeightUniform,
 	})
 
-	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0)
+	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 0, runtime.NumCPU())
 	trainer.Train(n, data, data, 1000)
 
 	for _, d := range data {
@@ -173,7 +174,7 @@ func Test_MultiClass(t *testing.T) {
 		LossPrecision: 12,
 	})
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 100)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 100, runtime.NumCPU())
 	trainer.Train(n, data, data, 2000)
 
 	for _, d := range data {
@@ -205,7 +206,7 @@ func Test_or(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1}, []deep.Deepfloat64{1}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 10)
+	trainer := NewTrainer(NewSGD(0.5), n.Config.LossPrecision, 10, runtime.NumCPU())
 
 	trainer.Train(n, permutations, permutations, 25)
 
@@ -230,7 +231,7 @@ func Test_xor(t *testing.T) {
 		{[]deep.Deepfloat64{1, 1}, []deep.Deepfloat64{0}},
 	}
 
-	trainer := NewTrainer(NewSGD(1.0), n.Config.LossPrecision, 50)
+	trainer := NewTrainer(NewSGD(1.0), n.Config.LossPrecision, 50, runtime.NumCPU())
 	trainer.Train(n, permutations, permutations, 500)
 
 	for _, perm := range permutations {
@@ -259,7 +260,7 @@ func Test_essential(t *testing.T) {
 		{[]deep.Deepfloat64{0.9, 0.9}, []deep.Deepfloat64{0.9}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000, runtime.NumCPU())
 	trainer.SetPrefix("essential ")
 	n.Dot("essential-test-0.dot")
 	stats := n.InputStats()
@@ -305,7 +306,7 @@ func Test_essential_tabulated(t *testing.T) {
 		{[]deep.Deepfloat64{0.9, 0.9}, []deep.Deepfloat64{0.9}},
 	}
 
-	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000)
+	trainer := NewTrainer(NewSGD(0.01), n.Config.LossPrecision, 50000, runtime.NumCPU())
 	trainer.SetPrefix("essential-tabulated ")
 	n.Dot("essential-tabulated-test-0.dot")
 	n.SaveReadable("essential-tabulated-test-0.neural")
@@ -331,7 +332,6 @@ func Test_essential_tabulated(t *testing.T) {
 	}
 	fmt.Printf("Activation (direct): %s\n", n.Layers[0].Neurons[0].A)
 }
-
 
 func printResult(ideal, actual []float64) {
 	fmt.Printf("want: %+v have: %+v\n", ideal, actual)
@@ -432,7 +432,7 @@ func Test_RHW(t *testing.T) {
 
 	n.SaveReadable("rhw-test-pre.neural")
 	n.Save("rhw-test.dump")
-	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1)
+	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1, runtime.NumCPU())
 	trainer.SetPrefix("RHW ")
 	trainer.Train(n, permutations, permutations, 1425)
 	trainer.SolverSave("rhw-test.sgd")
@@ -551,7 +551,7 @@ func Test_RHW_tabulated(t *testing.T) {
 
 	n.SaveReadable("rhw-tabled-test-pre.neural")
 	n.Save("rhw-tabled-test.dump")
-	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1)
+	trainer := NewTrainer(NewSGD(0.1), n.Config.LossPrecision, 1, runtime.NumCPU())
 	trainer.SetPrefix("RHW ")
 	trainer.Train(n, permutations, permutations, 5)
 	trainer.SolverSave("rhw-tabled-test.sgd")

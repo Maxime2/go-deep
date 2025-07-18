@@ -1,10 +1,14 @@
 package training
 
 import (
+	"context"
 	"math"
 	"os"
+	"runtime"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 
 	deep "github.com/Maxime2/go-deep"
 	"github.com/theothertomelliott/acyclic"
@@ -19,25 +23,32 @@ type Trainer interface {
 // OnlineTrainer is a basic, online network trainer
 type OnlineTrainer struct {
 	*internal
-	solver    Solver
-	printer   *StatsPrinter
-	verbosity int
+	solver      Solver
+	printer     *StatsPrinter
+	verbosity   int
+	parallelism int
+	sem         *semaphore.Weighted
 }
 
 // NewTrainer creates a new trainer
-func NewTrainer(solver Solver, precision, verbosity int) *OnlineTrainer {
+func NewTrainer(solver Solver, precision, verbosity, parallelism int) *OnlineTrainer {
 	if precision == 0 {
 		precision = 4
 	}
+	if parallelism == 0 {
+		parallelism = runtime.NumCPU()
+	}
 	return &OnlineTrainer{
-		solver:    solver,
-		printer:   NewStatsPrinter(precision),
-		verbosity: verbosity,
+		solver:      solver,
+		printer:     NewStatsPrinter(precision),
+		verbosity:   verbosity,
+		parallelism: parallelism,
+		sem:         semaphore.NewWeighted(int64(parallelism)),
 	}
 }
 
 type internal struct {
-	E, E_1 [][]deep.Deepfloat64
+	E [][]deep.Deepfloat64
 	//deltas [][]deep.Deepfloat64
 	D_E_y [][]deep.Deepfloat64
 	D_E_x [][]deep.Deepfloat64
@@ -65,7 +76,6 @@ func newTraining(layers []*deep.Layer) *internal {
 		D_E_y: d_E_y,
 		D_E_x: d_E_x,
 		E:     newE(layers),
-		E_1:   newE(layers),
 	}
 }
 
@@ -88,14 +98,17 @@ func (t *OnlineTrainer) Train(n *deep.Neural, examples, validation Examples, ite
 		}
 		examples.Shuffle()
 		n.Config.Epoch++
-		t.E_1 = t.E
-		t.E = newE(n.Layers)
+		for i := range t.E {
+			for j := range t.E[i] {
+				t.E[i][j] = 0
+			}
+		}
 		for j := 0; j < len(examples); j++ {
 			t.learn(n, examples[j], uint32(n.Config.Epoch))
 		}
 		for e := range t.E {
-			for _, x := range t.E[e] {
-				x /= deep.Deepfloat64(len(examples))
+			for j := range t.E[e] {
+				t.E[e][j] /= deep.Deepfloat64(len(examples))
 			}
 		}
 		if t.verbosity > 0 && i%uint32(t.verbosity) == 0 && len(validation) > 0 {
@@ -117,9 +130,12 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 	loss := deep.GetLoss(n.Config.Loss)
 	t.solver.ResetLr()
 	var wg sync.WaitGroup
+	ctx := context.Background()
 	for i, neuron := range n.Layers[len(n.Layers)-1].Neurons {
+		t.sem.Acquire(ctx, 1)
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, neuron *deep.Neuron, i int) {
+			defer t.sem.Release(1)
 			t.E[len(n.Layers)-1][i] += loss.F(neuron.Value, ideal[i])
 			neuron.Desired = ideal[i]
 			neuron.Ideal = neuron.A.If(ideal[i])
@@ -154,9 +170,11 @@ func (t *OnlineTrainer) calculateDeltas(n *deep.Neural, ideal []deep.Deepfloat64
 
 	for i := len(n.Layers) - 2; i >= bottom; i-- {
 		for j, neuron := range n.Layers[i].Neurons {
+			t.sem.Acquire(ctx, 1)
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, neuron *deep.Neuron, i, j int) {
-				//var sum deep.Deepfloat64
+				defer t.sem.Release(1)
+				// var sum deep.Deepfloat64
 				var sum_y deep.Deepfloat64
 				var n_ideal deep.Deepfloat64
 				for k, s := range neuron.Out {
@@ -230,6 +248,7 @@ func (t *OnlineTrainer) update(neural *deep.Neural, it uint32) {
 // Update from top down
 func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) {
 	var wg sync.WaitGroup
+	ctx := context.Background()
 	bottom := 0
 	if neural.Config.Type == deep.KolmogorovType {
 		bottom = 1
@@ -239,8 +258,10 @@ func (t *OnlineTrainer) update2(neural *deep.Neural, it uint32) {
 
 		for j, n := range l.Neurons {
 			wg.Add(1)
+			t.sem.Acquire(ctx, 1)
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int, l *deep.Layer) {
 				var update deep.Deepfloat64
+				defer t.sem.Release(1)
 
 				switch l.A {
 				case deep.ActivationTabulated:
@@ -305,8 +326,10 @@ func (t *OnlineTrainer) update0(neural *deep.Neural, it uint32) {
 			continue
 		}
 		for j, n := range l.Neurons {
+			t.sem.Acquire(context.Background(), 1)
 			wg.Add(1)
 			go func(wg *sync.WaitGroup, n *deep.Neuron, i, j int, l *deep.Layer) {
+				defer t.sem.Release(1)
 				var update deep.Deepfloat64
 
 				switch l.A {
